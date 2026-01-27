@@ -1,6 +1,6 @@
 package gitgud.pfm.Models;
 
-public class Accounts {
+abstract class Accounts {
     private int id;
     private String name;
     private String type; // bank,aba,cash.....

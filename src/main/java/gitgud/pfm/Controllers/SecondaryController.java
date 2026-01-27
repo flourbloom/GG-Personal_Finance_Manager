@@ -1,8 +1,9 @@
-package gitgud.pfm;
+package gitgud.pfm.Controllers;
 
 import java.io.IOException;
-import javafx.fxml.FXML;
 
+import gitgud.pfm.App;
+import javafx.fxml.FXML;
 public class SecondaryController {
 
     @FXML
