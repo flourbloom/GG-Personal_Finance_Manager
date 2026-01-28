@@ -1,6 +1,7 @@
 package gitgud.pfm.cli;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -8,8 +9,12 @@ import java.util.concurrent.TimeUnit;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Budget;
-import gitgud.pfm.services.GenericSQLiteService;
+import gitgud.pfm.Models.Account;
 import gitgud.pfm.services.CategoryService;
+import gitgud.pfm.services.AccountService;
+import gitgud.pfm.services.BudgetService;
+import gitgud.pfm.services.GoalService;
+import gitgud.pfm.services.TransactionService;
 import gitgud.pfm.Models.Category;
 
 import java.io.IOException;
@@ -23,6 +28,10 @@ public class CliController {
     private Scanner scanner;
     private boolean running = true;
     private final CategoryService categoryService = new CategoryService();
+    private final AccountService accountService = new AccountService();
+    private final BudgetService budgetService = new BudgetService();
+    private final GoalService goalService = new GoalService();
+    private final TransactionService transactionService = new TransactionService();
     
     public CliController() {
         this.scanner = new Scanner(System.in);
@@ -67,23 +76,30 @@ public class CliController {
             
             switch (input) {
                 case "1":
-                    handleViewAccounts();
+                    handleAccountSummary();
                     break;
                 case "2":
-                    handleAddTransaction();
+                    handleViewAllTransactions();
                     break;
                 case "3":
-                    handleAddBudget();
+                    handleAddTransaction();
                     break;
                 case "4":
-                    handleAddGoal();
+                    handleViewAllBudgets();
                     break;
                 case "5":
-                    handleViewReports();
+                    handleAddBudget();
                     break;
                 case "6":
-                    // looks for users input then call exit program
-                    // then changes running to false to exit loop
+                    handleViewAllGoals();
+                    break;
+                case "7":
+                    handleAddGoal();
+                    break;
+                case "8":
+                    handleViewReports();
+                    break;
+                case "9":
                     handleExit();
                     break;
                 default:
@@ -99,11 +115,140 @@ public class CliController {
     // "handle" prefix refers to dealing with user input rather than logic
 
     /**
-     * Handle View Accounts menu option
+     * Handle Account Summary - show all accounts with balances and total
      */
-    private void handleViewAccounts() {
-        System.out.println("View Accounts feature is not implemented yet.");
-        // TODO: Call AccountService to get and display accounts
+    private void handleAccountSummary() {
+        System.out.println("=== Account Summary ===");
+        
+        List<Account> accounts = accountService.readAll();
+        
+        if (accounts.isEmpty()) {
+            System.out.println("No accounts found.");
+        } else {
+            System.out.println("\nAccounts:");
+            System.out.println("----------------------------------------");
+            System.out.printf("%-15s %-20s %15s\n", "Account ID", "Name", "Balance");
+            System.out.println("----------------------------------------");
+            
+            for (Account account : accounts) {
+                System.out.printf("%-15s %-20s $%,14.2f\n", 
+                    account.getAccountID(), 
+                    account.getName(), 
+                    account.getBalance());
+            }
+            
+            System.out.println("----------------------------------------");
+            double totalBalance = accountService.getTotalBalance();
+            System.out.printf("%-35s $%,14.2f\n", "Total Balance:", totalBalance);
+            System.out.println("========================================\n");
+        }
+    }
+    
+    /**
+     * Handle View All Transactions
+     */
+    private void handleViewAllTransactions() {
+        System.out.println("=== All Transactions ===");
+        
+        List<Transaction> transactions = transactionService.readAll();
+        
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions found.");
+        } else {
+            System.out.println("\nTransactions (most recent first):");
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.printf("%-15s %-20s %-15s %-12s $%-12s %-20s\n", 
+                "ID", "Name", "Category", "Account", "Amount", "Date");
+            System.out.println("--------------------------------------------------------------------------------------------");
+            
+            for (Transaction tx : transactions) {
+                String type = tx.getIncome() == 1 ? "[+]" : "[-]";
+                System.out.printf("%-15s %-20s %-15s %-12s %s$%-11.2f %-20s\n",
+                    tx.getID(),
+                    tx.getName().length() > 20 ? tx.getName().substring(0, 17) + "..." : tx.getName(),
+                    tx.getCategories(),
+                    tx.getAccountID(),
+                    type,
+                    tx.getAmount(),
+                    tx.getCreate_time().length() > 20 ? tx.getCreate_time().substring(0, 19) : tx.getCreate_time());
+            }
+            
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.println("Total transactions: " + transactions.size());
+            
+            double totalIncome = transactionService.getTotalIncome();
+            double totalExpenses = transactionService.getTotalExpenses();
+            System.out.printf("Total Income: $%,.2f\n", totalIncome);
+            System.out.printf("Total Expenses: $%,.2f\n", totalExpenses);
+            System.out.printf("Net: $%,.2f\n", totalIncome - totalExpenses);
+            System.out.println("\n");
+        }
+    }
+    
+    /**
+     * Handle View All Budgets
+     */
+    private void handleViewAllBudgets() {
+        System.out.println("=== All Budgets ===");
+        
+        List<Budget> budgets = budgetService.readAll();
+        
+        if (budgets.isEmpty()) {
+            System.out.println("No budgets found.");
+        } else {
+            System.out.println("\nBudgets:");
+            System.out.println("--------------------------------------------------------------------------------------");
+            System.out.printf("%-15s %-20s %12s %12s %-12s %-12s\n", 
+                "ID", "Name", "Limit", "Balance", "Start Date", "End Date");
+            System.out.println("--------------------------------------------------------------------------------------");
+            
+            for (Budget budget : budgets) {
+                System.out.printf("%-15s %-20s $%,10.2f $%,10.2f %-12s %-12s\n",
+                    budget.getId(),
+                    budget.getName(),
+                    budget.getLimits(),
+                    budget.getBalance(),
+                    budget.getStart_date(),
+                    budget.getEnd_date());
+            }
+            
+            System.out.println("--------------------------------------------------------------------------------------");
+            System.out.println("Total budgets: " + budgets.size() + "\n");
+        }
+    }
+    
+    /**
+     * Handle View All Goals
+     */
+    private void handleViewAllGoals() {
+        System.out.println("=== All Goals ===");
+        
+        List<Goal> goals = goalService.readAll();
+        
+        if (goals.isEmpty()) {
+            System.out.println("No goals found.");
+        } else {
+            System.out.println("\nGoals:");
+            System.out.println("-----------------------------------------------------------------------------------------");
+            System.out.printf("%-15s %-20s %12s %12s %10s %-12s\n", 
+                "ID", "Name", "Target", "Current", "Priority", "Deadline");
+            System.out.println("-----------------------------------------------------------------------------------------");
+            
+            for (Goal goal : goals) {
+                double progress = (goal.getBalance() / goal.getTarget()) * 100;
+                System.out.printf("%-15s %-20s $%,10.2f $%,10.2f %9.1f %-12s (%.1f%%)\n",
+                    goal.getId(),
+                    goal.getName(),
+                    goal.getTarget(),
+                    goal.getBalance(),
+                    goal.getPriority(),
+                    goal.getDeadline(),
+                    progress);
+            }
+            
+            System.out.println("-----------------------------------------------------------------------------------------");
+            System.out.println("Total goals: " + goals.size() + "\n");
+        }
     }
     
     /**
@@ -112,8 +257,7 @@ public class CliController {
     private void handleAddTransaction() {
         System.out.println("=== Add Transaction ===");
 
-        // Auto-generate transaction ID
-        String id = "TXN" + System.currentTimeMillis();
+        // ID is auto-generated
 
         // Show all categories grouped by type with numbering
         var defaultCategories = categoryService.getDefaultCategories();
@@ -203,8 +347,10 @@ public class CliController {
 
         // Only generate timestamp if all inputs are valid
         String timestamp = java.time.LocalDateTime.now().toString();
-        Transaction transaction = new Transaction(id, category, amount, name, income, accountID, timestamp);
-
+        Transaction transaction = new Transaction(category, amount, name, income, accountID, timestamp);
+        
+        // Save to database using TransactionService
+        transactionService.create(transaction);
         System.out.println("Transaction created: " + transaction.getName());
     }
     
@@ -231,12 +377,15 @@ public class CliController {
 
     private void printMainMenu() {
         System.out.println("Main Menu:");
-        System.out.println("1. View Accounts");
-        System.out.println("2. Add Transaction");
-        System.out.println("3. Add Budget");
-        System.out.println("4. Add Goal");
-        System.out.println("5. View Reports");
-        System.out.println("6. Exit");
+        System.out.println("1. View Account Summary");
+        System.out.println("2. View All Transactions");
+        System.out.println("3. Add Transaction");
+        System.out.println("4. View All Budgets");
+        System.out.println("5. Add Budget");
+        System.out.println("6. View All Goals");
+        System.out.println("7. Add Goal");
+        System.out.println("8. View Reports");
+        System.out.println("9. Exit");
     }
 
     /**
@@ -245,8 +394,7 @@ public class CliController {
     private void handleAddBudget() {
         System.out.println("=== Add Budget ===");
 
-        System.out.print("Enter budget ID: ");
-        String id = scanner.nextLine().trim();
+        // ID is auto-generated
 
         System.out.print("Enter budget name: ");
         String name = scanner.nextLine().trim();
@@ -266,8 +414,10 @@ public class CliController {
         System.out.print("Enter tracked categories (comma-separated): ");
         String tracked = scanner.nextLine().trim();
 
-        Budget budget = new Budget(id, name, limits, balance, startDate, endDate, tracked);
-
+        Budget budget = new Budget(name, limits, balance, startDate, endDate, tracked);
+        
+        // Save to database using BudgetService
+        budgetService.create(budget);
         System.out.println("Budget created: " + budget.getName());
     }
 
@@ -277,8 +427,7 @@ public class CliController {
     private void handleAddGoal() {
         System.out.println("=== Add Goal ===");
 
-        System.out.print("Enter goal ID: ");
-        String id = scanner.nextLine().trim();
+        // ID is auto-generated
 
         System.out.print("Enter goal name: ");
         String name = scanner.nextLine().trim();
@@ -299,8 +448,10 @@ public class CliController {
         String createAtInput = scanner.nextLine().trim();
         String createAt = createAtInput.isEmpty() ? java.time.LocalDateTime.now().toString() : createAtInput;
 
-        Goal goal = new Goal(id, name, target, current, deadline, priority, createAt);
-
+        Goal goal = new Goal(name, target, current, deadline, priority, createAt);
+        
+        // Save to database using GoalService
+        goalService.create(goal);
         System.out.println("Goal created: " + goal.getName());
     }
 

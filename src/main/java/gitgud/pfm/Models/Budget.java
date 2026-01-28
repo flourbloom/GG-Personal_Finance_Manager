@@ -1,9 +1,6 @@
 package gitgud.pfm.Models;
 
-import gitgud.pfm.services.GenericSQLiteService;
-
-import java.util.HashMap;
-import java.util.Map;
+import gitgud.pfm.utils.IdGenerator;
 
 public class Budget extends FinancialEntity {
     private double limits;
@@ -16,19 +13,13 @@ public class Budget extends FinancialEntity {
         super(null, null, 0.0);
     }
     
-    public Budget(String id, String name, double limits, double balance, String start_date, String end_date,
+    public Budget(String name, double limits, double balance, String start_date, String end_date,
             String trackedCategories) {
-        super(id, name, balance);
+        super(IdGenerator.generateBudgetId(), name, balance);
         this.limits = limits;
         this.start_date = start_date;
         this.end_date = end_date;
         this.trackedCategories = trackedCategories;
-
-        Map<String, Object> config = new HashMap<>();
-        config.put("class", Budget.class);
-        config.put("table", "Budget");
-        config.put("entity", this);
-        GenericSQLiteService.create(config);
     }
     
     public double getLimits() { return limits; }

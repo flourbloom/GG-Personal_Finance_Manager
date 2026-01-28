@@ -1,10 +1,6 @@
 package gitgud.pfm.Models;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-import gitgud.pfm.services.GenericSQLiteService;
+import gitgud.pfm.utils.IdGenerator;
 
 public class Transaction {
     // No-arg constructor required for reflection-based mapping
@@ -18,21 +14,15 @@ public class Transaction {
     private String AccountID;
     private String Create_time;
     
-    public Transaction(String ID, String Categories, double Amount, String Name, 
+    public Transaction(String Categories, double Amount, String Name, 
                       double Income, String AccountID, String Create_time) {
-        this.ID = ID;
+        this.ID = IdGenerator.generateTransactionId();
         this.Categories = Categories;
         this.Amount = Amount;
         this.Name = Name;
         this.Income = Income;
         this.AccountID = AccountID;
         this.Create_time = Create_time;
-
-        Map<String, Object> config = new HashMap<>();
-        config.put("class", Transaction.class);
-        config.put("table", "transaction_records");
-        config.put("entity", this);
-        GenericSQLiteService.create(config);
     }
 
     public String getCategories() { return Categories; }

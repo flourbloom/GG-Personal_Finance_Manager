@@ -1,5 +1,7 @@
 package gitgud.pfm.Models;
 
+import gitgud.pfm.utils.IdGenerator;
+
 public class Account extends FinancialEntity {
     private String accountID;
     private String color;
@@ -9,9 +11,9 @@ public class Account extends FinancialEntity {
         super(null, null, 0.0);
     }
     
-    public Account(String accountID, String color, double balance, String name) {
-        super(accountID, name, balance);
-        this.accountID = accountID;
+    public Account(String color, double balance, String name) {
+        super(IdGenerator.generateAccountId(), name, balance);
+        this.accountID = this.id; // Use the generated ID from parent
         this.color = color;
     }
     
