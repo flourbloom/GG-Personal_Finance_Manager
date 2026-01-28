@@ -44,24 +44,29 @@ public class AccountDataLoader {
 
         // Load Budgets
         Map<String, Object> config = new HashMap<>();
+
         config.put("class", Budget.class);
         config.put("table", "Budget");
-        config.put("filters", accountID);
-        config.put("orderBy", "date DESC");
+        config.put("orderBy", "start_date DESC");
         data.budgets = GenericSQLiteService.readAll(config);
 
+        // Load Transactions (filter by AccountID column)
         config.clear();
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("AccountID", accountID);
+
         config.put("class", Transaction.class);
-        config.put("table", "transactions");
-        config.put("filters", accountID);
-        config.put("orderBy", "date DESC");
+        config.put("table", "transaction_records");
+        config.put("filters", filters);
+        config.put("orderBy", "Create_time DESC");
         data.transactions = GenericSQLiteService.readAll(config);
 
+        // Load Goals
         config.clear();
+
         config.put("class", Goal.class);
         config.put("table", "Goal");
-        config.put("filters", accountID);
-        config.put("orderBy", "date DESC");
+        config.put("orderBy", "createAt DESC");
         data.goals = GenericSQLiteService.readAll(config);
 
         return data;

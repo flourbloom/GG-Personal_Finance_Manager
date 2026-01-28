@@ -7,6 +7,9 @@ import java.util.Map;
 import gitgud.pfm.services.GenericSQLiteService;
 
 public class Transaction {
+    // No-arg constructor required for reflection-based mapping
+    public Transaction() {
+    }
     private String ID;
     private String Categories;
     private double Amount;

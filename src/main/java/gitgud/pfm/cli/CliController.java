@@ -2,6 +2,7 @@ package gitgud.pfm.cli;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -42,7 +43,7 @@ public class CliController {
         // Read Data from Database using id form Wallet,Transaction,Budget,Goal Services
         while (running) {
 
-            printMainMenu();
+            printMainMenu(defaultAccountID);
             System.out.println();
             System.out.print("Please select an option: ");
             String input = scanner.nextLine().trim();
@@ -61,13 +62,13 @@ public class CliController {
                     handleAddGoal(defaultAccountID);
                     break;
                 case "5":
-                    handleViewReports();
+                    handleViewReports(accountData);
                     break;
                 case "6":
-                    handleViewBudgets();
+                    handleViewBudgets(accountData);
                     break;
                 case "7":
-                    handleViewGoals();
+                    handleViewGoals(accountData);
                     break;
                 case "8":
                     // looks for users input then call exit program
@@ -96,22 +97,25 @@ public class CliController {
     /**
      * Handle View Reports menu option
      */
-    private void handleViewReports() {
-        System.out.println("View Reports feature is not implemented yet.");
+    private void handleViewReports(AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== View Transaction Reports ===");
+        for (Transaction t : accountData.getTransactions()) {
+            System.out.println(t);
+        }
     }
 
     /**
      * Handle View Budgets menu option
      */
-    private void handleViewBudgets() {
-        System.out.println("View Budgets feature is not implemented yet.");
+    private void handleViewBudgets(AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== View Budgets ===");
     }
 
     /**
      * Handle View Goals menu option
      */
-    private void handleViewGoals() {
-        System.out.println("View Goals feature is not implemented yet.");
+    private void handleViewGoals(AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== View Goals ===");
     }
 
     /**
@@ -127,8 +131,8 @@ public class CliController {
         System.out.println("-------------------------------------------");
     }
 
-    private void printMainMenu() {
-        System.out.println("Main Menu: ");
+    private void printMainMenu(String AccountID) {
+        System.out.println("Main Menu: " + AccountID);
         System.out.println("1. Select Accounts");
         System.out.println("2. Add Transaction");
         System.out.println("3. Add Budget");
@@ -148,8 +152,8 @@ public class CliController {
     private void handleAddTransaction(String accountID) {
         System.out.println("=== Add Transaction ===");
 
-        System.out.print("Enter transaction ID: ");
-        String id = scanner.nextLine().trim();
+        // Auto-generate a unique transaction ID
+        String id = UUID.randomUUID().toString();
 
         System.out.print("Enter amount: ");
         double amount = Double.parseDouble(scanner.nextLine().trim());

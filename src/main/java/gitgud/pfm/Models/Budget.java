@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Budget {
+    // No-arg constructor required for reflection-based mapping
+    public Budget() {
+    }
     private String id;
     private String name;
     private double limits;

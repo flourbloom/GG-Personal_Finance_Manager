@@ -6,6 +6,9 @@ import java.util.Map;
 import gitgud.pfm.services.GenericSQLiteService;
 
 public class Goal {
+    // No-arg constructor required for reflection-based mapping
+    public Goal() {
+    }
     private String id;
     private String name;
     private double target;
