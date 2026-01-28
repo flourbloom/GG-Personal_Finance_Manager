@@ -43,6 +43,8 @@ public class CliController {
         shutdown();
     }
 
+    // TODO: Move to CategoryService
+    @Deprecated
     private void printAllCategories() {
         var defaultCategories = categoryService.getDefaultCategories();
         System.out.println("Available Categories:");
@@ -96,7 +98,7 @@ public class CliController {
                 case "8":
                     handleViewReports();
                     break;
-                case "9":
+                case "0":
                     handleExit();
                     break;
                 default:
@@ -278,7 +280,6 @@ public class CliController {
 
         // User selects category
         Category selectedCategory = null;
-        int selectedNum = -1;
         while (selectedCategory == null) {
             System.out.print("Select the category (number): ");
             String input = scanner.nextLine().trim();
@@ -286,7 +287,6 @@ public class CliController {
                 int num = Integer.parseInt(input);
                 if (num >= 1 && num <= defaultCategories.size()) {
                     selectedCategory = defaultCategories.get(num - 1);
-                    selectedNum = num;
                 } else {
                     System.out.println("Invalid number. Try again.");
                 }
@@ -324,7 +324,6 @@ public class CliController {
             System.out.printf("  %d. %s\n", i + 1, accounts[i]);
         }
         String accountID = null;
-        int accountNum = -1;
         while (accountID == null) {
             System.out.print("Enter the number of the account: ");
             String input = scanner.nextLine().trim();
@@ -332,7 +331,6 @@ public class CliController {
                 int num = Integer.parseInt(input);
                 if (num >= 1 && num <= accounts.length) {
                     accountID = accounts[num - 1];
-                    accountNum = num;
                 } else {
                     System.out.println("Invalid number. Try again.");
                 }

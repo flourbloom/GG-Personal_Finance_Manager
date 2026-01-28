@@ -33,7 +33,7 @@ public class GoalService implements CRUDInterface<Goal> {
             pstmt.setDouble(4, goal.getBalance()); // balance is "current" amount
             pstmt.setString(5, goal.getDeadline());
             pstmt.setDouble(6, goal.getPriority());
-            pstmt.setString(7, goal.getCreateAt());
+            pstmt.setString(7, goal.getCreateTime());
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -62,7 +62,7 @@ public class GoalService implements CRUDInterface<Goal> {
                     goal.setBalance(rs.getDouble("balance")); // balance is "current"
                     goal.setDeadline(rs.getString("deadline"));
                     goal.setPriority(rs.getDouble("priority"));
-                    goal.setCreateAt(rs.getString("createAt"));
+                    goal.setCreateTime(rs.getString("createAt"));
                     return goal;
                 }
             }
@@ -92,7 +92,7 @@ public class GoalService implements CRUDInterface<Goal> {
                 goal.setBalance(rs.getDouble("balance")); // balance is "current"
                 goal.setDeadline(rs.getString("deadline"));
                 goal.setPriority(rs.getDouble("priority"));
-                goal.setCreateAt(rs.getString("createAt"));
+                goal.setCreateTime(rs.getString("createAt"));
                 goals.add(goal);
             }
         } catch (SQLException e) {
@@ -116,7 +116,7 @@ public class GoalService implements CRUDInterface<Goal> {
             pstmt.setDouble(3, goal.getBalance());
             pstmt.setString(4, goal.getDeadline());
             pstmt.setDouble(5, goal.getPriority());
-            pstmt.setString(6, goal.getCreateAt());
+            pstmt.setString(6, goal.getCreateTime());
             pstmt.setString(7, goal.getId());
             
             pstmt.executeUpdate();
@@ -161,7 +161,7 @@ public class GoalService implements CRUDInterface<Goal> {
                 goal.setBalance(rs.getDouble("balance"));
                 goal.setDeadline(rs.getString("deadline"));
                 goal.setPriority(rs.getDouble("priority"));
-                goal.setCreateAt(rs.getString("createAt"));
+                goal.setCreateTime(rs.getString("createAt"));
                 goals.add(goal);
             }
         } catch (SQLException e) {
