@@ -13,23 +13,12 @@ import java.io.IOException;
  */
 public class App extends Application {
 
-    // Instatiating the scene variable
     private static Scene scene;
 
-    // Abstart start, entry point of the jfx application
     @Override
     public void start(Stage stage) throws IOException {
-        // pass in the fxml file to loadFXML method as the root node
-        // 640 width, 480 height
         scene = new Scene(loadFXML("primary"), 640, 480);
-        
-        // setting the title to stage
-        stage.setTitle("Personal Finance Manager");
-
-        // setting the scene to stage
         stage.setScene(scene);
-
-        // display the stage
         stage.show();
     }
 
