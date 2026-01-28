@@ -3,6 +3,7 @@ package gitgud.pfm.services;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+ 
 
 import gitgud.pfm.Models.*;
 
@@ -12,6 +13,7 @@ public class AccountDataLoader {
         private List<Budget> budgets;
         private List<Goal> goals;
         private List<Transaction> transactions;
+        private gitgud.pfm.Models.Wallet wallet;
 
         public List<Budget> getBudgets() {
             return budgets;
@@ -37,33 +39,47 @@ public class AccountDataLoader {
             this.transactions = transactions;
         }
 
+        public gitgud.pfm.Models.Wallet getWallet() {
+            return wallet;
+        }
+
+        public void setWallet(gitgud.pfm.Models.Wallet wallet) {
+            this.wallet = wallet;
+        }
+
     }
 
-    public static DataHolder AccountDataLoader(String accountID) {
+    public static DataHolder loadAccountData(String accountID) {
         DataHolder data = new DataHolder();
 
-        // Load Budgets
+        // Budgets: read all budgets (public data)
         Map<String, Object> config = new HashMap<>();
-
         config.put("class", Budget.class);
         config.put("table", "Budget");
         config.put("orderBy", "start_date DESC");
         data.budgets = GenericSQLiteService.readAll(config);
 
-        // Load Transactions (filter by AccountID column)
+        // Transactions: read all transactions where AccountID = keyString
         config.clear();
-        Map<String, Object> filters = new HashMap<>();
-        filters.put("AccountID", accountID);
-
+        Map<String, Object> txFilters = new HashMap<>();
+        txFilters.put("AccountID", accountID);
         config.put("class", Transaction.class);
         config.put("table", "transaction_records");
-        config.put("filters", filters);
+        config.put("filters", txFilters);
         config.put("orderBy", "Create_time DESC");
         data.transactions = GenericSQLiteService.readAll(config);
 
-        // Load Goals
+        // Wallet: read Wallet by primary key 'AccountID'
         config.clear();
+        config.put("class", Wallet.class);
+        config.put("table", "Wallets");
+        config.put("pk", "AccountID");
+        config.put("id", accountID);
+        Wallet wallet = GenericSQLiteService.read(config);
+        data.setWallet(wallet);
 
+        // Goals: read all goals (public data)
+        config.clear();
         config.put("class", Goal.class);
         config.put("table", "Goal");
         config.put("orderBy", "createAt DESC");

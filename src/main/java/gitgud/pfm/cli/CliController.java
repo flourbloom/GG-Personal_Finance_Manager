@@ -1,7 +1,5 @@
 package gitgud.pfm.cli;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +8,6 @@ import gitgud.pfm.Models.*;
 import gitgud.pfm.services.*;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -39,7 +36,8 @@ public class CliController {
      */
     private void mainMenuLoop() {
         String defaultAccountID = "default-account-id";
-        AccountDataLoader.DataHolder accountData = AccountDataLoader.AccountDataLoader(defaultAccountID);
+
+        AccountDataLoader.DataHolder accountData = AccountDataLoader.loadAccountData(defaultAccountID);
         // Read Data from Database using id form Wallet,Transaction,Budget,Goal Services
         while (running) {
 
@@ -48,36 +46,36 @@ public class CliController {
             System.out.print("Please select an option: ");
             String input = scanner.nextLine().trim();
 
-            switch (input) {
-                case "1":
-                    handleViewAccounts();
-                    break;
-                case "2":
-                    handleAddTransaction(defaultAccountID);
-                    break;
-                case "3":
-                    handleAddBudget(defaultAccountID);
-                    break;
-                case "4":
-                    handleAddGoal(defaultAccountID);
-                    break;
-                case "5":
-                    handleViewReports(accountData);
-                    break;
-                case "6":
-                    handleViewBudgets(accountData);
-                    break;
-                case "7":
-                    handleViewGoals(accountData);
-                    break;
-                case "8":
-                    // looks for users input then call exit program
-                    // then changes running to false to exit loop
-                    handleExit();
-                    break;
-                default:
-                    System.out.println("Invalid option. Please try again.");
-            }
+                switch (input) {
+                    case "1":
+                        handleViewAccounts();
+                        break;
+                    case "2":
+                        handleAddTransaction(defaultAccountID, accountData);
+                        break;
+                    case "3":
+                        handleAddBudget(defaultAccountID, accountData);
+                        break;
+                    case "4":
+                        handleAddGoal(defaultAccountID, accountData);
+                        break;
+                    case "5":
+                        handleViewReports(accountData);
+                        break;
+                    case "6":
+                        handleViewBudgets(accountData);
+                        break;
+                    case "7":
+                        handleViewGoals(accountData);
+                        break;
+                    case "8":
+                        // looks for users input then call exit program
+                        // then changes running to false to exit loop
+                        handleExit();
+                        break;
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                }
 
             System.out.println();
             pauseConsole();
@@ -96,26 +94,75 @@ public class CliController {
 
     /**
      * Handle View Reports menu option
+     * 
+     * this.ID = ID;
+     * this.Categories = Categories;
+     * this.Amount = Amount;
+     * this.Name = Name;
+     * this.Income = Income;
+     * this.AccountID = AccountID;
+     * this.Create_time = Create_time;
      */
     private void handleViewReports(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== View Transaction Reports ===");
+        System.out.printf("%-20s %10s %-20s %10s %-15s %20s%n", "Name", "Amount", "Categories", "Income", "Account ID", "Created At");
         for (Transaction t : accountData.getTransactions()) {
-            System.out.println(t);
+            System.out.printf("%-20s %10.2f %-20s %10.2f %-15s %20s%n",
+                    t.getName(),
+                    t.getAmount(),
+                    t.getCategories(),
+                    t.getIncome(),
+                    t.getAccountID(),
+                    t.getCreate_time());
         }
     }
 
     /**
      * Handle View Budgets menu option
+     * private String id;
+     * private String name;
+     * private double limits;
+     * private double balance;
+     * private String start_date;
+     * private String end_date;
+     * private String trackedCategories;
      */
     private void handleViewBudgets(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== View Budgets ===");
+        System.out.printf("%-20s %10s %10s %-12s %-12s %-20s%n", "Name", "Limits", "Balance", "Start", "End", "Tracked Categories");
+        for (Budget b : accountData.getBudgets()) {
+            System.out.printf("%-20s %10.2f %10.2f %-12s %-12s %-20s%n",
+                    b.getName(),
+                    b.getLimits(),
+                    b.getBalance(),
+                    b.getStart_date(),
+                    b.getEnd_date(),
+                    b.getTrackedCategories());
+        }
     }
 
     /**
      * Handle View Goals menu option
+     * private String id;
+     * private String name;
+     * private double target;
+     * private double current;
+     * private String deadline;
+     * private double priority;
+     * private String createAt;
      */
     private void handleViewGoals(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== View Goals ===");
+        System.out.printf("%-20s %10s %10s %-12s %10s %20s%n", "Name", "Target", "Current", "Deadline", "Priority", "Created At");
+        for (Goal g : accountData.getGoals()) {
+            System.out.printf("%-20s %10.2f %10.2f %-12s %10.2f %20s%n",
+                    g.getName(),
+                    g.getTarget(),
+                    g.getCurrent(),
+                    g.getDeadline(),
+                    g.getPriority(),
+                    g.getCreateAt());
+        }
     }
 
     /**
@@ -149,7 +196,7 @@ public class CliController {
     /**
      * Handle Add Transaction menu option
      */
-    private void handleAddTransaction(String accountID) {
+    private void handleAddTransaction(String accountID, AccountDataLoader.DataHolder accountData) {
         System.out.println("=== Add Transaction ===");
 
         // Auto-generate a unique transaction ID
@@ -173,18 +220,16 @@ public class CliController {
             createTimeInput = LocalDateTime.now().toString();
         }
 
-        String timestamp = createTimeInput.isEmpty() ? java.time.LocalDateTime.now().toString() : createTimeInput;
-
         // Construct Transaction; constructor persists to DB like Budget
-        Transaction transaction = new Transaction(id, category, amount, name, income, accountID, timestamp);
-
+        Transaction transaction = new Transaction(id, category, amount, name, income, accountID, createTimeInput);
+        accountData.getTransactions().add(transaction);
         System.out.println("Transaction created: " + transaction.getName());
     }
 
     /**
      * Handle Add Budget menu option
      */
-    private void handleAddBudget(String accountID) {
+    private void handleAddBudget(String accountID, AccountDataLoader.DataHolder accountData) {
         System.out.println("=== Add Budget ===");
 
         System.out.print("Enter budget ID: ");
@@ -212,14 +257,14 @@ public class CliController {
         String tracked = scanner.nextLine().trim();
 
         Budget budget = new Budget(id, name, limits, balance, startDate, endDate, tracked);
-
+        accountData.getBudgets().add(budget);
         System.out.println("Budget created: " + budget.getName());
     }
 
     /**
      * Handle Add Goal menu option
      */
-    private void handleAddGoal(String accountID) {
+    private void handleAddGoal(String accountID, AccountDataLoader.DataHolder accountData) {
         System.out.println("=== Add Goal ===");
 
         System.out.print("Enter goal ID: ");
@@ -247,7 +292,7 @@ public class CliController {
         }
 
         Goal goal = new Goal(id, name, target, current, deadline, priority, createAt);
-
+        accountData.getGoals().add(goal);
         System.out.println("Goal created: " + goal.getName());
     }
 
