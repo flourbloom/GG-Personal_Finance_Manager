@@ -1,27 +1,43 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Run CLI",
-            "type": "shell",
-            "command": "mvn",
-            "args": ["compile", "exec:java"],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Run GUI (JavaFX)",
-            "type": "shell",
-            "command": "mvn",
-            "args": ["clean", "javafx:run"],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "problemMatcher": []
-        }
-    ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run CLI",
+			"type": "shell",
+			"command": "mvn",
+			"args": [
+				"compile",
+				"exec:java"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Run GUI (JavaFX)",
+			"type": "shell",
+			"command": "mvn",
+			"args": [
+				"clean",
+				"javafx:run"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Run FinanceAppcopy GUI",
+			"type": "shell",
+			"command": "mvn",
+			"args": [
+				"javafx:run",
+				"-Djavafx.mainClass=gitgud.pfm.FinanceAppcopy.FinanceApp"
+			],
+			"group": "build"
+		}
+	]
 }

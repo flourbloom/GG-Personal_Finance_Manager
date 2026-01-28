@@ -1,0 +1,104 @@
+/* Main application styles */
+
+.root {
+    -fx-background-color: #f0f2f5;
+}
+
+/* Progress Bar Styling */
+.progress-bar {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 999;
+}
+
+.progress-bar > .track {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 999;
+}
+
+.progress-bar > .bar {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #60a5fa);
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* Hyperlink Styling */
+.hyperlink {
+    -fx-border-width: 0;
+    -fx-underline: false;
+}
+
+.hyperlink:hover {
+    -fx-underline: true;
+}
+
+/* ComboBox Styling */
+.combo-box {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.combo-box:hover {
+    -fx-border-color: #cbd5e1;
+}
+
+/* ScrollPane */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+/* Chart Styling */
+.chart {
+    -fx-background-color: transparent;
+}
+
+.chart-plot-background {
+    -fx-background-color: white;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: #3b82f6;
+    -fx-stroke-width: 3px;
+}
+
+.default-color1.chart-series-line {
+    -fx-stroke: #94a3b8;
+    -fx-stroke-width: 2px;
+    -fx-stroke-dash-array: 5 5;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: #3b82f6, white;
+}
+
+.default-color1.chart-line-symbol {
+    -fx-background-color: #94a3b8, white;
+}
+
+.axis {
+    -fx-font-size: 12px;
+    -fx-text-fill: #64748b;
+}
+
+.axis-label {
+    -fx-text-fill: #64748b;
+}
