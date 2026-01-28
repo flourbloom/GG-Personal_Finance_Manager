@@ -5,10 +5,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-import gitgud.pfm.Models.Goal;
-import gitgud.pfm.Models.Transaction;
-import gitgud.pfm.Models.Budget;
-import gitgud.pfm.services.GenericSQLiteService;
+import gitgud.pfm.Models.*;
+import gitgud.pfm.services.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -20,11 +18,11 @@ import java.time.LocalDateTime;
 public class CliController {
     private Scanner scanner;
     private boolean running = true;
-    
+
     public CliController() {
         this.scanner = new Scanner(System.in);
     }
-    
+
     /**
      * Start the CLI application
      */
@@ -33,17 +31,21 @@ public class CliController {
         mainMenuLoop();
         shutdown();
     }
-    
+
     /**
      * Main menu loop - handles user input and navigation
      */
     private void mainMenuLoop() {
+        String defaultAccountID = "default-account-id";
+        AccountDataLoader.DataHolder accountData = AccountDataLoader.AccountDataLoader(defaultAccountID);
+        // Read Data from Database using id form Wallet,Transaction,Budget,Goal Services
         while (running) {
+
             printMainMenu();
             System.out.println();
             System.out.print("Please select an option: ");
             String input = scanner.nextLine().trim();
-            
+
             switch (input) {
                 case "1":
                     handleViewAccounts();
@@ -61,6 +63,12 @@ public class CliController {
                     handleViewReports();
                     break;
                 case "6":
+                    System.out.println("View Budgets feature is not implemented yet.");
+                    break;
+                case "7":
+                    System.out.println("View Goals feature is not implemented yet.");
+                    break;
+                case "8":
                     // looks for users input then call exit program
                     // then changes running to false to exit loop
                     handleExit();
@@ -68,13 +76,13 @@ public class CliController {
                 default:
                     System.out.println("Invalid option. Please try again.");
             }
-            
+
             System.out.println();
             pauseConsole();
             clearConsole();
         }
     }
-    
+
     // "handle" prefix refers to dealing with user input rather than logic
 
     /**
@@ -84,7 +92,7 @@ public class CliController {
         System.out.println("View Accounts feature is not implemented yet.");
         // TODO: Call AccountService to get and display accounts
     }
-    
+
     /**
      * Handle Add Transaction menu option
      */
@@ -118,7 +126,7 @@ public class CliController {
 
         System.out.println("Transaction created: " + transaction.getName());
     }
-    
+
     /**
      * Handle View Reports menu option
      */
@@ -126,7 +134,7 @@ public class CliController {
         System.out.println("View Reports feature is not implemented yet.");
         // TODO: Call ReportService to display reports
     }
-    
+
     /**
      * Handle Exit menu option
      */
@@ -134,20 +142,25 @@ public class CliController {
         System.out.println("Exiting the Personal Finance Manager CLI. Goodbye!");
         exitProgram();
     }
-    
+
     private void printWelcomeMessage() {
         System.out.println("Welcome to the Personal Finance Manager CLI!");
         System.out.println("-------------------------------------------");
     }
 
     private void printMainMenu() {
-        System.out.println("Main Menu:");
-        System.out.println("1. View Accounts");
+        System.out.println("Main Menu: ");
+        System.out.println("1. Select Accounts");
         System.out.println("2. Add Transaction");
         System.out.println("3. Add Budget");
         System.out.println("4. Add Goal");
-        System.out.println("5. View Reports");
-        System.out.println("6. Exit");
+        System.out.println("-------------------------------------------");
+        System.out.println("5. View Transaction Reports");
+        System.out.println("6. View Budgets");
+        System.out.println("7. View Goals");
+        System.out.println("-------------------------------------------");
+        System.out.println("8. Exit");
+
     }
 
     /**
@@ -231,8 +244,7 @@ public class CliController {
         try {
             if (System.getProperty("os.name").contains("Windows")) {
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            }
-            else {
+            } else {
                 System.out.print("\033\143");
             }
         } catch (IOException | InterruptedException ex) {
