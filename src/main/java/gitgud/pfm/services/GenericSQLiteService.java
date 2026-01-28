@@ -643,16 +643,47 @@ public class GenericSQLiteService<T> implements CRUDService<T> {
         for (Field entityField : entityClass.getDeclaredFields()) {
             entityField.setAccessible(true);
 
-            if (rowData.containsKey(entityField.getName())) {
-                Object columnValue = rowData.get(entityField.getName());
+            // Determine the expected DB column name for this field
+            String expectedColumn = mapFieldToColumn(entityField.getName());
 
-                if (columnValue != null) {
-                    entityField.set(entityInstance, columnValue);
-                }
+            // Try exact column, then lowercase, then original name as fallback
+            Object columnValue = null;
+            if (rowData.containsKey(expectedColumn)) {
+                columnValue = rowData.get(expectedColumn);
+            } else if (rowData.containsKey(expectedColumn.toLowerCase())) {
+                columnValue = rowData.get(expectedColumn.toLowerCase());
+            } else if (rowData.containsKey(entityField.getName())) {
+                columnValue = rowData.get(entityField.getName());
+            }
+
+            if (columnValue != null) {
+                entityField.set(entityInstance, columnValue);
             }
         }
 
         return entityInstance;
+    }
+
+    private String mapFieldToColumn(String fieldName) {
+        switch (fieldName) {
+            case "id":
+            case "ID":
+                return "ID";
+            case "Categories":
+                return "category";
+            case "Amount":
+                return "amount";
+            case "Name":
+                return "name";
+            case "Income":
+                return "income";
+            case "AccountID":
+                return "AccountID";
+            case "Create_time":
+                return "date";
+            default:
+                return fieldName;
+        }
     }
 
     /**

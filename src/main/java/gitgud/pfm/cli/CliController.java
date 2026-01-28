@@ -1,6 +1,7 @@
 package gitgud.pfm.cli;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -12,7 +13,6 @@ import gitgud.pfm.services.CategoryService;
 import gitgud.pfm.Models.Category;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 /**
  * CLI Controller - Manages the command-line interface and user interactions
@@ -73,6 +73,9 @@ public class CliController {
                     break;
                 case "5":
                     handleAddBudget();
+                    break;
+                case "6":
+                    handleShowAllTransactions();
                     break;
                 case "3":
                     handleViewReports();
@@ -225,6 +228,63 @@ public class CliController {
         System.out.println("Exiting the Personal Finance Manager CLI. Goodbye!");
         exitProgram();
     }
+
+    /**
+     * Show all transactions directly from the database
+     */
+    private void handleShowAllTransactions() {
+        System.out.println("=== All Transactions (DB) ===");
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("table", "transaction_records");
+
+        List<Map<String, Object>> rows = GenericSQLiteService.readAllAsMap(config);
+        if (rows == null || rows.isEmpty()) {
+            System.out.println("No transactions found.");
+            return;
+        }
+
+        System.out.printf("%-36s %-20s %-10s %-20s %-8s %-15s %s%n",
+                "ID", "Name", "Amount", "Category", "Income", "AccountID", "Date");
+
+        for (Map<String, Object> row : rows) {
+            String id = firstNonNull(row, "ID", "id", "Id");
+            String name = firstNonNull(row, "name", "Name", "NameText", "description");
+            double amount = firstNonNullNumber(row, "amount", "Amount", "amt");
+            String category = firstNonNull(row, "category", "Categories", "CategoriesText");
+            double income = firstNonNullNumber(row, "income", "Income");
+            String accountId = firstNonNull(row, "AccountID", "account", "Account");
+            String date = firstNonNull(row, "date", "Create_time", "CreateAt", "createAt");
+
+            System.out.printf("%-36s %-20s %10.2f %-20s %8.2f %-15s %s%n",
+                    id, name, amount, category, income, accountId, date);
+        }
+    }
+
+    private String firstNonNull(Map<String, Object> row, String... keys) {
+        for (String k : keys) {
+            if (row.containsKey(k) && row.get(k) != null) {
+                return String.valueOf(row.get(k));
+            }
+            // try lower-case variant
+            String lower = k.toLowerCase();
+            if (row.containsKey(lower) && row.get(lower) != null) {
+                return String.valueOf(row.get(lower));
+            }
+        }
+        return "";
+    }
+
+    private double firstNonNullNumber(Map<String, Object> row, String... keys) {
+        for (String k : keys) {
+            Object v = row.containsKey(k) ? row.get(k) : row.get(k.toLowerCase());
+            if (v instanceof Number) return ((Number)v).doubleValue();
+            if (v instanceof String) {
+                try { return Double.parseDouble((String)v); } catch (Exception e) { }
+            }
+        }
+        return 0.0;
+    }
     
     private void printWelcomeMessage() {
         System.out.println("Welcome to the Personal Finance Manager CLI!");
@@ -238,6 +298,7 @@ public class CliController {
         System.out.println("3. View Reports");
         System.out.println("4. Exit");
         System.out.println("5. Add Budget");
+        System.out.println("6. Show All Transactions (DB)");
     }
 
     /**
