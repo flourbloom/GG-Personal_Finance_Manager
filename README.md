@@ -1,17 +1,35 @@
+# Personal Finance Manager
+
+Currently this project is a simple JavaFX app, but currently CLI is being worked on.
+
 ## Prerequisites
 Install maven binaries on your system.
 Add maven bin folder to your system path.
 
-### Running the project
+## Running the project
 To run the project, execute the following command in the terminal:
 
+### For JavaFX application
 ```
 mvn clean javafx:run
 ```
+or
+```
+mvn javafx:run
+```
 
-This command will clean the project and run the JavaFX application.
+The first command will clear any prebuilt binaries before running the application, while the second command will run the application without cleaning.
 
-### Building the project
+### For CLI application
+```
+mvn clean exec:java -Dexec.mainClass="gitgud.pfm.cli.CliMain"
+```
+or
+```
+mvn exec:java
+```
+
+## Building the project
 To build the project, execute the following command in the terminal:
 
 ```
@@ -19,6 +37,21 @@ mvn clean package
 ```
 
 This command will clean the project and package it into a JAR file located in the `target` directory.
+
+The output will be be two jar files:
+- pfm-gui.jar : JavaFX application
+- pfm-cli.jar : CLI application
+
+### Running the built JAR files
+To run the built JAR files, use the following commands:
+For JavaFX application:
+```
+java -jar target/pfm-gui.jar
+```
+For CLI application:
+```
+java -jar target/pfm-cli.jar
+```
 
 ### difference between clean and without clean
 

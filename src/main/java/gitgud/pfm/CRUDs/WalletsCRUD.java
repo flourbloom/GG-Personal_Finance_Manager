@@ -1,22 +1,34 @@
 package gitgud.pfm.CRUDs;
 
-import gitgud.pfm.interfaces.CRUD;
-import gitgud.pfm.Models.Wallets;
+import gitgud.pfm.interfaces.CRUDService;
+import gitgud.pfm.Models.Wallet;
 import gitgud.pfm.services.Database;
 
-public class WalletsCRUD implements CRUD<Wallets> {
+public class WalletsCRUD implements CRUDService<Wallet> {
 
-    public void create(Wallets wallet) {
-        // Implementation for creating an account
+    @Override
+    public void create(Wallet entity) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'create'");
     }
-    public Wallets read(String id) {
-        // Implementation for reading an account by id
-        return null;
+
+    @Override
+    public Wallet read(String id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'read'");
     }
-    public void update(Wallets wallet) {
-        // Implementation for updating an account
+
+    @Override
+    public void update(Wallet entity) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'update'");
     }
+
+    @Override
     public void delete(String id) {
-        // Implementation for deleting an account by id
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'delete'");
     }
+
+
 }

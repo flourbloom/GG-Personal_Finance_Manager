@@ -1,6 +1,6 @@
 package gitgud.pfm.interfaces;
 
-public interface CRUD<T> {
+public interface CRUDService<T> {
     void create(T entity);
     T read(String id);
     void update(T entity);
