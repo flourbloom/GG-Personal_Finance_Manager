@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.sql.Statement;
 
-public class WalletImplement {
+public class WalletCRUD {
     
     public void saveWallet(Wallet wallet) {
         String insertSql = "INSERT INTO Wallets(AccountID, Color, Balance, Name) VALUES(?,?,?,?)";

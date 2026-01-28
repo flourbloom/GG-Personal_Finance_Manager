@@ -11,7 +11,7 @@ import java.sql.Statement;
 import gitgud.pfm.Models.Wallet;
 
 
-public class TransactionImplement {
+public class TransactionCRUD {
     
     public void saveTransaction(Transaction transaction) {
       String insertSql = "INSERT INTO transaction_records(ID, Categories, Amount, Name, Income, AccountID, Create_time) VALUES(?,?,?,?,?,?,?)";

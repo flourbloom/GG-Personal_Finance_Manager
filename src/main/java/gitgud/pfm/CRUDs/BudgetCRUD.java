@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.sql.Statement;
 
-public class BudgetImplement {
+public class BudgetCRUD {
     
     public void saveBudget(Budget budget) {
         String insertSql = "INSERT INTO Budget(id, name, limits, balance, start_date, end_date, trackedCategories) VALUES(?,?,?,?,?,?,?)";

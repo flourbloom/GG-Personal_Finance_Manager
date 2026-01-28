@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.sql.Statement;
 
-public class GoalImplement {
+public class GoalCRUD {
     
     public void saveGoal(Goal goal) {
         String insertSql = "INSERT INTO Goal(id, name, target, current, deadline, priority, createAt) VALUES(?,?,?,?,?,?,?)";
