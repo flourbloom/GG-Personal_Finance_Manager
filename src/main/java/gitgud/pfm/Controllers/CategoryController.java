@@ -20,36 +20,7 @@ import javafx.scene.control.TextField;
 public class CategoryController implements Initializable {
 	@FXML private FlowPane customExpensePane;
 	@FXML private FlowPane customIncomePane;
-		// Handlers for predefined category buttons
-		@FXML
-		private void editGroceries() {
-			showAlert("Edit Groceries (Expense)");
-		}
-
-		@FXML
-		private void editUtilities() {
-			showAlert("Edit Utilities (Expense)");
-		}
-
-		@FXML
-		private void editTransport() {
-			showAlert("Edit Transport (Expense)");
-		}
-
-		@FXML
-		private void editEntertainment() {
-			showAlert("Edit Entertainment (Expense)");
-		}
-
-		@FXML
-		private void editSalary() {
-			showAlert("Edit Salary (Income)");
-		}
-
-		@FXML
-		private void editOtherIncome() {
-			showAlert("Edit Other Income (Income)");
-		}
+	// Dynamically add predefined categories as buttons
 	// @FXML private ListView<String> categoryListView;
 	@FXML private TextField nameField;
 	@FXML private TextField descField;
@@ -58,12 +29,27 @@ public class CategoryController implements Initializable {
 	private final CategoryService service = new CategoryService();
 	public void initialize(URL location, ResourceBundle resources) {
 		typeCombo.setItems(FXCollections.observableArrayList("EXPENSE", "INCOME"));
+		updatePredefinedCategoryButtons();
 		updateCustomCategoryButtons();
 	}
 
-	private void updateCustomCategoryButtons() {
+	private void updatePredefinedCategoryButtons() {
 		customExpensePane.getChildren().clear();
 		customIncomePane.getChildren().clear();
+		for (Category c : service.getDefaultCategories()) {
+			Button btn = new Button(c.getName());
+			btn.setStyle("-fx-background-radius: 20; -fx-padding: 10 20; -fx-background-color: #b3d9ff;");
+			btn.setOnAction(e -> showAlert("Edit Predefined Category: " + c.getName()));
+			if (c.getType() == Category.Type.EXPENSE) {
+				customExpensePane.getChildren().add(btn);
+			} else {
+				customIncomePane.getChildren().add(btn);
+			}
+		}
+	}
+
+	private void updateCustomCategoryButtons() {
+		// Only add custom categories, do not clear the pane (preserve predefined)
 		for (Category c : service.getCustomCategories()) {
 			Button btn = new Button(c.getName());
 			btn.setStyle("-fx-background-radius: 20; -fx-padding: 10 20; -fx-background-color: #e0e0e0;");
@@ -96,6 +82,8 @@ public class CategoryController implements Initializable {
 		Category.Type type = Category.Type.valueOf(typeStr);
 		Category custom = new Category(0, name, desc, type, 0.0, true);
 		service.addCustomCategory(custom);
+		// Redraw all custom category buttons (predefined remain)
+		updatePredefinedCategoryButtons();
 		updateCustomCategoryButtons();
 		nameField.clear();
 		descField.clear();
