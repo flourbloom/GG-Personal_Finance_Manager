@@ -32,7 +32,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
             pstmt.setDouble(3, transaction.getAmount());
             pstmt.setString(4, transaction.getName());
             pstmt.setDouble(5, transaction.getIncome());
-            pstmt.setString(6, transaction.getAccountId());
+            pstmt.setString(6, transaction.getWalletId());
             pstmt.setString(7, transaction.getCreateTime());
             
             pstmt.executeUpdate();
@@ -61,7 +61,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
                     transaction.setAmount(rs.getDouble("amount"));
                     transaction.setName(rs.getString("name"));
                     transaction.setIncome(rs.getDouble("income"));
-                    transaction.setAccountId(rs.getString("walletId"));
+                    transaction.setWalletId(rs.getString("walletId"));
                     transaction.setCreateTime(rs.getString("createTime"));
                     return transaction;
                 }
@@ -91,7 +91,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
                 transaction.setAmount(rs.getDouble("amount"));
                 transaction.setName(rs.getString("name"));
                 transaction.setIncome(rs.getDouble("income"));
-                transaction.setAccountId(rs.getString("walletId"));
+                transaction.setWalletId(rs.getString("walletId"));
                 transaction.setCreateTime(rs.getString("createTime"));
                 transactions.add(transaction);
             }
@@ -121,7 +121,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
                     transaction.setAmount(rs.getDouble("amount"));
                     transaction.setName(rs.getString("name"));
                     transaction.setIncome(rs.getDouble("income"));
-                    transaction.setAccountId(rs.getString("walletId"));
+                    transaction.setWalletId(rs.getString("walletId"));
                     transaction.setCreateTime(rs.getString("createTime"));
                     transactions.add(transaction);
                 }
@@ -146,7 +146,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
             pstmt.setDouble(2, transaction.getAmount());
             pstmt.setString(3, transaction.getName());
             pstmt.setDouble(4, transaction.getIncome());
-            pstmt.setString(5, transaction.getAccountId());
+            pstmt.setString(5, transaction.getWalletId());
             pstmt.setString(6, transaction.getCreateTime());
             pstmt.setString(7, transaction.getId());
             

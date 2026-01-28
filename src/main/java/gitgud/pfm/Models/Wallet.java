@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import gitgud.pfm.services.GenericSQLiteService;
+import gitgud.pfm.utils.IdGenerator;
 
 // TODO This is the renamed version of account
 // So in the future commits, this should replace account related code
@@ -15,15 +16,9 @@ public class Wallet extends FinancialEntity {
         super(null, null, 0.0);
     }
     
-    public Wallet(String walletId, String color, double balance, String name) {
-        super(walletId, name, balance);
+    public Wallet(String color, double balance, String name) {
+        super(IdGenerator.generateWalletId(), name, balance);
         this.Color = color;
-
-        Map<String, Object> config = new HashMap<>();
-        config.put("class", Wallet.class);
-        config.put("table", "Wallet");
-        config.put("entity", this);
-        GenericSQLiteService.create(config);
     }
     
     public String getColor() { return Color; }

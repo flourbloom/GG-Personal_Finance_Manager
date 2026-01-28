@@ -1,10 +1,6 @@
 package gitgud.pfm.Models;
 
 import gitgud.pfm.utils.IdGenerator;
-import java.util.HashMap;
-import java.util.Map;
-
-import gitgud.pfm.services.GenericSQLiteService;
 
 public class Transaction{
 
@@ -13,7 +9,7 @@ public class Transaction{
     private String name;
     private double income; // 1 for income, 0 for expense
     private double amount;
-    private String accountId;
+    private String walletId;
     private String createTime;
 
     // No-arg constructor required for reflection-based mapping
@@ -22,21 +18,14 @@ public class Transaction{
     }
     
     public Transaction(String categoryId, double amount, String name, 
-                      double income, String accountId, String createTime) {
+                      double income, String walletId, String createTime) {
         this.id = IdGenerator.generateTransactionId();
         this.amount = amount;
         this.name = name;
         this.categoryId = categoryId;
         this.income = income;
-        this.accountId = accountId;
+        this.walletId = walletId;
         this.createTime = createTime;
-
-        // TODO this should either be deprecated or implemented properly
-        // Map<String, Object> config = new HashMap<>();
-        // config.put("class", Transaction.class);
-        // config.put("table", "transaction_records");
-        // config.put("entity", this);
-        // GenericSQLiteService.create(config);
     }
     
     public String getId() {
@@ -79,12 +68,12 @@ public class Transaction{
         this.income = income;
     }
 
-    public String getAccountId() {
-        return accountId;
+    public String getWalletId() {
+        return walletId;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setWalletId(String walletId) {
+        this.walletId = walletId;
     }
 
     public String getCreateTime() {

@@ -3,7 +3,6 @@ package gitgud.pfm.cli;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -11,7 +10,6 @@ import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Wallet;
 import gitgud.pfm.Models.Budget;
-import gitgud.pfm.Models.Account;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.services.*;
 
@@ -45,8 +43,27 @@ public class CliController {
      */
     public void start() {
         printWelcomeMessage();
+        initializeDefaultWallets();
         mainMenuLoop();
         shutdown();
+    }
+    
+    /**
+     * Initialize default wallets if none exist
+     */
+    private void initializeDefaultWallets() {
+        List<Wallet> wallets = walletService.readAll();
+        if (wallets.isEmpty()) {
+            System.out.println("Initializing default wallets...");
+            
+            Wallet cashWallet = new Wallet("Green", 0.0, "Cash");
+            Wallet cardWallet = new Wallet("Blue", 0.0, "Card");
+            
+            walletService.create(cashWallet);
+            walletService.create(cardWallet);
+            
+            System.out.println("Default wallets created: Cash and Card\n");
+        }
     }
     
     /**
@@ -72,18 +89,36 @@ public class CliController {
                     handleAddTransaction();
                     break;
                 case "4":
-                    handleViewAllBudgets();
+                    handleUpdateTransaction(currentAccountID, accountData);
                     break;
                 case "5":
-                    handleAddBudget();
+                    System.out.println("Delete Transaction feature not yet implemented.");
                     break;
                 case "6":
-                    handleViewAllGoals();
+                    handleViewAllBudgets();
                     break;
                 case "7":
-                    handleAddGoal();
+                    handleAddBudget();
                     break;
                 case "8":
+                    handleUpdateBudget(currentAccountID, accountData);
+                    break;
+                case "9":
+                    System.out.println("Delete Budget feature not yet implemented.");
+                    break;
+                case "10":
+                    handleViewAllGoals();
+                    break;
+                case "11":
+                    handleAddGoal();
+                    break;
+                case "12":
+                    handleUpdateGoal(currentAccountID, accountData);
+                    break;
+                case "13":
+                    System.out.println("Delete Goal feature not yet implemented.");
+                    break;
+                case "17":
                     handleViewReports(accountData);
                     break;
                 case "0":
@@ -144,6 +179,13 @@ public class CliController {
         if (transactions.isEmpty()) {
             System.out.println("No transactions found.");
         } else {
+            // Create a map of category ID to category name
+            Map<String, String> categoryMap = new HashMap<>();
+            List<Category> categories = categoryService.getDefaultCategories();
+            for (Category category : categories) {
+                categoryMap.put(category.getId(), category.getName());
+            }
+            
             System.out.println("\nTransactions (most recent first):");
             System.out.println("--------------------------------------------------------------------------------------------");
             System.out.printf("%-15s %-20s %-15s %-12s $%-12s %-20s\n", 
@@ -155,11 +197,12 @@ public class CliController {
             
             for (Transaction tx : transactions) {
                 String type = tx.getIncome() == 1 ? "[+]" : "[-]";
+                String categoryName = categoryMap.getOrDefault(tx.getCategoryId(), tx.getCategoryId());
                 System.out.printf("%-15s %-20s %-15s %-12s %s$%-11.2f %-20s\n",
                     tx.getId(),
                     tx.getName().length() > 20 ? tx.getName().substring(0, 17) + "..." : tx.getName(),
-                    tx.getCategoryId(),
-                    tx.getAccountId(),
+                    categoryName,
+                    tx.getWalletId(),
                     type,
                     tx.getAmount(),
                     tx.getCreateTime().length() > 20 ? tx.getCreateTime().substring(0, 19) : tx.getCreateTime());
@@ -230,7 +273,7 @@ public class CliController {
             System.out.println("-----------------------------------------------------------------------------------------");
             
             for (Goal goal : goals) {
-                double progress = (goal.getBalance() / goal.getTarget()) * 100;
+                double progress = goal.getTarget() > 0 ? (goal.getBalance() / goal.getTarget()) * 100 : 0;
                 System.out.printf("%-15s %-20s $%,10.2f $%,10.2f %9.1f %-12s (%.1f%%)\n",
                     goal.getId(),
                     goal.getName(),
@@ -254,24 +297,25 @@ public class CliController {
 
         // ID is auto-generated
 
-        // Show all categories grouped by type with numbering
+        // Show all categories grouped by type with continuous numbering
         var defaultCategories = categoryService.getDefaultCategories();
         System.out.println("Available Categories:");
-        int idx = 1;
+        int categoryIndex = 1;
+        
         System.out.println("Expense Categories:");
         for (Category cat : defaultCategories) {
             if (cat.getType() == Category.Type.EXPENSE) {
-                System.out.printf("  %d. %s\n", idx, cat.getName());
+                System.out.printf("  %d. %s\n", categoryIndex, cat.getName());
+                categoryIndex++;
             }
-            idx++;
         }
-        idx = 1;
+        
         System.out.println("Income Categories:");
         for (Category cat : defaultCategories) {
             if (cat.getType() == Category.Type.INCOME) {
-                System.out.printf("  %d. %s\n", idx, cat.getName());
+                System.out.printf("  %d. %s\n", categoryIndex, cat.getName());
+                categoryIndex++;
             }
-            idx++;
         }
 
         // User selects category
@@ -306,10 +350,14 @@ public class CliController {
         System.out.println("Income set to " + income + " (" + (income == 0 ? "expense" : "income") + ").");
 
         // Pick account by number
-        String[] wallets = {"Wallet", "Bank"};
+        List<Wallet> wallets = walletService.readAll();
+        if (wallets.isEmpty()) {
+            System.out.println("No wallets found. Cannot create transaction.");
+            return;
+        }
         System.out.println("Pick an account:");
-        for (int i = 0; i < wallets.length; i++) {
-            System.out.printf("  %d. %s\n", i + 1, wallets[i]);
+        for (int i = 0; i < wallets.size(); i++) {
+            System.out.printf("  %d. %s (Balance: $%.2f)\n", i + 1, wallets.get(i).getName(), wallets.get(i).getBalance());
         }
         String walletId = null;
         while (walletId == null) {
@@ -317,8 +365,8 @@ public class CliController {
             String input = scanner.nextLine().trim();
             try {
                 int num = Integer.parseInt(input);
-                if (num >= 1 && num <= wallets.length) {
-                    walletId = wallets[num - 1];
+                if (num >= 1 && num <= wallets.size()) {
+                    walletId = wallets.get(num - 1).getId();
                 } else {
                     System.out.println("Invalid number. Try again.");
                 }
@@ -354,14 +402,23 @@ public class CliController {
      */
     private void handleViewReports(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== View Transaction Reports ===");
+        
+        // Create a map of category ID to category name
+        Map<String, String> categoryMap = new HashMap<>();
+        List<Category> categories = categoryService.getDefaultCategories();
+        for (Category category : categories) {
+            categoryMap.put(category.getId(), category.getName());
+        }
+        
         System.out.printf("%-20s %10s %-20s %10s %-15s %20s%n", "Name", "Amount", "Categories", "Income", "Wallet ID", "Created At");
         for (Transaction t : accountData.getTransactions()) {
+            String categoryName = categoryMap.getOrDefault(t.getCategoryId(), t.getCategoryId());
             System.out.printf("%-20s %10.2f %-20s %10.2f %-15s %20s%n",
                     t.getName(),
                     t.getAmount(),
-                    t.getCategoryId(),
+                    categoryName,
                     t.getIncome(),
-                    t.getAccountId(),
+                    t.getWalletId(),
                     t.getCreateTime());
         }
     }
@@ -416,6 +473,299 @@ public class CliController {
         }
     }
 
+    /* Update handlers: show view, ask for ID, ask which field, update in-memory and persist */
+    private void handleUpdateTransaction(String accountID, AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== Update Transaction ===");
+        handleViewReports(accountData);
+        System.out.print("Enter Transaction Name to update: ");
+        String name = scanner.nextLine().trim();
+
+        Transaction found = null;
+        String id = null;
+        for (Transaction t : accountData.getTransactions()) {
+            if (t.getName() != null && t.getName().equals(name)) {
+                found = t;
+                id = t.getId();
+                break;
+            }
+        }
+
+        if (found == null) {
+            System.out.println("Transaction not found.");
+            return;
+        }
+
+        System.out.println("Fields: name, amount, category, income, walletid, createtime");
+        System.out.print("Enter field to update: ");
+        String field = scanner.nextLine().trim().toLowerCase();
+
+        Map<String, Object> updates = new HashMap<>();
+
+        try {
+            switch (field) {
+                case "name":
+                    System.out.print("Enter new name: ");
+                    String newName = scanner.nextLine().trim();
+                    found.setName(newName);
+                    updates.put("name", newName);
+                    break;
+                case "amount":
+                    System.out.print("Enter new amount: ");
+                    double amt = Double.parseDouble(scanner.nextLine().trim());
+                    found.setAmount(amt);
+                    updates.put("amount", amt);
+                    break;
+                case "category":
+                    var defaultCategories = categoryService.getDefaultCategories();
+                    System.out.println("\nAvailable Categories:");
+                    int categoryIndex = 1;
+                    
+                    System.out.println("Expense Categories:");
+                    for (Category cat : defaultCategories) {
+                        if (cat.getType() == Category.Type.EXPENSE) {
+                            System.out.printf("  %d. %s\n", categoryIndex, cat.getName());
+                            categoryIndex++;
+                        }
+                    }
+                    
+                    System.out.println("Income Categories:");
+                    for (Category cat : defaultCategories) {
+                        if (cat.getType() == Category.Type.INCOME) {
+                            System.out.printf("  %d. %s\n", categoryIndex, cat.getName());
+                            categoryIndex++;
+                        }
+                    }
+                    
+                    Category selectedCategory = null;
+                    while (selectedCategory == null) {
+                        System.out.print("Select the category (number): ");
+                        String categoryInput = scanner.nextLine().trim();
+                        try {
+                            int num = Integer.parseInt(categoryInput);
+                            if (num >= 1 && num <= defaultCategories.size()) {
+                                selectedCategory = defaultCategories.get(num - 1);
+                            } else {
+                                System.out.println("Invalid number. Try again.");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Please enter a valid number.");
+                        }
+                    }
+                    String newCategoryId = selectedCategory.getId();
+                    found.setCategoryId(newCategoryId);
+                    updates.put("categoryId", newCategoryId);
+                    System.out.println("You selected: " + selectedCategory.getName());
+                    break;
+                case "income":
+                    System.out.print("Enter new income value (0=expense, 1=income): ");
+                    double inc = Double.parseDouble(scanner.nextLine().trim());
+                    found.setIncome(inc);
+                    updates.put("income", inc);
+                    break;
+                case "walletid":
+                    System.out.print("Enter new wallet ID: ");
+                    String walletId = scanner.nextLine().trim();
+                    found.setWalletId(walletId);
+                    updates.put("walletId", walletId);
+                    break;
+                case "createtime":
+                    System.out.print("Enter new create time: ");
+                    String createTime = scanner.nextLine().trim();
+                    found.setCreateTime(createTime);
+                    updates.put("createTime", createTime);
+                    break;
+                default:
+                    System.out.println("Unknown field.");
+                    return;
+            }
+
+            Map<String, Object> config = new HashMap<>();
+            config.put("class", Transaction.class);
+            config.put("table", "transaction_records");
+            config.put("id", id);
+            config.put("updates", updates);
+            GenericSQLiteService.update(config);
+
+            System.out.println("Transaction updated.");
+            this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid numeric value: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Failed to persist update: " + ex.getMessage());
+        }
+    }
+
+    private void handleUpdateBudget(String accountID, AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== Update Budget ===");
+        handleViewBudgets(accountData);
+        System.out.print("Enter Budget name to update: ");
+        String bname = scanner.nextLine().trim();
+
+        Budget found = null;
+        String id = null;
+        for (Budget b : accountData.getBudgets()) {
+            if (b.getName() != null && b.getName().equals(bname)) {
+                found = b;
+                id = b.getId();
+                break;
+            }
+        }
+
+        if (found == null) {
+            System.out.println("Budget not found.");
+            return;
+        }
+
+        System.out.println("Fields: name, limitamount, balance, startdate, enddate");
+        System.out.print("Enter field to update: ");
+        String field = scanner.nextLine().trim().toLowerCase();
+
+        Map<String, Object> updates = new HashMap<>();
+
+        try {
+            switch (field) {
+                case "name":
+                    System.out.print("Enter new name: ");
+                    String newName = scanner.nextLine().trim();
+                    found.setName(newName);
+                    updates.put("name", newName);
+                    break;
+                case "limitamount":
+                    System.out.print("Enter new limit amount: ");
+                    double lim = Double.parseDouble(scanner.nextLine().trim());
+                    found.setLimitAmount(lim);
+                    updates.put("limitAmount", lim);
+                    break;
+                case "balance":
+                    System.out.print("Enter new balance: ");
+                    double bal = Double.parseDouble(scanner.nextLine().trim());
+                    found.setBalance(bal);
+                    updates.put("balance", bal);
+                    break;
+                case "startdate":
+                    System.out.print("Enter new start date (YYYY-MM-DD): ");
+                    String startDate = scanner.nextLine().trim();
+                    found.setStartDate(startDate);
+                    updates.put("startDate", startDate);
+                    break;
+                case "enddate":
+                    System.out.print("Enter new end date (YYYY-MM-DD): ");
+                    String endDate = scanner.nextLine().trim();
+                    found.setEndDate(endDate);
+                    updates.put("endDate", endDate);
+                    break;
+                    // TODO: trackedCategories update handling
+                // case "trackedCategoryIds":
+                //     found.setTrackedCategoryIds(newValue);
+                //     updates.put("trackedCategoryIds", newValue);
+                //     break;
+                default:
+                    System.out.println("Unknown field.");
+                    return;
+            }
+
+            Map<String, Object> config = new HashMap<>();
+            config.put("class", Budget.class);
+            config.put("table", "Budget");
+            config.put("id", id);
+            config.put("updates", updates);
+            GenericSQLiteService.update(config);
+
+            System.out.println("Budget updated.");
+            this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid numeric value: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Failed to persist update: " + ex.getMessage());
+        }
+    }
+
+    private void handleUpdateGoal(String accountID, AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== Update Goal ===");
+        handleViewGoals(accountData);
+        System.out.print("Enter Goal name to update: ");
+        String gname = scanner.nextLine().trim();
+
+        Goal found = null;
+        String id = null;
+        for (Goal g : accountData.getGoals()) {
+            if (g.getName() != null && g.getName().equals(gname)) {
+                found = g;
+                id = g.getId();
+                break;
+            }
+        }
+
+        if (found == null) {
+            System.out.println("Goal not found.");
+            return;
+        }
+
+        System.out.println("Fields: name, target, balance, deadline, priority, createat");
+        System.out.print("Enter field to update: ");
+        String field = scanner.nextLine().trim().toLowerCase();
+
+        Map<String, Object> updates = new HashMap<>();
+
+        try {
+            switch (field) {
+                case "name":
+                    System.out.print("Enter new name: ");
+                    String newName = scanner.nextLine().trim();
+                    found.setName(newName);
+                    updates.put("name", newName);
+                    break;
+                case "target":
+                    System.out.print("Enter new target amount: ");
+                    double tar = Double.parseDouble(scanner.nextLine().trim());
+                    found.setTarget(tar);
+                    updates.put("target", tar);
+                    break;
+                case "balance":
+                    System.out.print("Enter new current amount: ");
+                    double cur = Double.parseDouble(scanner.nextLine().trim());
+                    found.setBalance(cur);
+                    updates.put("balance", cur);
+                    break;
+                case "deadline":
+                    System.out.print("Enter new deadline (YYYY-MM-DD): ");
+                    String deadline = scanner.nextLine().trim();
+                    found.setDeadline(deadline);
+                    updates.put("deadline", deadline);
+                    break;
+                case "priority":
+                    System.out.print("Enter new priority (numeric): ");
+                    double pr = Double.parseDouble(scanner.nextLine().trim());
+                    found.setPriority(pr);
+                    updates.put("priority", pr);
+                    break;
+                case "createat":
+                    System.out.print("Enter new creation time (YYYY-MM-DD): ");
+                    String createTime = scanner.nextLine().trim();
+                    found.setCreateTime(createTime);
+                    updates.put("createAt", createTime);
+                    break;
+                default:
+                    System.out.println("Unknown field.");
+                    return;
+            }
+
+            Map<String, Object> config = new HashMap<>();
+            config.put("class", Goal.class);
+            config.put("table", "Goal");
+            config.put("id", id);
+            config.put("updates", updates);
+            GenericSQLiteService.update(config);
+
+            System.out.println("Goal updated.");
+            this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid numeric value: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Failed to persist update: " + ex.getMessage());
+        }
+    }
+
     /**
      * Handle Exit menu option
      */
@@ -435,20 +785,21 @@ public class CliController {
         System.out.println("========================================");
         System.out.println("2. View All Transactions");
         System.out.println("3. Add Transaction");
-        System.out.println("#. Edit Transaction (Not Implemented)");
-        System.out.println("#. Delete Transaction (Not Implemented)");
+        System.out.println("4. Edit Transaction");
+        System.out.println("5. Delete Transaction (Not Implemented)");
         System.out.println("========================================");
-        System.out.println("4. View All Budgets");
-        System.out.println("5. Add Budget");
-        System.out.println("#. Edit Budget (Not Implemented)");
-        System.out.println("#. Delete Budget (Not Implemented)");
+        System.out.println("6. View All Budgets");
+        System.out.println("7. Add Budget");
+        System.out.println("8. Edit Budget");
+        System.out.println("9. Delete Budget (Not Implemented)");
         System.out.println("========================================");
-        System.out.println("6. View All Goals");
-        System.out.println("7. Add Goal");
-        System.out.println("#. Edit Goal (Not Implemented)");
-        System.out.println("#. Delete Goal (Not Implemented)");
+        System.out.println("10. View All Goals");
+        System.out.println("11. Add Goal");
+        System.out.println("12. Edit Goal");
+        System.out.println("13. Delete Goal (Not Implemented)");
         System.out.println("========================================");
-        System.out.println("8. View Reports");
+        System.out.println("17. View Reports");
+        System.out.println("========================================");
         System.out.println("0. Exit");
     }
 

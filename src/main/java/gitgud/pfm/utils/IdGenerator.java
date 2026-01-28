@@ -8,11 +8,11 @@ import java.util.UUID;
 public class IdGenerator {
     
     /**
-     * Generate a unique ID for Account
-     * Format: ACC_{timestamp}_{randomUUID}
+     * Generate a unique ID for Wallet
+     * Format: WAL_{timestamp}_{randomUUID}
      */
-    public static String generateAccountId() {
-        return "ACC_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8);
+    public static String generateWalletId() {
+        return "WAL_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8);
     }
     
     /**
