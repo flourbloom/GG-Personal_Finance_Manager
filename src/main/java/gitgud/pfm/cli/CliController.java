@@ -9,6 +9,7 @@ import gitgud.pfm.Models.*;
 import gitgud.pfm.services.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -51,22 +52,22 @@ public class CliController {
                     handleViewAccounts();
                     break;
                 case "2":
-                    handleAddTransaction();
+                    handleAddTransaction(defaultAccountID);
                     break;
                 case "3":
-                    handleAddBudget();
+                    handleAddBudget(defaultAccountID);
                     break;
                 case "4":
-                    handleAddGoal();
+                    handleAddGoal(defaultAccountID);
                     break;
                 case "5":
                     handleViewReports();
                     break;
                 case "6":
-                    System.out.println("View Budgets feature is not implemented yet.");
+                    handleViewBudgets();
                     break;
                 case "7":
-                    System.out.println("View Goals feature is not implemented yet.");
+                    handleViewGoals();
                     break;
                 case "8":
                     // looks for users input then call exit program
@@ -90,41 +91,6 @@ public class CliController {
      */
     private void handleViewAccounts() {
         System.out.println("View Accounts feature is not implemented yet.");
-        // TODO: Call AccountService to get and display accounts
-    }
-
-    /**
-     * Handle Add Transaction menu option
-     */
-    private void handleAddTransaction() {
-        System.out.println("=== Add Transaction ===");
-
-        System.out.print("Enter transaction ID: ");
-        String id = scanner.nextLine().trim();
-
-        System.out.print("Enter amount: ");
-        double amount = Double.parseDouble(scanner.nextLine().trim());
-
-        System.out.print("Enter transaction name: ");
-        String name = scanner.nextLine().trim();
-
-        System.out.print("Enter categories (comma-separated): ");
-        String category = scanner.nextLine().trim();
-
-        System.out.print("Enter account ID: ");
-        String accountID = scanner.nextLine().trim();
-
-        System.out.print("Enter income amount (0 if expense): ");
-        double income = Double.parseDouble(scanner.nextLine().trim());
-
-        System.out.print("Enter create time (YYYY-MM-DD or leave blank for now): ");
-        String createTimeInput = scanner.nextLine().trim();
-        String timestamp = createTimeInput.isEmpty() ? java.time.LocalDateTime.now().toString() : createTimeInput;
-
-        // Construct Transaction; constructor persists to DB like Budget
-        Transaction transaction = new Transaction(id, category, amount, name, income, accountID, timestamp);
-
-        System.out.println("Transaction created: " + transaction.getName());
     }
 
     /**
@@ -132,7 +98,20 @@ public class CliController {
      */
     private void handleViewReports() {
         System.out.println("View Reports feature is not implemented yet.");
-        // TODO: Call ReportService to display reports
+    }
+
+    /**
+     * Handle View Budgets menu option
+     */
+    private void handleViewBudgets() {
+        System.out.println("View Budgets feature is not implemented yet.");
+    }
+
+    /**
+     * Handle View Goals menu option
+     */
+    private void handleViewGoals() {
+        System.out.println("View Goals feature is not implemented yet.");
     }
 
     /**
@@ -164,9 +143,44 @@ public class CliController {
     }
 
     /**
+     * Handle Add Transaction menu option
+     */
+    private void handleAddTransaction(String accountID) {
+        System.out.println("=== Add Transaction ===");
+
+        System.out.print("Enter transaction ID: ");
+        String id = scanner.nextLine().trim();
+
+        System.out.print("Enter amount: ");
+        double amount = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.print("Enter transaction name: ");
+        String name = scanner.nextLine().trim();
+
+        System.out.print("Enter categories (comma-separated): ");
+        String category = scanner.nextLine().trim();
+
+        System.out.print("Enter income amount (0 if expense): ");
+        double income = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.print("Enter creation time (YYYY-MM-DD or leave blank for now): ");
+        String createTimeInput = scanner.nextLine().trim();
+        if (createTimeInput.isEmpty()) {
+            createTimeInput = LocalDateTime.now().toString();
+        }
+
+        String timestamp = createTimeInput.isEmpty() ? java.time.LocalDateTime.now().toString() : createTimeInput;
+
+        // Construct Transaction; constructor persists to DB like Budget
+        Transaction transaction = new Transaction(id, category, amount, name, income, accountID, timestamp);
+
+        System.out.println("Transaction created: " + transaction.getName());
+    }
+
+    /**
      * Handle Add Budget menu option
      */
-    private void handleAddBudget() {
+    private void handleAddBudget(String accountID) {
         System.out.println("=== Add Budget ===");
 
         System.out.print("Enter budget ID: ");
@@ -181,8 +195,11 @@ public class CliController {
         System.out.print("Enter starting balance: ");
         double balance = Double.parseDouble(scanner.nextLine().trim());
 
-        System.out.print("Enter start date (YYYY-MM-DD): ");
+        System.out.print("Enter start date (YYYY-MM-DD leave blank for now): ");
         String startDate = scanner.nextLine().trim();
+        if (startDate.isEmpty()) {
+            startDate = LocalDateTime.now().toString();
+        }
 
         System.out.print("Enter end date (YYYY-MM-DD): ");
         String endDate = scanner.nextLine().trim();
@@ -198,7 +215,7 @@ public class CliController {
     /**
      * Handle Add Goal menu option
      */
-    private void handleAddGoal() {
+    private void handleAddGoal(String accountID) {
         System.out.println("=== Add Goal ===");
 
         System.out.print("Enter goal ID: ");
@@ -220,8 +237,10 @@ public class CliController {
         double priority = Double.parseDouble(scanner.nextLine().trim());
 
         System.out.print("Enter creation time (YYYY-MM-DD or leave blank for now): ");
-        String createAtInput = scanner.nextLine().trim();
-        String createAt = createAtInput.isEmpty() ? java.time.LocalDateTime.now().toString() : createAtInput;
+        String createAt = scanner.nextLine().trim();
+        if (createAt.isEmpty()) {
+            createAt = LocalDateTime.now().toString();
+        }
 
         Goal goal = new Goal(id, name, target, current, deadline, priority, createAt);
 
