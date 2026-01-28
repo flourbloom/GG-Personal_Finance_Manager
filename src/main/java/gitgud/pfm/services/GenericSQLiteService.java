@@ -1,6 +1,6 @@
 package gitgud.pfm.services;
 
-import gitgud.pfm.interfaces.CRUD;
+import gitgud.pfm.interfaces.CRUDService;
 
 import java.lang.reflect.Field;
 import java.sql.*;
@@ -34,7 +34,7 @@ import java.util.*;
  * config.put("class", replacewithclassname.class);
  * config.put("table", "replacewithtablename");
  * config.put("entity", this);
- * GenericSQLiteCRUD.create(config);
+ * GenericSQLiteService.create(config);
  * 
  * ═══════════════════════════════════════════════════════════════════════════════
  * USAGE EXAMPLES (CRUD Order)
@@ -49,7 +49,7 @@ import java.util.*;
  * config.put("class", Transaction.class);
  * config.put("table", "transactions");
  * config.put("entity", t);
- * GenericSQLiteCRUD.create(config);
+ * GenericSQLiteService.create(config);
  * 
  * ★ AUTO-SAVE IN CONSTRUCTOR:
  * public Transaction(String id, double amount, String date) {
@@ -61,7 +61,7 @@ import java.util.*;
  * config.put("class", Transaction.class);
  * config.put("table", "transactions");
  * config.put("entity", this);
- * GenericSQLiteCRUD.create(config);
+ * GenericSQLiteService.create(config);
  * }
  * 
  * ───────────────────────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ import java.util.*;
  * config.put("class", Transaction.class);
  * config.put("table", "transactions");
  * config.put("id", "txn_123");
- * Transaction t = GenericSQLiteCRUD.read(config);
+ * Transaction t = GenericSQLiteService.read(config);
  * 
  * ───────────────────────────────────────────────────────────────────────────────
  * READ - Get multiple records (filtered, ordered, limited)
@@ -87,7 +87,7 @@ import java.util.*;
  * config.put("filters", filters);
  * config.put("orderBy", "date DESC");
  * config.put("limit", 50);
- * List<Transaction> transactions = GenericSQLiteCRUD.readAll(config);
+ * List<Transaction> transactions = GenericSQLiteService.readAll(config);
  * 
  * ───────────────────────────────────────────────────────────────────────────────
  * READ - Get data as Maps (for GUI tables - no class needed)
@@ -96,7 +96,7 @@ import java.util.*;
  * Map<String, Object> config = new HashMap<>();
  * config.put("table", "transactions");
  * config.put("orderBy", "date DESC");
- * List<Map<String, Object>> rows = GenericSQLiteCRUD.readAllAsMap(config);
+ * List<Map<String, Object>> rows = GenericSQLiteService.readAllAsMap(config);
  * // rows = [{"id": "txn_123", "amount": 100.50, "date": "2026-01-28"}, ...]
  * 
  * ───────────────────────────────────────────────────────────────────────────────
@@ -112,7 +112,7 @@ import java.util.*;
  * config.put("table", "transactions");
  * config.put("id", "txn_123");
  * config.put("updates", updates);
- * GenericSQLiteCRUD.update(config);
+ * GenericSQLiteService.update(config);
  * 
  * ───────────────────────────────────────────────────────────────────────────────
  * DELETE - Remove record by ID
@@ -122,19 +122,19 @@ import java.util.*;
  * config.put("class", Transaction.class);
  * config.put("table", "transactions");
  * config.put("id", "txn_123");
- * GenericSQLiteCRUD.delete(config);
+ * GenericSQLiteService.delete(config);
  * 
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-public class GenericSQLiteCRUD<T> implements CRUD<T> {
+public class GenericSQLiteService<T> implements CRUDService<T> {
 
     private final Class<T> entityClass;
     private final String tableName;
     private final String primaryKeyColumnName;
 
-    private static final Map<String, GenericSQLiteCRUD<?>> singletonInstances = new HashMap<>();
+    private static final Map<String, GenericSQLiteService<?>> singletonInstances = new HashMap<>();
 
-    private GenericSQLiteCRUD(Class<T> entityClass, String tableName, String primaryKeyColumnName) {
+    private GenericSQLiteService(Class<T> entityClass, String tableName, String primaryKeyColumnName) {
         this.entityClass = entityClass;
         this.tableName = tableName;
         this.primaryKeyColumnName = primaryKeyColumnName == null || primaryKeyColumnName.isEmpty() ? "id"
@@ -142,16 +142,16 @@ public class GenericSQLiteCRUD<T> implements CRUD<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public static synchronized <T> GenericSQLiteCRUD<T> getInstance(Class<T> entityClass, String tableName,
+    public static synchronized <T> GenericSQLiteService<T> getInstance(Class<T> entityClass, String tableName,
             String primaryKeyColumnName) {
         String instanceKey = entityClass.getName() + "|" + tableName + "|"
                 + (primaryKeyColumnName == null ? "id" : primaryKeyColumnName);
 
         if (!singletonInstances.containsKey(instanceKey)) {
-            singletonInstances.put(instanceKey, new GenericSQLiteCRUD<>(entityClass, tableName, primaryKeyColumnName));
+            singletonInstances.put(instanceKey, new GenericSQLiteService<>(entityClass, tableName, primaryKeyColumnName));
         }
 
-        return (GenericSQLiteCRUD<T>) singletonInstances.get(instanceKey);
+        return (GenericSQLiteService<T>) singletonInstances.get(instanceKey);
     }
 
     protected Connection getConnection() throws SQLException {

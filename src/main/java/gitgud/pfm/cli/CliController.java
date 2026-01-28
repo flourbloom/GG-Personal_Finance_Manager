@@ -1,11 +1,15 @@
 package gitgud.pfm.cli;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-import gitgud.pfm.services.TransactionService;
+import gitgud.pfm.Models.Transaction;
+import gitgud.pfm.services.GenericSQLiteService;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 /**
  * CLI Controller - Manages the command-line interface and user interactions
@@ -78,22 +82,42 @@ public class CliController {
      */
     private void handleAddTransaction() {
         System.out.println("=== Add Transaction ===");
-        
-        // Get transaction index
+
+        // Get transaction ID
         System.out.print("Enter transaction ID: ");
-        int id = Integer.parseInt(scanner.nextLine().trim());
+        String id = scanner.nextLine().trim();
         
         // Get amount
         System.out.print("Enter amount: ");
         double amount = Double.parseDouble(scanner.nextLine().trim());
         
-        // Get title/description
-        System.out.print("Enter transaction title: ");
-        String title = scanner.nextLine().trim();
+        // Get transaction name
+        System.out.print("Enter transaction name: ");
+        String name = scanner.nextLine().trim();
         
+        // Get category
+        System.out.print("Enter category: ");
+        String category = scanner.nextLine().trim();
+        
+        // Get account ID
+        System.out.print("Enter account ID: ");
+        String accountID = scanner.nextLine().trim();
+        
+        // Get income amount (0 if expense)
+        System.out.print("Enter income amount (0 if expense): ");
+        double income = Double.parseDouble(scanner.nextLine().trim());
+
+        // Get current timestamp
+        String timestamp = java.time.LocalDateTime.now().toString();
+
         // Call service to add transaction
-        TransactionService transactionService = new TransactionService();
-        transactionService.addTransaction(id, amount, title);
+        Transaction transaction = new Transaction(id, category, amount, name, income, accountID, timestamp);
+        
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Transaction.class);
+        config.put("table", "transaction_records");
+        config.put("entity", transaction);
+        GenericSQLiteService.create(config);
         
         System.out.println("Transaction added successfully!");
     }
