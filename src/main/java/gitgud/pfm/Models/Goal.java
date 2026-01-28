@@ -1,36 +1,38 @@
 package gitgud.pfm.Models;
 
-public class Goal {
-    private String id;
-    private String name;
+import java.util.HashMap;
+import java.util.Map;
+
+import gitgud.pfm.services.GenericSQLiteService;
+
+public class Goal extends FinancialEntity {
     private double target;
-    private double current;
     private String deadline;
     private double priority;
     private String createAt;
     
+    // No-arg constructor required for reflection-based mapping (do not auto-persist)
+    public Goal() {
+        super(null, null, 0.0);
+    }
+    
     public Goal(String id, String name, double target, double current, 
                 String deadline, double priority, String createAt) {
-        this.id = id;
-        this.name = name;
+        super(id, name, current);
         this.target = target;
-        this.current = current;
         this.deadline = deadline;
         this.priority = priority;
         this.createAt = createAt;
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Goal.class);
+        config.put("table", "Goal");
+        config.put("entity", this);
+        GenericSQLiteService.create(config);
     }
-    
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
     
     public double getTarget() { return target; }
     public void setTarget(double target) { this.target = target; }
-    
-    public double getCurrent() { return current; }
-    public void setCurrent(double current) { this.current = current; }
     
     public String getDeadline() { return deadline; }
     public void setDeadline(String deadline) { this.deadline = deadline; }

@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import gitgud.pfm.Models.Transaction;
-import gitgud.pfm.interfaces.CRUDService;
+import gitgud.pfm.interfaces.CRUDInterface;
 
-public class TransactionService implements CRUDService<Transaction> {
+public class TransactionService implements CRUDInterface<Transaction> {
 
     public TransactionService() {
     }
