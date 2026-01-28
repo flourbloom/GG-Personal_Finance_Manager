@@ -6,35 +6,39 @@ import java.util.Map;
 
 import gitgud.pfm.services.GenericSQLiteService;
 
-public class Transaction extends FinancialEntity{
-    // No-arg constructor required for reflection-based mapping
-    public Transaction() {
-        super(null, null, 0.0);
-    }
+public class Transaction{
+
+    private String id; //Primary Key
     private String categoryId;
-    private double amount;
     private String name;
-    private double income;
+    private double income; // 1 for income, 0 for expense
+    private double amount;
     private String accountId;
     private String createTime;
+
+    // No-arg constructor required for reflection-based mapping
+    public Transaction() {
+        this(null, 0.0, null, 0.0, null, null);
+    }
     
-    public Transaction(String categoryId, String category, double amount, String name, 
+    public Transaction(String categoryId, double amount, String name, 
                       double income, String accountId, String createTime) {
-        super(IdGenerator.generateTransactionId(),
-              name,
-              amount);
+        this.id = IdGenerator.generateTransactionId();
+        this.amount = amount;
+        this.name = name;
         this.categoryId = categoryId;
         this.income = income;
         this.accountId = accountId;
         this.createTime = createTime;
 
-        Map<String, Object> config = new HashMap<>();
-        config.put("class", Transaction.class);
-        config.put("table", "transaction_records");
-        config.put("entity", this);
-        GenericSQLiteService.create(config);
+        // TODO this should either be deprecated or implemented properly
+        // Map<String, Object> config = new HashMap<>();
+        // config.put("class", Transaction.class);
+        // config.put("table", "transaction_records");
+        // config.put("entity", this);
+        // GenericSQLiteService.create(config);
     }
-
+    
     public String getId() {
         return id;
     }
@@ -42,7 +46,7 @@ public class Transaction extends FinancialEntity{
     public void setId(String id) {
         this.id = id;
     }
-
+    
     public String getCategoryId() {
         return categoryId;
     }

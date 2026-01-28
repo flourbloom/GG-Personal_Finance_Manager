@@ -1,9 +1,6 @@
 package gitgud.pfm.Models;
 
 import gitgud.pfm.utils.IdGenerator;
-import java.util.HashMap;
-import java.util.Map;
-import gitgud.pfm.services.GenericSQLiteService;
 
 public class Goal extends FinancialEntity {
     private double target;
@@ -23,12 +20,6 @@ public class Goal extends FinancialEntity {
         this.deadline = deadline;
         this.priority = priority;
         this.createTime = createTime;
-
-        Map<String, Object> config = new HashMap<>();
-        config.put("class", Goal.class);
-        config.put("table", "Goal");
-        config.put("entity", this);
-        GenericSQLiteService.create(config);
     }
     
     public double getTarget() { return target; }

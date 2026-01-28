@@ -14,10 +14,7 @@ public class TestCategoryService {
         for (Category c : defaults) {
             System.out.println(c);
         }
-
-        Category custom = new Category("0", "Freelance", "Freelance income", Category.Type.INCOME, 0.0, true);
-        service.addCustomCategory(custom);
-
+        
         System.out.println("\nAll categories (default + custom):");
         List<Category> all = service.getAllCategories();
         for (Category c : all) {

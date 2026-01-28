@@ -38,18 +38,18 @@ public class DatabaseInitializer {
 
         try (Statement statement = connection.createStatement()) {
             // Create Account table (must be first for foreign key references)
-            if (!tableExists(connection, "Account")) {
+            if (!tableExists(connection, "Wallet")) {
                 String createAccountSQL = """
-                    CREATE TABLE "Account" (
-                        "accountID"  TEXT NOT NULL,
+                    CREATE TABLE "Wallet" (
+                        "id"  TEXT NOT NULL,
                         "name"  TEXT,
                         "balance"  NUMERIC,
                         "color"  TEXT,
-                        PRIMARY KEY("accountID")
+                        PRIMARY KEY("id")
                     )
                     """;
                 statement.execute(createAccountSQL);
-                System.out.println("✓ Created table: Account");
+                System.out.println("✓ Created table: Wallet");
             }
 
             // Create Category table (referenced by transactions and budgets)
@@ -84,7 +84,7 @@ public class DatabaseInitializer {
                 System.out.println("✓ Created table: Budget");
             }
 
-            // Create Goal table (links to account for funding)
+            // Create Goal table (links to wallet for funding)
             if (!tableExists(connection, "Goal")) {
                 String createGoalSQL = """
                     CREATE TABLE "Goal" (
@@ -95,9 +95,9 @@ public class DatabaseInitializer {
                         "deadline"  TEXT,
                         "priority"  NUMERIC,
                         "createAt"  TEXT,
-                        "accountID"  TEXT,
+                        "walletId"  TEXT,
                         PRIMARY KEY("id"),
-                        FOREIGN KEY("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+                        FOREIGN KEY("walletId") REFERENCES "Wallet"("id") ON DELETE SET NULL
                     )
                     """;
                 statement.execute(createGoalSQL);
@@ -113,10 +113,10 @@ public class DatabaseInitializer {
                         "amount"  NUMERIC,
                         "name"  TEXT,
                         "income"  NUMERIC,
-                        "accountId"  TEXT,
+                        "walletId"  TEXT,
                         "createTime"  TEXT,
                         PRIMARY KEY("id"),
-                        FOREIGN KEY("accountId") REFERENCES "Account"("accountID") ON DELETE CASCADE,
+                        FOREIGN KEY("walletId") REFERENCES "Wallet"("id") ON DELETE CASCADE,
                         FOREIGN KEY("categoryId") REFERENCES "Category"("id") ON DELETE SET NULL
                     )
                     """;
@@ -175,7 +175,7 @@ public class DatabaseInitializer {
         }
 
         // Drop in reverse order of dependencies (junction tables first)
-        String[] tableNames = {"Budget_Category", "Goal_Category", "transaction_records", "Budget", "Goal", "Account", "Category"};
+        String[] tableNames = {"Budget_Category", "Goal_Category", "transaction_records", "Budget", "Goal", "Wallet", "Category"};
 
         try (Statement statement = connection.createStatement()) {
             for (String tableName : tableNames) {
