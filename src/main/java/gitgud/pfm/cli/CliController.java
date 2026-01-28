@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import gitgud.pfm.Models.Transaction;
+import gitgud.pfm.Models.Budget;
 import gitgud.pfm.services.GenericSQLiteService;
 
 import java.io.IOException;
@@ -48,6 +49,9 @@ public class CliController {
                     break;
                 case "2":
                     handleAddTransaction();
+                    break;
+                case "5":
+                    handleAddBudget();
                     break;
                 case "3":
                     handleViewReports();
@@ -95,42 +99,9 @@ public class CliController {
         System.out.print("Enter transaction name: ");
         String name = scanner.nextLine().trim();
         
-        // Get category type (Expense or Income) and then category
-        String[] expenseCategories = {"Grocery", "Food", "Transport", "Utilities"};
-        String[] incomeCategories = {"Salary", "Bonus", "Investment", "Gift"};
-        System.out.println("Select transaction type:");
-        System.out.println("1. Expense");
-        System.out.println("2. Income");
-        int typeChoice = -1;
-        while (typeChoice != 1 && typeChoice != 2) {
-            System.out.print("Enter 1 for Expense or 2 for Income: ");
-            try {
-                typeChoice = Integer.parseInt(scanner.nextLine().trim());
-                if (typeChoice != 1 && typeChoice != 2) {
-                    System.out.println("Invalid choice. Please try again.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter 1 or 2.");
-            }
-        }
-        String[] categories = (typeChoice == 1) ? expenseCategories : incomeCategories;
-        System.out.println((typeChoice == 1 ? "Expense" : "Income") + " Categories:");
-        for (int i = 0; i < categories.length; i++) {
-            System.out.printf("%d. %s\n", i + 1, categories[i]);
-        }
-        int categoryChoice = -1;
-        while (categoryChoice < 1 || categoryChoice > categories.length) {
-            System.out.print("Select a category by number: ");
-            try {
-                categoryChoice = Integer.parseInt(scanner.nextLine().trim());
-                if (categoryChoice < 1 || categoryChoice > categories.length) {
-                    System.out.println("Invalid choice. Please try again.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number.");
-            }
-        }
-        String category = categories[categoryChoice - 1];
+        // Get category
+        System.out.print("Enter category: ");
+        String category = scanner.nextLine().trim();
         
         // Get account ID
         System.out.print("Enter account ID: ");
@@ -182,6 +153,39 @@ public class CliController {
         System.out.println("2. Add Transaction");
         System.out.println("3. View Reports");
         System.out.println("4. Exit");
+        System.out.println("5. Add Budget");
+    }
+
+    /**
+     * Handle Add Budget menu option
+     */
+    private void handleAddBudget() {
+        System.out.println("=== Add Budget ===");
+
+        System.out.print("Enter budget ID: ");
+        String id = scanner.nextLine().trim();
+
+        System.out.print("Enter budget name: ");
+        String name = scanner.nextLine().trim();
+
+        System.out.print("Enter limit amount: ");
+        double limits = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.print("Enter starting balance: ");
+        double balance = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.print("Enter start date (YYYY-MM-DD): ");
+        String startDate = scanner.nextLine().trim();
+
+        System.out.print("Enter end date (YYYY-MM-DD): ");
+        String endDate = scanner.nextLine().trim();
+
+        System.out.print("Enter tracked categories (comma-separated): ");
+        String tracked = scanner.nextLine().trim();
+
+        Budget budget = new Budget(id, name, limits, balance, startDate, endDate, tracked);
+
+        System.out.println("Budget created: " + budget.getName());
     }
 
     private void exitProgram() {
