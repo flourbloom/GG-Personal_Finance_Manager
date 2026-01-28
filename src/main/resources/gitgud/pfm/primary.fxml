@@ -9,7 +9,6 @@
    <children>
       <Label text="Primary View" />
       <Button fx:id="primaryButton" onAction="#switchToSecondary" text="Switch to Secondary View" />
-      <Button text="Manage Categories" onAction="#openCategoryManager" />
       <Button fx:id="exitButton" onAction="#exitProgram" text="Exit" />
    </children>
    <padding>
