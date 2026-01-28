@@ -13,11 +13,6 @@ public class PrimaryController {
     }
 
     @FXML
-    private void openCategoryManager() throws IOException {
-        App.setRoot("category");
-    }
-
-    @FXML
     private void exitProgram() throws IOException {
         System.exit(0);
     }

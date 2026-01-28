@@ -1,4 +1,7 @@
 package gitgud.pfm.Controllers;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.control.Button;
+
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -7,37 +10,79 @@ import gitgud.pfm.App;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.services.CategoryService;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
 public class CategoryController implements Initializable {
-	@FXML private ListView<String> categoryListView;
+	@FXML private FlowPane customExpensePane;
+	@FXML private FlowPane customIncomePane;
+		// Handlers for predefined category buttons
+		@FXML
+		private void editGroceries() {
+			showAlert("Edit Groceries (Expense)");
+		}
+
+		@FXML
+		private void editUtilities() {
+			showAlert("Edit Utilities (Expense)");
+		}
+
+		@FXML
+		private void editTransport() {
+			showAlert("Edit Transport (Expense)");
+		}
+
+		@FXML
+		private void editEntertainment() {
+			showAlert("Edit Entertainment (Expense)");
+		}
+
+		@FXML
+		private void editSalary() {
+			showAlert("Edit Salary (Income)");
+		}
+
+		@FXML
+		private void editOtherIncome() {
+			showAlert("Edit Other Income (Income)");
+		}
+	// @FXML private ListView<String> categoryListView;
 	@FXML private TextField nameField;
 	@FXML private TextField descField;
 	@FXML private ComboBox<String> typeCombo;
 
 	private final CategoryService service = new CategoryService();
-	private ObservableList<String> categoryNames;
-
-	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		typeCombo.setItems(FXCollections.observableArrayList("INCOME", "EXPENSE"));
-		updateCategoryList();
+		typeCombo.setItems(FXCollections.observableArrayList("EXPENSE", "INCOME"));
+		updateCustomCategoryButtons();
 	}
 
-	private void updateCategoryList() {
-		categoryNames = FXCollections.observableArrayList();
-		for (Category c : service.getAllCategories()) {
-			categoryNames.add(c.getName() + " (" + c.getType() + ")" + (c.isCustom() ? " [Custom]" : ""));
+	private void updateCustomCategoryButtons() {
+		customExpensePane.getChildren().clear();
+		customIncomePane.getChildren().clear();
+		for (Category c : service.getCustomCategories()) {
+			Button btn = new Button(c.getName());
+			btn.setStyle("-fx-background-radius: 20; -fx-padding: 10 20; -fx-background-color: #e0e0e0;");
+			btn.setOnAction(e -> showAlert("Edit Custom Category: " + c.getName()));
+			if (c.getType() == Category.Type.EXPENSE) {
+				customExpensePane.getChildren().add(btn);
+			} else {
+				customIncomePane.getChildren().add(btn);
+			}
 		}
-		categoryListView.setItems(categoryNames);
 	}
+
+	// private void updateCategoryList() {
+	//     categoryNames = FXCollections.observableArrayList();
+	//     for (Category c : service.getAllCategories()) {
+	//         categoryNames.add(c.getName() + " (" + c.getType() + ")" + (c.isCustom() ? " [Custom]" : ""));
+	//     }
+	//     categoryListView.setItems(categoryNames);
+	// }
 
 	@FXML
 	private void addCategory() {
@@ -51,7 +96,7 @@ public class CategoryController implements Initializable {
 		Category.Type type = Category.Type.valueOf(typeStr);
 		Category custom = new Category(0, name, desc, type, 0.0, true);
 		service.addCustomCategory(custom);
-		updateCategoryList();
+		updateCustomCategoryButtons();
 		nameField.clear();
 		descField.clear();
 		typeCombo.getSelectionModel().clearSelection();

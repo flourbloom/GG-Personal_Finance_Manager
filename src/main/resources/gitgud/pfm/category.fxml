@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.FlowPane?>
 
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ListView?>
@@ -8,16 +10,36 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="10.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gitgud.pfm.Controllers.CategoryController">
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gitgud.pfm.Controllers.CategoryController">
     <children>
-        <Label text="Category Management" />
-        <ListView fx:id="categoryListView" prefHeight="200.0" prefWidth="300.0" />
-        <Label text="Add Custom Category:" />
-        <TextField fx:id="nameField" promptText="Category Name" />
-        <TextField fx:id="descField" promptText="Description" />
-        <ComboBox fx:id="typeCombo" promptText="Type" />
-        <Button text="Add Category" onAction="#addCategory" />
-        <Button text="Back" onAction="#goBack" />
+        <Label text="Expense" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+        <HBox alignment="CENTER" spacing="15.0">
+            <children>
+                <Button text="Groceries" onAction="#editGroceries" style="-fx-background-radius: 20; -fx-padding: 10 20;" />
+                <Button text="Utilities" onAction="#editUtilities" style="-fx-background-radius: 20; -fx-padding: 10 20;" />
+                <Button text="Transport" onAction="#editTransport" style="-fx-background-radius: 20; -fx-padding: 10 20;" />
+                <Button text="Entertainment" onAction="#editEntertainment" style="-fx-background-radius: 20; -fx-padding: 10 20;" />
+            </children>
+        </HBox>
+        <FlowPane fx:id="customExpensePane" hgap="10.0" vgap="10.0" alignment="CENTER" style="-fx-padding: 0 0 0 0;" />
+        <Label text="Income" style="-fx-font-size: 16px; -fx-font-weight: bold; margin-top: 10px;" />
+        <HBox alignment="CENTER" spacing="15.0">
+            <children>
+                <Button text="Salary" onAction="#editSalary" style="-fx-background-radius: 20; -fx-padding: 10 20;" />
+                <Button text="Other Income" onAction="#editOtherIncome" style="-fx-background-radius: 20; -fx-padding: 10 20;" />
+            </children>
+        </HBox>
+        <FlowPane fx:id="customIncomePane" hgap="10.0" vgap="10.0" alignment="CENTER" style="-fx-padding: 0 0 0 0;" />
+        <Label text="Add Custom Category:" style="-fx-font-size: 14px; margin-top: 20px;" />
+        <HBox alignment="CENTER" spacing="10.0">
+            <children>
+                <TextField fx:id="nameField" promptText="Category Name" />
+                <TextField fx:id="descField" promptText="Description" />
+                <ComboBox fx:id="typeCombo" promptText="Type" />
+                <Button text="Add Category" onAction="#addCategory" />
+            </children>
+        </HBox>
+
     </children>
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
