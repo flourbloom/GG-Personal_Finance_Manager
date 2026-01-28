@@ -4,12 +4,7 @@ import gitgud.pfm.FinanceAppcopy.FinanceApp;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 
 public class Sidebar extends VBox {
     
@@ -32,11 +27,11 @@ public class Sidebar extends VBox {
         navMenu.setPadding(new Insets(20, 12, 20, 12));
         VBox.setVgrow(navMenu, Priority.ALWAYS);
         
-        NavItem dashboard = new NavItem("Dashboard", FontAwesomeIcon.PIE_CHART, () -> app.showDashboard());
-        NavItem transactions = new NavItem("Transactions", FontAwesomeIcon.EXCHANGE, () -> app.showTransactions());
-        NavItem reports = new NavItem("Reports", FontAwesomeIcon.FILE_ALT, () -> app.showReports());
-        NavItem goals = new NavItem("Goals", FontAwesomeIcon.BULLSEYE, () -> app.showGoals());
-        NavItem accounts = new NavItem("Accounts", FontAwesomeIcon.UNIVERSITY, () -> app.showAccounts());
+        NavItem dashboard = new NavItem("Dashboard", () -> app.showDashboard());
+        NavItem transactions = new NavItem("Transactions", () -> app.showTransactions());
+        NavItem reports = new NavItem("Reports", () -> app.showReports());
+        NavItem goals = new NavItem("Goals", () -> app.showGoals());
+        NavItem accounts = new NavItem("Accounts", () -> app.showAccounts());
         
         navMenu.getChildren().addAll(dashboard, transactions, reports, goals, accounts);
         activeItem = dashboard;
@@ -54,9 +49,9 @@ public class Sidebar extends VBox {
         logo.setPadding(new Insets(0, 24, 24, 24));
         logo.setStyle("-fx-border-color: rgba(255,255,255,0.1); -fx-border-width: 0 0 1 0;");
         
-        FontAwesomeIconView icon = new FontAwesomeIconView(FontAwesomeIcon.MONEY);
-        icon.setSize("24");
-        icon.setStyle("-fx-fill: #3b82f6;");
+        Region icon = new Region();
+        icon.setPrefSize(24, 24);
+        icon.setStyle("-fx-background-color: #3b82f6; -fx-background-radius: 6;");
         
         Label label = new Label("FinanceApp");
         label.setStyle("-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;");
@@ -89,11 +84,10 @@ public class Sidebar extends VBox {
         
         profileInfo.getChildren().addAll(name, email);
         
-        FontAwesomeIconView settingsIcon = new FontAwesomeIconView(FontAwesomeIcon.COG);
-        settingsIcon.setSize("16");
-        settingsIcon.setStyle("-fx-fill: #94a3b8; -fx-opacity: 0.6;");
-        settingsIcon.setOnMouseEntered(e -> settingsIcon.setStyle("-fx-fill: #94a3b8; -fx-opacity: 1;"));
-        settingsIcon.setOnMouseExited(e -> settingsIcon.setStyle("-fx-fill: #94a3b8; -fx-opacity: 0.6;"));
+        Label settingsIcon = new Label("⚙");
+        settingsIcon.setStyle("-fx-text-fill: #94a3b8; -fx-opacity: 0.6; -fx-font-size: 14px;");
+        settingsIcon.setOnMouseEntered(e -> settingsIcon.setStyle("-fx-text-fill: #94a3b8; -fx-opacity: 1; -fx-font-size: 14px;"));
+        settingsIcon.setOnMouseExited(e -> settingsIcon.setStyle("-fx-text-fill: #94a3b8; -fx-opacity: 0.6; -fx-font-size: 14px;"));
         
         profile.getChildren().addAll(avatar, profileInfo, settingsIcon);
         return profile;
@@ -115,16 +109,16 @@ public class Sidebar extends VBox {
         private String text;
         private boolean active = false;
         
-        public NavItem(String text, FontAwesomeIcon icon, Runnable action) {
+        public NavItem(String text, Runnable action) {
             this.text = text;
             setAlignment(Pos.CENTER_LEFT);
             setSpacing(14);
             setPadding(new Insets(14, 16, 14, 16));
             setStyle("-fx-background-radius: 10; -fx-cursor: hand;");
             
-            FontAwesomeIconView iconView = new FontAwesomeIconView(icon);
-            iconView.setSize("16");
-            iconView.setStyle("-fx-fill: #94a3b8;");
+            Region iconView = new Region();
+            iconView.setPrefSize(16, 16);
+            iconView.setStyle("-fx-background-color: #94a3b8; -fx-background-radius: 4;");
             
             Label label = new Label(text);
             label.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
@@ -135,7 +129,7 @@ public class Sidebar extends VBox {
                 if (!active) {
                     setStyle("-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 10; -fx-cursor: hand;");
                     label.setStyle("-fx-text-fill: white; -fx-font-size: 15px;");
-                    iconView.setStyle("-fx-fill: white;");
+                    iconView.setStyle("-fx-background-color: white; -fx-background-radius: 4;");
                 }
             });
 
@@ -143,7 +137,7 @@ public class Sidebar extends VBox {
                 if (!active) {
                     setStyle("-fx-background-radius: 10; -fx-cursor: hand;");
                     label.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
-                    iconView.setStyle("-fx-fill: #94a3b8;");
+                    iconView.setStyle("-fx-background-color: #94a3b8; -fx-background-radius: 4;");
                 }
             });
             
@@ -155,11 +149,11 @@ public class Sidebar extends VBox {
             if (active) {
                 setStyle("-fx-background-color: #3b82f6; -fx-background-radius: 10; -fx-cursor: hand;");
                 ((Label)getChildren().get(1)).setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: 500;");
-                ((FontAwesomeIconView)getChildren().get(0)).setStyle("-fx-fill: white;");
+                ((Region)getChildren().get(0)).setStyle("-fx-background-color: white; -fx-background-radius: 4;");
             } else {
                 setStyle("-fx-background-radius: 10; -fx-cursor: hand;");
                 ((Label)getChildren().get(1)).setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
-                ((FontAwesomeIconView)getChildren().get(0)).setStyle("-fx-fill: #94a3b8;");
+                ((Region)getChildren().get(0)).setStyle("-fx-background-color: #94a3b8; -fx-background-radius: 4;");
             }
         }
         

@@ -1,7 +1,6 @@
 package gitgud.pfm.FinanceAppcopy.ui;
 
 import gitgud.pfm.FinanceAppcopy.data.DataStore;
-import gitgud.pfm.FinanceAppcopy.model.Account;
 import gitgud.pfm.FinanceAppcopy.model.Goal;
 import gitgud.pfm.FinanceAppcopy.model.Transaction;
 import javafx.geometry.Insets;
@@ -11,9 +10,6 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -66,14 +62,14 @@ public class DashboardView extends ScrollPane {
         return card;
     }
     
-    private HBox createCardHeader(String title, FontAwesomeIcon icon) {
+    private HBox createCardHeader(String title) {
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 20, 0));
         
-        FontAwesomeIconView iconView = new FontAwesomeIconView(icon);
-        iconView.setSize("18");
-        iconView.setStyle("-fx-fill: #3b82f6;");
+        Region iconView = new Region();
+        iconView.setPrefSize(18, 18);
+        iconView.setStyle("-fx-background-color: #3b82f6; -fx-background-radius: 4;");
         
         Label titleLabel = new Label(title);
         titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
@@ -91,7 +87,7 @@ public class DashboardView extends ScrollPane {
     private VBox createBudgetGoalCard() {
         VBox card = createCard();
         
-        HBox header = createCardHeader("Monthly Budget Goal", FontAwesomeIcon.BULLSEYE);
+        HBox header = createCardHeader("Monthly Budget Goal");
         
         // Goal details
         HBox goalDetails = new HBox();
@@ -140,7 +136,7 @@ public class DashboardView extends ScrollPane {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 20, 0));
         
-        Label title = createCardTitle("Priority Goals", FontAwesomeIcon.STAR);
+        Label title = createCardTitle("Priority Goals");
         HBox.setHgrow(title, Priority.ALWAYS);
         
         Hyperlink viewAll = new Hyperlink("View All");
@@ -217,10 +213,10 @@ public class DashboardView extends ScrollPane {
         return item;
     }
     
-    private Label createCardTitle(String text, FontAwesomeIcon icon) {
-        FontAwesomeIconView iconView = new FontAwesomeIconView(icon);
-        iconView.setSize("18");
-        iconView.setStyle("-fx-fill: #3b82f6;");
+    private Label createCardTitle(String text) {
+        Region iconView = new Region();
+        iconView.setPrefSize(18, 18);
+        iconView.setStyle("-fx-background-color: #3b82f6; -fx-background-radius: 4;");
         
         HBox box = new HBox(10);
         box.setAlignment(Pos.CENTER_LEFT);
@@ -242,7 +238,7 @@ public class DashboardView extends ScrollPane {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 20, 0));
         
-        Label title = createCardTitle("Spending Comparison", FontAwesomeIcon.LINE_CHART);
+        Label title = createCardTitle("Spending Comparison");
         HBox.setHgrow(title, Priority.ALWAYS);
         
         ComboBox<String> periodSelect = new ComboBox<>();
@@ -291,7 +287,7 @@ public class DashboardView extends ScrollPane {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 20, 0));
         
-        Label title = createCardTitle("Recent Transactions", FontAwesomeIcon.HISTORY);
+        Label title = createCardTitle("Recent Transactions");
         HBox.setHgrow(title, Priority.ALWAYS);
         
         Hyperlink viewAll = new Hyperlink("View All");
@@ -353,51 +349,50 @@ public class DashboardView extends ScrollPane {
         pane.setPrefSize(44, 44);
         pane.setStyle("-fx-background-radius: 12;");
         
-        FontAwesomeIcon icon;
         String bgColor, iconColor;
+        String emoji;
         
         switch (category) {
             case "food":
-                icon = FontAwesomeIcon.CUTLERY;
+                emoji = "🍴";
                 bgColor = "#fef3c7";
                 iconColor = "#d97706";
                 break;
             case "transport":
-                icon = FontAwesomeIcon.CAR;
+                emoji = "🚗";
                 bgColor = "#dbeafe";
                 iconColor = "#2563eb";
                 break;
             case "shopping":
-                icon = FontAwesomeIcon.SHOPPING_BAG;
+                emoji = "🛍";
                 bgColor = "#fce7f3";
                 iconColor = "#db2777";
                 break;
             case "bills":
-                icon = FontAwesomeIcon.FILE_TEXT;
+                emoji = "📄";
                 bgColor = "#fee2e2";
                 iconColor = "#dc2626";
                 break;
             case "income":
-                icon = FontAwesomeIcon.ARROW_DOWN;
+                emoji = "↓";
                 bgColor = "#dcfce7";
                 iconColor = "#16a34a";
                 break;
             case "entertainment":
-                icon = FontAwesomeIcon.FILM;
+                emoji = "🎬";
                 bgColor = "#ede9fe";
                 iconColor = "#7c3aed";
                 break;
             default:
-                icon = FontAwesomeIcon.CIRCLE;
+                emoji = "●";
                 bgColor = "#f1f5f9";
                 iconColor = "#64748b";
         }
         
         pane.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12;");
         
-        FontAwesomeIconView iconView = new FontAwesomeIconView(icon);
-        iconView.setSize("18");
-        iconView.setStyle("-fx-fill: " + iconColor + ";");
+        Label iconView = new Label(emoji);
+        iconView.setStyle("-fx-text-fill: " + iconColor + "; -fx-font-size: 20px;");
         
         pane.getChildren().add(iconView);
         return pane;

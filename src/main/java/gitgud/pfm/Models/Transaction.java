@@ -12,7 +12,7 @@ public class Transaction {
     private String Create_time;
     
     public Transaction(String ID, String Categories, double Amount, String Name, 
-                      double Income, String AccountID, String Create_time) {
+                      double Income, String AccountID) {
         this.ID = ID;
         this.Categories = Categories;
         this.Amount = Amount;

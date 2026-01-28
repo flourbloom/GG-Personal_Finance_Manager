@@ -4,9 +4,8 @@ module gitgud.pfm {
     requires java.sql;
     requires transitive javafx.graphics;
     requires org.xerial.sqlitejdbc;
-    requires de.jensd.fx.glyphs.fontawesome;
     //Open is like a pointer telling the controllers where the fxml is
-    // opens gitgud.pfm to javafx.fxml;
+    //opens gitgud.pfm to javafx.fxml;
     opens gitgud.pfm.Controllers to javafx.fxml;
     opens gitgud.pfm.FinanceAppcopy.model to javafx.base;
     opens gitgud.pfm.FinanceAppcopy.ui to javafx.fxml;
