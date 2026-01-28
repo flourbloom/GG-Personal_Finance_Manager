@@ -116,7 +116,16 @@ public class CliController {
                     handleUpdateGoal(currentAccountID, accountData);
                     break;
                 case "13":
-                    System.out.println("Delete Goal feature not yet implemented.");
+                System.out.println("Delete Goal feature not yet implemented.");
+                break;
+                case "14":
+                    handleDeleteTransaction(currentAccountID, accountData);
+                    break;
+                case "15":
+                    handleDeleteBudget(currentAccountID, accountData);
+                    break;
+                case "16":
+                    handleDeleteGoal(currentAccountID, accountData);
                     break;
                 case "17":
                     handleViewReports(accountData);
@@ -582,6 +591,8 @@ public class CliController {
             Map<String, Object> config = new HashMap<>();
             config.put("class", Transaction.class);
             config.put("table", "transaction_records");
+            // transaction_records primary key column is "ID" (uppercase)
+            config.put("pk", "ID");
             config.put("id", id);
             config.put("updates", updates);
             GenericSQLiteService.update(config);
@@ -764,6 +775,139 @@ public class CliController {
         } catch (Exception ex) {
             System.out.println("Failed to persist update: " + ex.getMessage());
         }
+    }
+
+    /* Delete handlers: ask for name, delete row from DB and remove from in-memory list */
+    private void handleDeleteTransaction(String currentAccountID, AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== Delete Transaction ===");
+        System.out.println("Available Transactions:");
+        handleViewReports(accountData);
+        System.out.print("\nEnter the name of the Transaction you want to delete: ");
+        String transactionNameInput = scanner.nextLine().trim();
+
+        Transaction transactionToDelete = null;
+        for (Transaction t : accountData.getTransactions()) {
+            if (t.getName() != null && t.getName().equals(transactionNameInput)) {
+                transactionToDelete = t;
+                break;
+            }
+        }
+
+        if (transactionToDelete == null) {
+            System.out.println("ERROR: Transaction '" + transactionNameInput + "' not found.");
+            return;
+        }
+
+        String transactionId = transactionToDelete.getId();
+        System.out.println("\nConfirming deletion of Transaction: " + transactionToDelete.getName() + 
+                         " (Amount: " + transactionToDelete.getAmount() + ")");
+        
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Transaction.class);
+        config.put("table", "transaction_records");
+        // transaction_records primary key column is "ID" (uppercase)
+        config.put("pk", "ID");
+        config.put("id", transactionId);
+        try {
+            GenericSQLiteService.delete(config);
+            accountData.getTransactions().remove(transactionToDelete);
+            System.out.println("SUCCESS: Transaction '" + transactionToDelete.getName() + "' has been deleted successfully.");
+            // refresh in-memory data to reflect persisted changes
+            refreshDataHolder(accountData, currentAccountID);
+        } catch (Exception ex) {
+            System.out.println("ERROR: Failed to delete transaction: " + ex.getMessage());
+        }
+    }
+
+    private void handleDeleteBudget(String accountID, AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== Delete Budget ===");
+        System.out.println("Available Budgets:");
+        handleViewBudgets(accountData);
+        System.out.print("\nEnter the name of the Budget you want to delete: ");
+        String budgetNameInput = scanner.nextLine().trim();
+
+        Budget budgetToDelete = null;
+        for (Budget b : accountData.getBudgets()) {
+            if (b.getName() != null && b.getName().equals(budgetNameInput)) {
+                budgetToDelete = b;
+                break;
+            }
+        }
+
+        if (budgetToDelete == null) {
+            System.out.println("ERROR: Budget '" + budgetNameInput + "' not found.");
+            return;
+        }
+
+        String budgetId = budgetToDelete.getId();
+        System.out.println("\nConfirming deletion of Budget: " + budgetToDelete.getName() + 
+                         " (Limit: " + budgetToDelete.getLimitAmount() + ")");
+        
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Budget.class);
+        config.put("table", "Budget");
+        config.put("id", budgetId);
+        try {
+            GenericSQLiteService.delete(config);
+            accountData.getBudgets().remove(budgetToDelete);
+            System.out.println("SUCCESS: Budget '" + budgetToDelete.getName() + "' has been deleted successfully.");
+            // refresh in-memory data to reflect persisted changes
+            refreshDataHolder(accountData, accountID);
+        } catch (Exception ex) {
+            System.out.println("ERROR: Failed to delete budget: " + ex.getMessage());
+        }
+    }
+
+    private void handleDeleteGoal(String accountID, AccountDataLoader.DataHolder accountData) {
+        System.out.println("=== Delete Goal ===");
+        System.out.println("Available Goals:");
+        handleViewGoals(accountData);
+        System.out.print("\nEnter the name of the Goal you want to delete: ");
+        String goalNameInput = scanner.nextLine().trim();
+
+        Goal goalToDelete = null;
+        for (Goal g : accountData.getGoals()) {
+            if (g.getName() != null && g.getName().equals(goalNameInput)) {
+                goalToDelete = g;
+                break;
+            }
+        }
+
+        if (goalToDelete == null) {
+            System.out.println("ERROR: Goal '" + goalNameInput + "' not found.");
+            return;
+        }
+
+        String goalId = goalToDelete.getId();
+        System.out.println("\nConfirming deletion of Goal: " + goalToDelete.getName() + 
+                         " (Target Amount: " + goalToDelete.getTarget() + ")");
+        
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Goal.class);
+        config.put("table", "Goal");
+        config.put("id", goalId);
+        try {
+            GenericSQLiteService.delete(config);
+            accountData.getGoals().remove(goalToDelete);
+            System.out.println("SUCCESS: Goal '" + goalToDelete.getName() + "' has been deleted successfully.");
+            // refresh in-memory data to reflect persisted changes
+            refreshDataHolder(accountData, accountID);
+        } catch (Exception ex) {
+            System.out.println("ERROR: Failed to delete goal: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Reloads account data from DB and updates the passed DataHolder in-place.
+     */
+    private void refreshDataHolder(AccountDataLoader.DataHolder accountData, String accountID) {
+        AccountDataLoader.DataHolder fresh = AccountDataLoader.loadAccountData(accountID);
+        if (fresh == null) return;
+
+        accountData.setBudgets(fresh.getBudgets());
+        accountData.setGoals(fresh.getGoals());
+        accountData.setTransactions(fresh.getTransactions());
+        accountData.setWallet(fresh.getWallet());
     }
 
     /**

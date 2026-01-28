@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import gitgud.pfm.Models.Category;
-import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.interfaces.CRUDInterface;
 
 public class CategoryService implements CRUDInterface<Category> {

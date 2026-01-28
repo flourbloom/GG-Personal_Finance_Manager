@@ -1,9 +1,5 @@
 package gitgud.pfm.Models;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import gitgud.pfm.services.GenericSQLiteService;
 import gitgud.pfm.utils.IdGenerator;
 
 // TODO This is the renamed version of account
