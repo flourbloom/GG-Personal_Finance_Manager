@@ -10,7 +10,7 @@ public class Transaction {
     // No-arg constructor required for reflection-based mapping
     public Transaction() {
     }
-    private String ID;
+    private String id; //Primary Key
     private String Categories;
     private double Amount;
     private String Name;
@@ -18,9 +18,9 @@ public class Transaction {
     private String AccountID;
     private String Create_time;
     
-    public Transaction(String ID, String Categories, double Amount, String Name, 
+    public Transaction(String id, String Categories, double Amount, String Name, 
                       double Income, String AccountID, String Create_time) {
-        this.ID = ID;
+        this.id = id;
         this.Categories = Categories;
         this.Amount = Amount;
         this.Name = Name;
@@ -34,10 +34,7 @@ public class Transaction {
         config.put("entity", this);
         GenericSQLiteService.create(config);
     }
-    
-    public String getID() { return ID; }
-    public void setID(String ID) { this.ID = ID; }
-    
+
     public String getCategories() { return Categories; }
     public void setCategories(String Categories) { this.Categories = Categories; }
     
@@ -55,4 +52,7 @@ public class Transaction {
     
     public String getCreate_time() { return Create_time; }
     public void setCreate_time(String Create_time) { this.Create_time = Create_time; }
+
+    public String getID() { return id; }
+    public void setID(String id) { this.id = id; }
 }

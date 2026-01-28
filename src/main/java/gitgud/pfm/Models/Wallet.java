@@ -6,7 +6,7 @@ import java.util.Map;
 import gitgud.pfm.services.GenericSQLiteService;
 
 public class Wallet {
-    private String AccountID;
+    private String AccountID; //Primary Key
     private String Color;
     private double Balance;
     private String Name;
@@ -24,9 +24,6 @@ public class Wallet {
         GenericSQLiteService.create(config);
     }
     
-    public String getAccountID() { return AccountID; }
-    public void setAccountID(String AccountID) { this.AccountID = AccountID; }
-    
     public String getColor() { return Color; }
     public void setColor(String Color) { this.Color = Color; }
     
@@ -35,4 +32,7 @@ public class Wallet {
     
     public String getName() { return Name; }
     public void setName(String Name) { this.Name = Name; }
+
+    public String getAccountID() { return AccountID; }
+    public void setAccountID(String AccountID) { this.AccountID = AccountID; }
 }

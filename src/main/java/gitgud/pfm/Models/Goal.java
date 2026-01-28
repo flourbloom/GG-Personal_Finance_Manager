@@ -9,7 +9,7 @@ public class Goal {
     // No-arg constructor required for reflection-based mapping
     public Goal() {
     }
-    private String id;
+    private String id; //Primary Key
     private String name;
     private double target;
     private double current;
@@ -34,11 +34,11 @@ public class Goal {
         GenericSQLiteService.create(config);
     }
     
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     
     public double getTarget() { return target; }
     public void setTarget(double target) { this.target = target; }

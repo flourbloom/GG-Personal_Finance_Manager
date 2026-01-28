@@ -9,7 +9,7 @@ public class Budget {
     // No-arg constructor required for reflection-based mapping
     public Budget() {
     }
-    private String id;
+    private String id; //Primary Key
     private String name;
     private double limits;
     private double balance;
@@ -34,11 +34,11 @@ public class Budget {
         GenericSQLiteService.create(config);
     }
     
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     
     public double getLimits() { return limits; }
     public void setLimits(double limits) { this.limits = limits; }
