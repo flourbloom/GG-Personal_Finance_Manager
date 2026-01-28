@@ -51,6 +51,13 @@
                             <mainClass>gitgud.pfm.App</mainClass>
                         </configuration>
                     </execution>
+                    <execution>
+                        <!-- Configuration for running CategoryManagerApp.java -->
+                        <id>category-manager</id>
+                        <configuration>
+                            <mainClass>gitgud.pfm.CategoryManagerApp</mainClass>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>

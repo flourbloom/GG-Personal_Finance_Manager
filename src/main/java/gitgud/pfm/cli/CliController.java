@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Budget;
 import gitgud.pfm.services.GenericSQLiteService;
+import gitgud.pfm.services.CategoryService;
+import gitgud.pfm.Models.Category;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 public class CliController {
     private Scanner scanner;
     private boolean running = true;
+    private final CategoryService categoryService = new CategoryService();
     
     public CliController() {
         this.scanner = new Scanner(System.in);
@@ -31,6 +34,24 @@ public class CliController {
         printWelcomeMessage();
         mainMenuLoop();
         shutdown();
+    }
+
+    private void printAllCategories() {
+        var defaultCategories = categoryService.getDefaultCategories();
+        System.out.println("Available Categories:");
+        System.out.println("Expense Categories:");
+        for (Category cat : defaultCategories) {
+            if (cat.getType() == Category.Type.EXPENSE) {
+                System.out.println("  - " + cat.getName());
+            }
+        }
+        System.out.println("Income Categories:");
+        for (Category cat : defaultCategories) {
+            if (cat.getType() == Category.Type.INCOME) {
+                System.out.println("  - " + cat.getName());
+            }
+        }
+        System.out.println();
     }
     
     /**
@@ -87,34 +108,97 @@ public class CliController {
     private void handleAddTransaction() {
         System.out.println("=== Add Transaction ===");
 
-        // Get transaction ID
-        System.out.print("Enter transaction ID: ");
-        String id = scanner.nextLine().trim();
-        
-        // Get amount
-        System.out.print("Enter amount: ");
-        double amount = Double.parseDouble(scanner.nextLine().trim());
-        
-        // Get transaction name
+        // Auto-generate transaction ID
+        String id = "TXN" + System.currentTimeMillis();
+
+        // Show all categories grouped by type with numbering
+        var defaultCategories = categoryService.getDefaultCategories();
+        System.out.println("Available Categories:");
+        int idx = 1;
+        System.out.println("Expense Categories:");
+        for (Category cat : defaultCategories) {
+            if (cat.getType() == Category.Type.EXPENSE) {
+                System.out.printf("  %d. %s\n", idx, cat.getName());
+            }
+            idx++;
+        }
+        idx = 1;
+        System.out.println("Income Categories:");
+        for (Category cat : defaultCategories) {
+            if (cat.getType() == Category.Type.INCOME) {
+                System.out.printf("  %d. %s\n", idx, cat.getName());
+            }
+            idx++;
+        }
+
+        // User selects category
+        Category selectedCategory = null;
+        int selectedNum = -1;
+        while (selectedCategory == null) {
+            System.out.print("Select the category (number): ");
+            String input = scanner.nextLine().trim();
+            try {
+                int num = Integer.parseInt(input);
+                if (num >= 1 && num <= defaultCategories.size()) {
+                    selectedCategory = defaultCategories.get(num - 1);
+                    selectedNum = num;
+                } else {
+                    System.out.println("Invalid number. Try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+        String category = selectedCategory.getName();
+        Category.Type chosenType = selectedCategory.getType();
+        System.out.println("You selected: " + category);
+
+        // Enter amount (expense) or income (income)
+        double amount = 0.0;
+        int income = 0;
+        if (chosenType == Category.Type.EXPENSE) {
+            System.out.print("Enter the amount: ");
+            amount = Double.parseDouble(scanner.nextLine().trim());
+            income = 0;
+            System.out.println("Income set to 0 (expense).");
+        } else {
+            System.out.print("Enter the amount: ");
+            amount = Double.parseDouble(scanner.nextLine().trim());
+            income = 1;
+            System.out.println("Income set to 1 (income).");
+        }
+
+        // Enter transaction name (description)
         System.out.print("Enter transaction name: ");
         String name = scanner.nextLine().trim();
-        
-        // Get category
-        System.out.print("Enter category: ");
-        String category = scanner.nextLine().trim();
-        
-        // Get account ID
-        System.out.print("Enter account ID: ");
-        String accountID = scanner.nextLine().trim();
-        
-        // Get income amount (0 if expense)
-        System.out.print("Enter income amount (0 if expense): ");
-        double income = Double.parseDouble(scanner.nextLine().trim());
 
-        // Get current timestamp
+        // Pick account by number
+        String[] accounts = {"Wallet", "Bank"};
+        System.out.println("Pick an account:");
+        for (int i = 0; i < accounts.length; i++) {
+            System.out.printf("  %d. %s\n", i + 1, accounts[i]);
+        }
+        String accountID = null;
+        int accountNum = -1;
+        while (accountID == null) {
+            System.out.print("Enter the number of the account: ");
+            String input = scanner.nextLine().trim();
+            try {
+                int num = Integer.parseInt(input);
+                if (num >= 1 && num <= accounts.length) {
+                    accountID = accounts[num - 1];
+                    accountNum = num;
+                } else {
+                    System.out.println("Invalid number. Try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+        System.out.println("You selected: " + accountID);
+
+        // Only generate timestamp if all inputs are valid
         String timestamp = java.time.LocalDateTime.now().toString();
-
-        // Call service to add transaction
         Transaction transaction = new Transaction(id, category, amount, name, income, accountID, timestamp);
         
         Map<String, Object> config = new HashMap<>();
