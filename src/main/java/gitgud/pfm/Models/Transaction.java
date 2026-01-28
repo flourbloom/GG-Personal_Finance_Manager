@@ -1,6 +1,10 @@
 package gitgud.pfm.Models;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+import gitgud.pfm.services.GenericSQLiteService;
 
 public class Transaction {
     private String ID;
@@ -20,6 +24,12 @@ public class Transaction {
         this.Income = Income;
         this.AccountID = AccountID;
         this.Create_time = Create_time;
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Transaction.class);
+        config.put("table", "transaction_records");
+        config.put("entity", this);
+        GenericSQLiteService.create(config);
     }
     
     public String getID() { return ID; }

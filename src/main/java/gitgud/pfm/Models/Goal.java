@@ -1,5 +1,10 @@
 package gitgud.pfm.Models;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import gitgud.pfm.services.GenericSQLiteService;
+
 public class Goal {
     private String id;
     private String name;
@@ -18,6 +23,12 @@ public class Goal {
         this.deadline = deadline;
         this.priority = priority;
         this.createAt = createAt;
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Goal.class);
+        config.put("table", "Goal");
+        config.put("entity", this);
+        GenericSQLiteService.create(config);
     }
     
     public String getId() { return id; }

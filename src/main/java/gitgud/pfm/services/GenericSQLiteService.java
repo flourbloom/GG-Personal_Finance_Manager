@@ -1,7 +1,6 @@
 package gitgud.pfm.services;
 
-import gitgud.pfm.interfaces.CRUDService;
-
+ 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.sql.*;
@@ -127,7 +126,7 @@ import java.util.*;
  * 
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-public class GenericSQLiteService<T> implements CRUDService<T> {
+public class GenericSQLiteService<T> {
 
     private final Class<T> entityClass;
     private final String tableName;
@@ -396,7 +395,6 @@ public class GenericSQLiteService<T> implements CRUDService<T> {
     // INSTANCE METHODS (used internally by static methods)
     // ═════════════════════════════════════════════════════════════════════════════
 
-    @Override
     public void create(T entity) {
         Field[] entityFields = entityClass.getDeclaredFields();
         StringBuilder columnNamesBuilder = new StringBuilder();
@@ -440,7 +438,6 @@ public class GenericSQLiteService<T> implements CRUDService<T> {
         }
     }
 
-    @Override
     public T read(String primaryKeyValue) {
         String selectSQL = "SELECT * FROM " + tableName + " WHERE " + primaryKeyColumnName + " = ?";
 
@@ -514,7 +511,6 @@ public class GenericSQLiteService<T> implements CRUDService<T> {
         }
     }
 
-    @Override
     public void update(T entity) {
         Field[] entityFields = entityClass.getDeclaredFields();
         List<Field> fieldsToUpdate = new ArrayList<>();
@@ -612,7 +608,6 @@ public class GenericSQLiteService<T> implements CRUDService<T> {
         }
     }
 
-    @Override
     public void delete(String primaryKeyValue) {
         String deleteSQL = "DELETE FROM " + tableName + " WHERE " + primaryKeyColumnName + " = ?";
 

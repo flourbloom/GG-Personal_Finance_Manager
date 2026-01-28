@@ -1,5 +1,10 @@
 package gitgud.pfm.Models;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import gitgud.pfm.services.GenericSQLiteService;
+
 public class Wallet {
     private String AccountID;
     private String Color;
@@ -11,6 +16,12 @@ public class Wallet {
         this.Color = Color;
         this.Balance = Balance;
         this.Name = Name;
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("class", Wallet.class);
+        config.put("table", "Wallet");
+        config.put("entity", this);
+        GenericSQLiteService.create(config);
     }
     
     public String getAccountID() { return AccountID; }

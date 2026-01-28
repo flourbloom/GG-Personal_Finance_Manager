@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Budget;
 import gitgud.pfm.services.GenericSQLiteService;
@@ -50,13 +51,16 @@ public class CliController {
                 case "2":
                     handleAddTransaction();
                     break;
-                case "5":
+                case "3":
                     handleAddBudget();
                     break;
-                case "3":
+                case "4":
+                    handleAddGoal();
+                    break;
+                case "5":
                     handleViewReports();
                     break;
-                case "4":
+                case "6":
                     // looks for users input then call exit program
                     // then changes running to false to exit loop
                     handleExit();
@@ -87,43 +91,32 @@ public class CliController {
     private void handleAddTransaction() {
         System.out.println("=== Add Transaction ===");
 
-        // Get transaction ID
         System.out.print("Enter transaction ID: ");
         String id = scanner.nextLine().trim();
-        
-        // Get amount
+
         System.out.print("Enter amount: ");
         double amount = Double.parseDouble(scanner.nextLine().trim());
-        
-        // Get transaction name
+
         System.out.print("Enter transaction name: ");
         String name = scanner.nextLine().trim();
-        
-        // Get category
-        System.out.print("Enter category: ");
+
+        System.out.print("Enter categories (comma-separated): ");
         String category = scanner.nextLine().trim();
-        
-        // Get account ID
+
         System.out.print("Enter account ID: ");
         String accountID = scanner.nextLine().trim();
-        
-        // Get income amount (0 if expense)
+
         System.out.print("Enter income amount (0 if expense): ");
         double income = Double.parseDouble(scanner.nextLine().trim());
 
-        // Get current timestamp
-        String timestamp = java.time.LocalDateTime.now().toString();
+        System.out.print("Enter create time (YYYY-MM-DD or leave blank for now): ");
+        String createTimeInput = scanner.nextLine().trim();
+        String timestamp = createTimeInput.isEmpty() ? java.time.LocalDateTime.now().toString() : createTimeInput;
 
-        // Call service to add transaction
+        // Construct Transaction; constructor persists to DB like Budget
         Transaction transaction = new Transaction(id, category, amount, name, income, accountID, timestamp);
-        
-        Map<String, Object> config = new HashMap<>();
-        config.put("class", Transaction.class);
-        config.put("table", "transaction_records");
-        config.put("entity", transaction);
-        GenericSQLiteService.create(config);
-        
-        System.out.println("Transaction added successfully!");
+
+        System.out.println("Transaction created: " + transaction.getName());
     }
     
     /**
@@ -151,9 +144,10 @@ public class CliController {
         System.out.println("Main Menu:");
         System.out.println("1. View Accounts");
         System.out.println("2. Add Transaction");
-        System.out.println("3. View Reports");
-        System.out.println("4. Exit");
-        System.out.println("5. Add Budget");
+        System.out.println("3. Add Budget");
+        System.out.println("4. Add Goal");
+        System.out.println("5. View Reports");
+        System.out.println("6. Exit");
     }
 
     /**
@@ -186,6 +180,39 @@ public class CliController {
         Budget budget = new Budget(id, name, limits, balance, startDate, endDate, tracked);
 
         System.out.println("Budget created: " + budget.getName());
+    }
+
+    /**
+     * Handle Add Goal menu option
+     */
+    private void handleAddGoal() {
+        System.out.println("=== Add Goal ===");
+
+        System.out.print("Enter goal ID: ");
+        String id = scanner.nextLine().trim();
+
+        System.out.print("Enter goal name: ");
+        String name = scanner.nextLine().trim();
+
+        System.out.print("Enter target amount: ");
+        double target = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.print("Enter current amount: ");
+        double current = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.print("Enter deadline (YYYY-MM-DD): ");
+        String deadline = scanner.nextLine().trim();
+
+        System.out.print("Enter priority (numeric): ");
+        double priority = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.print("Enter creation time (YYYY-MM-DD or leave blank for now): ");
+        String createAtInput = scanner.nextLine().trim();
+        String createAt = createAtInput.isEmpty() ? java.time.LocalDateTime.now().toString() : createAtInput;
+
+        Goal goal = new Goal(id, name, target, current, deadline, priority, createAt);
+
+        System.out.println("Goal created: " + goal.getName());
     }
 
     private void exitProgram() {
