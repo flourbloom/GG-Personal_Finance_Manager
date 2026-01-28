@@ -95,9 +95,42 @@ public class CliController {
         System.out.print("Enter transaction name: ");
         String name = scanner.nextLine().trim();
         
-        // Get category
-        System.out.print("Enter category: ");
-        String category = scanner.nextLine().trim();
+        // Get category type (Expense or Income) and then category
+        String[] expenseCategories = {"Grocery", "Food", "Transport", "Utilities"};
+        String[] incomeCategories = {"Salary", "Bonus", "Investment", "Gift"};
+        System.out.println("Select transaction type:");
+        System.out.println("1. Expense");
+        System.out.println("2. Income");
+        int typeChoice = -1;
+        while (typeChoice != 1 && typeChoice != 2) {
+            System.out.print("Enter 1 for Expense or 2 for Income: ");
+            try {
+                typeChoice = Integer.parseInt(scanner.nextLine().trim());
+                if (typeChoice != 1 && typeChoice != 2) {
+                    System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter 1 or 2.");
+            }
+        }
+        String[] categories = (typeChoice == 1) ? expenseCategories : incomeCategories;
+        System.out.println((typeChoice == 1 ? "Expense" : "Income") + " Categories:");
+        for (int i = 0; i < categories.length; i++) {
+            System.out.printf("%d. %s\n", i + 1, categories[i]);
+        }
+        int categoryChoice = -1;
+        while (categoryChoice < 1 || categoryChoice > categories.length) {
+            System.out.print("Select a category by number: ");
+            try {
+                categoryChoice = Integer.parseInt(scanner.nextLine().trim());
+                if (categoryChoice < 1 || categoryChoice > categories.length) {
+                    System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+        String category = categories[categoryChoice - 1];
         
         // Get account ID
         System.out.print("Enter account ID: ");

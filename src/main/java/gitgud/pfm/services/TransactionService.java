@@ -14,7 +14,7 @@ public class TransactionService implements CRUDService<Transaction> {
     @Override
     public void create(Transaction entity) {
         try (FileWriter fWriter = new FileWriter(new File("FauxDB.csv"), true)) {
-                fWriter.write(entity.getId() + "," + entity.getAmount() + "," + entity.getTitle() + "\n");
+                fWriter.write(entity.getID() + "," + entity.getAmount() + "," + entity.getName() + "\n");
         } catch (IOException e) {
             System.out.println("Error adding transaction: " + e.getMessage());
         }
