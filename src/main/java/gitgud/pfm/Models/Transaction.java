@@ -6,43 +6,43 @@ public class Transaction {
     // No-arg constructor required for reflection-based mapping
     public Transaction() {
     }
-    private String ID; //Primary Key - MUST match DB column name exactly
-    private String Categories;
-    private double Amount;
-    private String Name;
-    private double Income;
-    private String AccountID;
-    private String Create_time;
+    private String id; // Primary Key
+    private String categoryId;
+    private double amount;
+    private String name;
+    private double income;
+    private String accountId;
+    private String createTime;
     
-    public Transaction(String Categories, double Amount, String Name, 
-                      double Income, String AccountID, String Create_time) {
-        this.ID = IdGenerator.generateTransactionId();
-        this.Categories = Categories;
-        this.Amount = Amount;
-        this.Name = Name;
-        this.Income = Income;
-        this.AccountID = AccountID;
-        this.Create_time = Create_time;
+    public Transaction(String categoryId, double amount, String name, 
+                      double income, String accountId, String createTime) {
+        this.id = IdGenerator.generateTransactionId();
+        this.categoryId = categoryId;
+        this.amount = amount;
+        this.name = name;
+        this.income = income;
+        this.accountId = accountId;
+        this.createTime = createTime;
     }
 
-    public String getCategories() { return Categories; }
-    public void setCategories(String Categories) { this.Categories = Categories; }
+    public String getCategoryId() { return categoryId; }
+    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
     
-    public double getAmount() { return Amount; }
-    public void setAmount(double Amount) { this.Amount = Amount; }
+    public double getAmount() { return amount; }
+    public void setAmount(double amount) { this.amount = amount; }
     
-    public String getName() { return Name; }
-    public void setName(String Name) { this.Name = Name; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     
-    public double getIncome() { return Income; }
-    public void setIncome(double Income) { this.Income = Income; }
+    public double getIncome() { return income; }
+    public void setIncome(double income) { this.income = income; }
     
-    public String getAccountID() { return AccountID; }
-    public void setAccountID(String AccountID) { this.AccountID = AccountID; }
+    public String getAccountId() { return accountId; }
+    public void setAccountId(String accountId) { this.accountId = accountId; }
     
-    public String getCreate_time() { return Create_time; }
-    public void setCreate_time(String Create_time) { this.Create_time = Create_time; }
+    public String getCreateTime() { return createTime; }
+    public void setCreateTime(String createTime) { this.createTime = createTime; }
 
-    public String getID() { return ID; }
-    public void setID(String ID) { this.ID = ID; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 }

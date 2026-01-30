@@ -3,34 +3,28 @@ package gitgud.pfm.Models;
 import gitgud.pfm.utils.IdGenerator;
 
 public class Budget extends FinancialEntity {
-    private double limits;
-    private String start_date;
-    private String end_date;
-    private String trackedCategories;
+    private double limitAmount;
+    private String startDate;
+    private String endDate;
 
     // No-arg constructor required for reflection-based mapping (do not auto-persist)
     public Budget() {
         super(null, null, 0.0);
     }
     
-    public Budget(String name, double limits, double balance, String start_date, String end_date,
-            String trackedCategories) {
+    public Budget(String name, double limitAmount, double balance, String startDate, String endDate) {
         super(IdGenerator.generateBudgetId(), name, balance);
-        this.limits = limits;
-        this.start_date = start_date;
-        this.end_date = end_date;
-        this.trackedCategories = trackedCategories;
+        this.limitAmount = limitAmount;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
     
-    public double getLimits() { return limits; }
-    public void setLimits(double limits) { this.limits = limits; }
+    public double getLimitAmount() { return limitAmount; }
+    public void setLimitAmount(double limitAmount) { this.limitAmount = limitAmount; }
     
-    public String getStart_date() { return start_date; }
-    public void setStart_date(String start_date) { this.start_date = start_date; }
+    public String getStartDate() { return startDate; }
+    public void setStartDate(String startDate) { this.startDate = startDate; }
     
-    public String getEnd_date() { return end_date; }
-    public void setEnd_date(String end_date) { this.end_date = end_date; }
-    
-    public String getTrackedCategories() { return trackedCategories; }
-    public void setTrackedCategories(String trackedCategories) { this.trackedCategories = trackedCategories; }
+    public String getEndDate() { return endDate; }
+    public void setEndDate(String endDate) { this.endDate = endDate; }
 }

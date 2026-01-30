@@ -7,7 +7,7 @@ public class Category {
         INCOME, EXPENSE
     }
 
-    private int id;
+    private String id;
     private String name;
     private String description;
     private Type type;
@@ -17,7 +17,7 @@ public class Category {
     public Category() {
     }
 
-    public Category(int id, String name, String description, Type type, double budgetLimit, boolean custom) {
+    public Category(String id, String name, String description, Type type, double budgetLimit, boolean custom) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -26,11 +26,11 @@ public class Category {
         this.custom = custom;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

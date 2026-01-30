@@ -26,7 +26,7 @@ public class AccountService implements CRUDInterface<Account> {
         String sql = "INSERT INTO Account (accountID, name, balance, color) VALUES (?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, account.getAccountID());
+            pstmt.setString(1, account.getId());
             pstmt.setString(2, account.getName());
             pstmt.setDouble(3, account.getBalance());
             pstmt.setString(4, account.getColor());
@@ -51,7 +51,7 @@ public class AccountService implements CRUDInterface<Account> {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     Account account = new Account();
-                    account.setAccountID(rs.getString("accountID"));
+                    account.setId(rs.getString("accountID"));
                     account.setName(rs.getString("name"));
                     account.setBalance(rs.getDouble("balance"));
                     account.setColor(rs.getString("color"));
@@ -78,7 +78,7 @@ public class AccountService implements CRUDInterface<Account> {
             
             while (rs.next()) {
                 Account account = new Account();
-                account.setAccountID(rs.getString("accountID"));
+                account.setId(rs.getString("accountID"));
                 account.setName(rs.getString("name"));
                 account.setBalance(rs.getDouble("balance"));
                 account.setColor(rs.getString("color"));
@@ -103,7 +103,7 @@ public class AccountService implements CRUDInterface<Account> {
             pstmt.setString(1, account.getName());
             pstmt.setDouble(2, account.getBalance());
             pstmt.setString(3, account.getColor());
-            pstmt.setString(4, account.getAccountID());
+            pstmt.setString(4, account.getId());
             
             pstmt.executeUpdate();
         } catch (SQLException e) {

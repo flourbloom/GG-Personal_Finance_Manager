@@ -19,21 +19,20 @@ public class BudgetService implements CRUDInterface<Budget> {
     
     /**
      * Create a new budget in the database
-     * Explicit fields: id, name, limits, balance, start_date, end_date, trackedCategories
+     * Explicit fields: id, name, limitAmount, balance, startDate, endDate
      */
     @Override
     public void create(Budget budget) {
-        String sql = "INSERT INTO Budget (id, name, limits, balance, start_date, end_date, trackedCategories) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Budget (id, name, limitAmount, balance, startDate, endDate) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, budget.getId());
             pstmt.setString(2, budget.getName());
-            pstmt.setDouble(3, budget.getLimits());
+            pstmt.setDouble(3, budget.getLimitAmount());
             pstmt.setDouble(4, budget.getBalance());
-            pstmt.setString(5, budget.getStart_date());
-            pstmt.setString(6, budget.getEnd_date());
-            pstmt.setString(7, budget.getTrackedCategories());
+            pstmt.setString(5, budget.getStartDate());
+            pstmt.setString(6, budget.getEndDate());
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -43,11 +42,11 @@ public class BudgetService implements CRUDInterface<Budget> {
     
     /**
      * Read a single budget by id
-     * Explicit fields: id, name, limits, balance, start_date, end_date, trackedCategories
+     * Explicit fields: id, name, limitAmount, balance, startDate, endDate
      */
     @Override
     public Budget read(String id) {
-        String sql = "SELECT id, name, limits, balance, start_date, end_date, trackedCategories " +
+        String sql = "SELECT id, name, limitAmount, balance, startDate, endDate " +
                      "FROM Budget WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -58,11 +57,10 @@ public class BudgetService implements CRUDInterface<Budget> {
                     Budget budget = new Budget();
                     budget.setId(rs.getString("id"));
                     budget.setName(rs.getString("name"));
-                    budget.setLimits(rs.getDouble("limits"));
+                    budget.setLimitAmount(rs.getDouble("limitAmount"));
                     budget.setBalance(rs.getDouble("balance"));
-                    budget.setStart_date(rs.getString("start_date"));
-                    budget.setEnd_date(rs.getString("end_date"));
-                    budget.setTrackedCategories(rs.getString("trackedCategories"));
+                    budget.setStartDate(rs.getString("startDate"));
+                    budget.setEndDate(rs.getString("endDate"));
                     return budget;
                 }
             }
@@ -74,10 +72,10 @@ public class BudgetService implements CRUDInterface<Budget> {
     
     /**
      * Read all budgets from the database
-     * Explicit fields: id, name, limits, balance, start_date, end_date, trackedCategories
+     * Explicit fields: id, name, limitAmount, balance, startDate, endDate
      */
     public List<Budget> readAll() {
-        String sql = "SELECT id, name, limits, balance, start_date, end_date, trackedCategories " +
+        String sql = "SELECT id, name, limitAmount, balance, startDate, endDate " +
                      "FROM Budget ORDER BY name";
         List<Budget> budgets = new ArrayList<>();
         
@@ -88,11 +86,10 @@ public class BudgetService implements CRUDInterface<Budget> {
                 Budget budget = new Budget();
                 budget.setId(rs.getString("id"));
                 budget.setName(rs.getString("name"));
-                budget.setLimits(rs.getDouble("limits"));
+                budget.setLimitAmount(rs.getDouble("limitAmount"));
                 budget.setBalance(rs.getDouble("balance"));
-                budget.setStart_date(rs.getString("start_date"));
-                budget.setEnd_date(rs.getString("end_date"));
-                budget.setTrackedCategories(rs.getString("trackedCategories"));
+                budget.setStartDate(rs.getString("startDate"));
+                budget.setEndDate(rs.getString("endDate"));
                 budgets.add(budget);
             }
         } catch (SQLException e) {
@@ -103,21 +100,20 @@ public class BudgetService implements CRUDInterface<Budget> {
     
     /**
      * Update an existing budget
-     * Explicit fields: name, limits, balance, start_date, end_date, trackedCategories (WHERE id = ?)
+     * Explicit fields: name, limitAmount, balance, startDate, endDate (WHERE id = ?)
      */
     @Override
     public void update(Budget budget) {
-        String sql = "UPDATE Budget SET name = ?, limits = ?, balance = ?, start_date = ?, " +
-                     "end_date = ?, trackedCategories = ? WHERE id = ?";
+        String sql = "UPDATE Budget SET name = ?, limitAmount = ?, balance = ?, startDate = ?, " +
+                     "endDate = ? WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, budget.getName());
-            pstmt.setDouble(2, budget.getLimits());
+            pstmt.setDouble(2, budget.getLimitAmount());
             pstmt.setDouble(3, budget.getBalance());
-            pstmt.setString(4, budget.getStart_date());
-            pstmt.setString(5, budget.getEnd_date());
-            pstmt.setString(6, budget.getTrackedCategories());
-            pstmt.setString(7, budget.getId());
+            pstmt.setString(4, budget.getStartDate());
+            pstmt.setString(5, budget.getEndDate());
+            pstmt.setString(6, budget.getId());
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -142,11 +138,11 @@ public class BudgetService implements CRUDInterface<Budget> {
     }
     
     /**
-     * Get budgets that are currently active (current date within start_date and end_date)
+     * Get budgets that are currently active (current date within startDate and endDate)
      */
     public List<Budget> getActiveBudgets() {
-        String sql = "SELECT id, name, limits, balance, start_date, end_date, trackedCategories " +
-                     "FROM Budget WHERE date('now') BETWEEN start_date AND end_date " +
+        String sql = "SELECT id, name, limitAmount, balance, startDate, endDate " +
+                     "FROM Budget WHERE date('now') BETWEEN startDate AND endDate " +
                      "ORDER BY name";
         List<Budget> budgets = new ArrayList<>();
         
@@ -157,11 +153,10 @@ public class BudgetService implements CRUDInterface<Budget> {
                 Budget budget = new Budget();
                 budget.setId(rs.getString("id"));
                 budget.setName(rs.getString("name"));
-                budget.setLimits(rs.getDouble("limits"));
+                budget.setLimitAmount(rs.getDouble("limitAmount"));
                 budget.setBalance(rs.getDouble("balance"));
-                budget.setStart_date(rs.getString("start_date"));
-                budget.setEnd_date(rs.getString("end_date"));
-                budget.setTrackedCategories(rs.getString("trackedCategories"));
+                budget.setStartDate(rs.getString("startDate"));
+                budget.setEndDate(rs.getString("endDate"));
                 budgets.add(budget);
             }
         } catch (SQLException e) {

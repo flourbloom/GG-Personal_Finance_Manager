@@ -1,8 +1,6 @@
 package gitgud.pfm.cli;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +16,6 @@ import gitgud.pfm.services.TransactionService;
 import gitgud.pfm.Models.Category;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 /**
  * CLI Controller - Manages the command-line interface and user interactions
@@ -132,7 +129,7 @@ public class CliController {
             
             for (Account account : accounts) {
                 System.out.printf("%-15s %-20s $%,14.2f\n", 
-                    account.getAccountID(), 
+                    account.getId(), 
                     account.getName(), 
                     account.getBalance());
             }
@@ -164,13 +161,13 @@ public class CliController {
             for (Transaction tx : transactions) {
                 String type = tx.getIncome() == 1 ? "[+]" : "[-]";
                 System.out.printf("%-15s %-20s %-15s %-12s %s$%-11.2f %-20s\n",
-                    tx.getID(),
+                    tx.getId(),
                     tx.getName().length() > 20 ? tx.getName().substring(0, 17) + "..." : tx.getName(),
-                    tx.getCategories(),
-                    tx.getAccountID(),
+                    tx.getCategoryId(),
+                    tx.getAccountId(),
                     type,
                     tx.getAmount(),
-                    tx.getCreate_time().length() > 20 ? tx.getCreate_time().substring(0, 19) : tx.getCreate_time());
+                    tx.getCreateTime().length() > 20 ? tx.getCreateTime().substring(0, 19) : tx.getCreateTime());
             }
             
             System.out.println("--------------------------------------------------------------------------------------------");
@@ -206,10 +203,10 @@ public class CliController {
                 System.out.printf("%-15s %-20s $%,10.2f $%,10.2f %-12s %-12s\n",
                     budget.getId(),
                     budget.getName(),
-                    budget.getLimits(),
+                    budget.getLimitAmount(),
                     budget.getBalance(),
-                    budget.getStart_date(),
-                    budget.getEnd_date());
+                    budget.getStartDate(),
+                    budget.getEndDate());
             }
             
             System.out.println("--------------------------------------------------------------------------------------");
@@ -414,7 +411,7 @@ public class CliController {
         System.out.print("Enter tracked categories (comma-separated): ");
         String tracked = scanner.nextLine().trim();
 
-        Budget budget = new Budget(name, limits, balance, startDate, endDate, tracked);
+        Budget budget = new Budget(name, limits, balance, startDate, endDate);
         
         // Save to database using BudgetService
         budgetService.create(budget);

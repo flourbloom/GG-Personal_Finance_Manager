@@ -19,21 +19,21 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Create a new transaction in the database
-     * Explicit fields: ID, Categories, Amount, Name, Income, AccountID, Create_time
+     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
      */
     @Override
     public void create(Transaction transaction) {
-        String sql = "INSERT INTO transaction_records (ID, Categories, Amount, Name, Income, AccountID, Create_time) " +
+        String sql = "INSERT INTO transaction_records (id, categoryId, amount, name, income, accountId, createTime) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, transaction.getID());
-            pstmt.setString(2, transaction.getCategories());
+            pstmt.setString(1, transaction.getId());
+            pstmt.setString(2, transaction.getCategoryId());
             pstmt.setDouble(3, transaction.getAmount());
             pstmt.setString(4, transaction.getName());
             pstmt.setDouble(5, transaction.getIncome());
-            pstmt.setString(6, transaction.getAccountID());
-            pstmt.setString(7, transaction.getCreate_time());
+            pstmt.setString(6, transaction.getAccountId());
+            pstmt.setString(7, transaction.getCreateTime());
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -43,12 +43,12 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Read a single transaction by ID
-     * Explicit fields: ID, Categories, Amount, Name, Income, AccountID, Create_time
+     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
      */
     @Override
     public Transaction read(String id) {
-        String sql = "SELECT ID, Categories, Amount, Name, Income, AccountID, Create_time " +
-                     "FROM transaction_records WHERE ID = ?";
+        String sql = "SELECT id, categoryId, amount, name, income, accountId, createTime " +
+                     "FROM transaction_records WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, id);
@@ -56,13 +56,13 @@ public class TransactionService implements CRUDInterface<Transaction> {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     Transaction transaction = new Transaction();
-                    transaction.setID(rs.getString("ID"));
-                    transaction.setCategories(rs.getString("Categories"));
-                    transaction.setAmount(rs.getDouble("Amount"));
-                    transaction.setName(rs.getString("Name"));
-                    transaction.setIncome(rs.getDouble("Income"));
-                    transaction.setAccountID(rs.getString("AccountID"));
-                    transaction.setCreate_time(rs.getString("Create_time"));
+                    transaction.setId(rs.getString("id"));
+                    transaction.setCategoryId(rs.getString("categoryId"));
+                    transaction.setAmount(rs.getDouble("amount"));
+                    transaction.setName(rs.getString("name"));
+                    transaction.setIncome(rs.getDouble("income"));
+                    transaction.setId(rs.getString("accountId"));
+                    transaction.setCreateTime(rs.getString("createTime"));
                     return transaction;
                 }
             }
@@ -74,11 +74,11 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Read all transactions from the database
-     * Explicit fields: ID, Categories, Amount, Name, Income, AccountID, Create_time
+     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
      */
     public List<Transaction> readAll() {
-        String sql = "SELECT ID, Categories, Amount, Name, Income, AccountID, Create_time " +
-                     "FROM transaction_records ORDER BY Create_time DESC";
+        String sql = "SELECT id, categoryId, amount, name, income, accountId, createTime " +
+                     "FROM transaction_records ORDER BY createTime DESC";
         List<Transaction> transactions = new ArrayList<>();
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -86,13 +86,13 @@ public class TransactionService implements CRUDInterface<Transaction> {
             
             while (rs.next()) {
                 Transaction transaction = new Transaction();
-                transaction.setID(rs.getString("ID"));
-                transaction.setCategories(rs.getString("Categories"));
-                transaction.setAmount(rs.getDouble("Amount"));
-                transaction.setName(rs.getString("Name"));
-                transaction.setIncome(rs.getDouble("Income"));
-                transaction.setAccountID(rs.getString("AccountID"));
-                transaction.setCreate_time(rs.getString("Create_time"));
+                transaction.setId(rs.getString("id"));
+                transaction.setCategoryId(rs.getString("categoryId"));
+                transaction.setAmount(rs.getDouble("amount"));
+                transaction.setName(rs.getString("name"));
+                transaction.setIncome(rs.getDouble("income"));
+                transaction.setId(rs.getString("accountId"));
+                transaction.setCreateTime(rs.getString("createTime"));
                 transactions.add(transaction);
             }
         } catch (SQLException e) {
@@ -103,11 +103,11 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Read all transactions by account ID
-     * Explicit fields: ID, Categories, Amount, Name, Income, AccountID, Create_time
+     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
      */
     public List<Transaction> readByAccount(String accountID) {
-        String sql = "SELECT ID, Categories, Amount, Name, Income, AccountID, Create_time " +
-                     "FROM transaction_records WHERE AccountID = ? ORDER BY Create_time DESC";
+        String sql = "SELECT id, categoryId, amount, name, income, accountId, createTime " +
+                     "FROM transaction_records WHERE accountId = ? ORDER BY createTime DESC";
         List<Transaction> transactions = new ArrayList<>();
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -116,13 +116,13 @@ public class TransactionService implements CRUDInterface<Transaction> {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Transaction transaction = new Transaction();
-                    transaction.setID(rs.getString("ID"));
-                    transaction.setCategories(rs.getString("Categories"));
-                    transaction.setAmount(rs.getDouble("Amount"));
-                    transaction.setName(rs.getString("Name"));
-                    transaction.setIncome(rs.getDouble("Income"));
-                    transaction.setAccountID(rs.getString("AccountID"));
-                    transaction.setCreate_time(rs.getString("Create_time"));
+                    transaction.setId(rs.getString("id"));
+                    transaction.setCategoryId(rs.getString("categoryId"));
+                    transaction.setAmount(rs.getDouble("amount"));
+                    transaction.setName(rs.getString("name"));
+                    transaction.setIncome(rs.getDouble("income"));
+                    transaction.setId(rs.getString("accountId"));
+                    transaction.setCreateTime(rs.getString("createTime"));
                     transactions.add(transaction);
                 }
             }
@@ -134,21 +134,21 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Update an existing transaction
-     * Explicit fields: Categories, Amount, Name, Income, AccountID, Create_time (WHERE ID = ?)
+     * Explicit fields: categoryId, amount, name, income, accountId, createTime (WHERE id = ?)
      */
     @Override
     public void update(Transaction transaction) {
-        String sql = "UPDATE transaction_records SET Categories = ?, Amount = ?, Name = ?, " +
-                     "Income = ?, AccountID = ?, Create_time = ? WHERE ID = ?";
+        String sql = "UPDATE transaction_records SET categoryId = ?, amount = ?, name = ?, " +
+                     "income = ?, accountId = ?, createTime = ? WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, transaction.getCategories());
+            pstmt.setString(1, transaction.getCategoryId());
             pstmt.setDouble(2, transaction.getAmount());
             pstmt.setString(3, transaction.getName());
             pstmt.setDouble(4, transaction.getIncome());
-            pstmt.setString(5, transaction.getAccountID());
-            pstmt.setString(6, transaction.getCreate_time());
-            pstmt.setString(7, transaction.getID());
+            pstmt.setString(5, transaction.getAccountId());
+            pstmt.setString(6, transaction.getCreateTime());
+            pstmt.setString(7, transaction.getId());
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -161,7 +161,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
      */
     @Override
     public void delete(String id) {
-        String sql = "DELETE FROM transaction_records WHERE ID = ?";
+        String sql = "DELETE FROM transaction_records WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, id);
@@ -176,7 +176,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
      * Get total income across all transactions
      */
     public double getTotalIncome() {
-        String sql = "SELECT SUM(Amount) as total FROM transaction_records WHERE Income = 1";
+        String sql = "SELECT SUM(amount) as total FROM transaction_records WHERE income = 1";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -194,7 +194,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
      * Get total expenses across all transactions
      */
     public double getTotalExpenses() {
-        String sql = "SELECT SUM(Amount) as total FROM transaction_records WHERE Income = 0";
+        String sql = "SELECT SUM(amount) as total FROM transaction_records WHERE income = 0";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {

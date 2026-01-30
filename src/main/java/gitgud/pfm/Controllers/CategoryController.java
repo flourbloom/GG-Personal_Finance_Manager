@@ -70,6 +70,8 @@ public class CategoryController implements Initializable {
 	//     categoryListView.setItems(categoryNames);
 	// }
 
+
+	// TODO : Discarded addCategory function because of hardcoded categories in the db
 	@FXML
 	private void addCategory() {
 		String name = nameField.getText();
@@ -80,7 +82,7 @@ public class CategoryController implements Initializable {
 			return;
 		}
 		Category.Type type = Category.Type.valueOf(typeStr);
-		Category custom = new Category(0, name, desc, type, 0.0, true);
+		Category custom = new Category("0", name, desc, type, 0.0, true);
 		service.addCustomCategory(custom);
 		// Redraw all custom category buttons (predefined remain)
 		updatePredefinedCategoryButtons();
