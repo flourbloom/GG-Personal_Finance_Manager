@@ -30,7 +30,6 @@ public class CategoryController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		typeCombo.setItems(FXCollections.observableArrayList("EXPENSE", "INCOME"));
 		updatePredefinedCategoryButtons();
-		updateCustomCategoryButtons();
 	}
 
 	private void updatePredefinedCategoryButtons() {
@@ -48,20 +47,6 @@ public class CategoryController implements Initializable {
 		}
 	}
 
-	private void updateCustomCategoryButtons() {
-		// Only add custom categories, do not clear the pane (preserve predefined)
-		for (Category c : service.getCustomCategories()) {
-			Button btn = new Button(c.getName());
-			btn.setStyle("-fx-background-radius: 20; -fx-padding: 10 20; -fx-background-color: #e0e0e0;");
-			btn.setOnAction(e -> showAlert("Edit Custom Category: " + c.getName()));
-			if (c.getType() == Category.Type.EXPENSE) {
-				customExpensePane.getChildren().add(btn);
-			} else {
-				customIncomePane.getChildren().add(btn);
-			}
-		}
-	}
-
 	// private void updateCategoryList() {
 	//     categoryNames = FXCollections.observableArrayList();
 	//     for (Category c : service.getAllCategories()) {
@@ -69,28 +54,6 @@ public class CategoryController implements Initializable {
 	//     }
 	//     categoryListView.setItems(categoryNames);
 	// }
-
-
-	// TODO : Discarded addCategory function because of hardcoded categories in the db
-	@FXML
-	private void addCategory() {
-		String name = nameField.getText();
-		String desc = descField.getText();
-		String typeStr = typeCombo.getValue();
-		if (name == null || name.isEmpty() || typeStr == null) {
-			showAlert("Please enter a name and select a type.");
-			return;
-		}
-		Category.Type type = Category.Type.valueOf(typeStr);
-		Category custom = new Category("0", name, desc, type, 0.0, true);
-		service.addCustomCategory(custom);
-		// Redraw all custom category buttons (predefined remain)
-		updatePredefinedCategoryButtons();
-		updateCustomCategoryButtons();
-		nameField.clear();
-		descField.clear();
-		typeCombo.getSelectionModel().clearSelection();
-	}
 
 	@FXML
 	private void goBack() {

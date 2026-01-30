@@ -19,11 +19,11 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Create a new transaction in the database
-     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
+     * Explicit fields: id, categoryId, amount, name, income, walletId, createTime
      */
     @Override
     public void create(Transaction transaction) {
-        String sql = "INSERT INTO transaction_records (id, categoryId, amount, name, income, accountId, createTime) " +
+        String sql = "INSERT INTO transaction_records (id, categoryId, amount, name, income, walletId, createTime) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -32,7 +32,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
             pstmt.setDouble(3, transaction.getAmount());
             pstmt.setString(4, transaction.getName());
             pstmt.setDouble(5, transaction.getIncome());
-            pstmt.setString(6, transaction.getAccountId());
+            pstmt.setString(6, transaction.getWalletId());
             pstmt.setString(7, transaction.getCreateTime());
             
             pstmt.executeUpdate();
@@ -43,11 +43,11 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Read a single transaction by ID
-     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
+     * Explicit fields: id, categoryId, amount, name, income, walletId, createTime
      */
     @Override
     public Transaction read(String id) {
-        String sql = "SELECT id, categoryId, amount, name, income, accountId, createTime " +
+        String sql = "SELECT id, categoryId, amount, name, income, walletId, createTime " +
                      "FROM transaction_records WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -61,7 +61,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
                     transaction.setAmount(rs.getDouble("amount"));
                     transaction.setName(rs.getString("name"));
                     transaction.setIncome(rs.getDouble("income"));
-                    transaction.setId(rs.getString("accountId"));
+                    transaction.setWalletId(rs.getString("walletId"));
                     transaction.setCreateTime(rs.getString("createTime"));
                     return transaction;
                 }
@@ -74,10 +74,10 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Read all transactions from the database
-     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
+     * Explicit fields: id, categoryId, amount, name, income, walletId, createTime
      */
     public List<Transaction> readAll() {
-        String sql = "SELECT id, categoryId, amount, name, income, accountId, createTime " +
+        String sql = "SELECT id, categoryId, amount, name, income, walletId, createTime " +
                      "FROM transaction_records ORDER BY createTime DESC";
         List<Transaction> transactions = new ArrayList<>();
         
@@ -91,7 +91,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
                 transaction.setAmount(rs.getDouble("amount"));
                 transaction.setName(rs.getString("name"));
                 transaction.setIncome(rs.getDouble("income"));
-                transaction.setId(rs.getString("accountId"));
+                transaction.setWalletId(rs.getString("walletId"));
                 transaction.setCreateTime(rs.getString("createTime"));
                 transactions.add(transaction);
             }
@@ -103,11 +103,11 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Read all transactions by account ID
-     * Explicit fields: id, categoryId, amount, name, income, accountId, createTime
+     * Explicit fields: id, categoryId, amount, name, income, walletId, createTime
      */
     public List<Transaction> readByAccount(String accountID) {
-        String sql = "SELECT id, categoryId, amount, name, income, accountId, createTime " +
-                     "FROM transaction_records WHERE accountId = ? ORDER BY createTime DESC";
+        String sql = "SELECT id, categoryId, amount, name, income, walletId, createTime " +
+                     "FROM transaction_records WHERE walletId = ? ORDER BY createTime DESC";
         List<Transaction> transactions = new ArrayList<>();
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -121,7 +121,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
                     transaction.setAmount(rs.getDouble("amount"));
                     transaction.setName(rs.getString("name"));
                     transaction.setIncome(rs.getDouble("income"));
-                    transaction.setId(rs.getString("accountId"));
+                    transaction.setWalletId(rs.getString("walletId"));
                     transaction.setCreateTime(rs.getString("createTime"));
                     transactions.add(transaction);
                 }
@@ -134,19 +134,19 @@ public class TransactionService implements CRUDInterface<Transaction> {
     
     /**
      * Update an existing transaction
-     * Explicit fields: categoryId, amount, name, income, accountId, createTime (WHERE id = ?)
+     * Explicit fields: categoryId, amount, name, income, walletId, createTime (WHERE id = ?)
      */
     @Override
     public void update(Transaction transaction) {
         String sql = "UPDATE transaction_records SET categoryId = ?, amount = ?, name = ?, " +
-                     "income = ?, accountId = ?, createTime = ? WHERE id = ?";
+                     "income = ?, walletId = ?, createTime = ? WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, transaction.getCategoryId());
             pstmt.setDouble(2, transaction.getAmount());
             pstmt.setString(3, transaction.getName());
             pstmt.setDouble(4, transaction.getIncome());
-            pstmt.setString(5, transaction.getAccountId());
+            pstmt.setString(5, transaction.getWalletId());
             pstmt.setString(6, transaction.getCreateTime());
             pstmt.setString(7, transaction.getId());
             

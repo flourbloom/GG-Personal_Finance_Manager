@@ -10,20 +10,18 @@ public class Category {
     private String id;
     private String name;
     private String description;
-    private Type type;
-    private double budgetLimit;
+    private Type type; // INCOME or EXPENSE
+    // TODO remove custom when categorycontroller is modified to list only default
     private boolean custom;
 
     public Category() {
     }
 
-    public Category(String id, String name, String description, Type type, double budgetLimit, boolean custom) {
+    public Category(String id, String name, String description, Type type) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.type = type;
-        this.budgetLimit = budgetLimit;
-        this.custom = custom;
     }
 
     public String getId() {
@@ -58,15 +56,8 @@ public class Category {
         this.type = type;
     }
 
-    public double getBudgetLimit() {
-        return budgetLimit;
-    }
-
-    public void setBudgetLimit(double budgetLimit) {
-        this.budgetLimit = budgetLimit;
-    }
-
-    public boolean isCustom() {
+    // TODO remove custom when categorycontroller is modified to list only default
+    public boolean getCustom() {
         return custom;
     }
 
@@ -74,6 +65,7 @@ public class Category {
         this.custom = custom;
     }
 
+    // TODO remove custom when categorycontroller is modified to list only default
     @Override
     public String toString() {
         return "Category{" +
@@ -81,18 +73,17 @@ public class Category {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", type=" + type +
-                ", budgetLimit=" + budgetLimit +
                 ", custom=" + custom +
                 '}';
     }
 
+    // TODO remove custom when categorycontroller is modified to list only default
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Category category = (Category) o;
         return id == category.id &&
-                Double.compare(category.budgetLimit, budgetLimit) == 0 &&
                 custom == category.custom &&
                 Objects.equals(name, category.name) &&
                 Objects.equals(description, category.description) &&
@@ -101,6 +92,6 @@ public class Category {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, type, budgetLimit, custom);
+        return Objects.hash(id, name, description, type, custom);
     }
 }

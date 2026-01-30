@@ -1,7 +1,7 @@
 package gitgud.pfm.services;
 
 import java.util.List;
-
+ 
 import gitgud.pfm.Models.*;
 
 public class AccountDataLoader {
@@ -10,7 +10,7 @@ public class AccountDataLoader {
         private List<Budget> budgets;
         private List<Goal> goals;
         private List<Transaction> transactions;
-        private gitgud.pfm.Models.Account account;
+        private gitgud.pfm.Models.Wallet wallet;
 
         public List<Budget> getBudgets() {
             return budgets;
@@ -36,12 +36,12 @@ public class AccountDataLoader {
             this.transactions = transactions;
         }
 
-        public gitgud.pfm.Models.Account getAccount() {
-            return account;
+        public gitgud.pfm.Models.Wallet getWallet() {
+            return wallet;
         }
 
-        public void setAccount(gitgud.pfm.Models.Account account) {
-            this.account = account;
+        public void setWallet(gitgud.pfm.Models.Wallet wallet) {
+            this.wallet = wallet;
         }
 
     }
@@ -58,23 +58,23 @@ public class AccountDataLoader {
             data.budgets = new java.util.ArrayList<>();
         }
 
-        // Transactions: read all transactions where AccountID = accountID
+        // Transactions: read all transactions
         try {
             TransactionService txService = new TransactionService();
-            data.transactions = txService.readByAccount(accountID);
+            data.transactions = txService.readAll();
         } catch (Exception e) {
             System.err.println("Warning: failed to read transactions: " + e.getMessage());
             data.transactions = new java.util.ArrayList<>();
         }
 
-        // Account: read Account by primary key 'AccountID'
+        // Wallet: read Wallet by primary key 'AccountID'
         try {
-            AccountService accountService = new AccountService();
-            gitgud.pfm.Models.Account account = accountService.read(accountID);
-            data.setAccount(account);
+            WalletService walletService = new WalletService();
+            gitgud.pfm.Models.Wallet wallet = walletService.read(accountID);
+            data.setWallet(wallet);
         } catch (Exception e) {
-            System.err.println("Warning: failed to read Account with AccountID = " + accountID + ": " + e.getMessage());
-            data.setAccount(null);
+            System.err.println("Warning: failed to read Wallet with AccountID = " + accountID + ": " + e.getMessage());
+            data.setWallet(null);
         }
 
         // Goals: read all goals (public data)

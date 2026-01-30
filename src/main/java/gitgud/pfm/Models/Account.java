@@ -11,7 +11,7 @@ public class Account extends FinancialEntity {
     }
     
     public Account(String color, double balance, String name) {
-        super(IdGenerator.generateAccountId(), name, balance);
+        super(IdGenerator.generateWalletId(), name, balance);
         this.color = color;
     }
 
