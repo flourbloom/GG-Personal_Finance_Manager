@@ -207,4 +207,26 @@ public class TransactionService implements CRUDInterface<Transaction> {
         }
         return 0.0;
     }
+    public List<Transaction> findByName(String namePattern) {
+		List<Transaction> transactions = new ArrayList<>();
+		String sql = "SELECT * FROM transaction_records WHERE name LIKE ? ORDER BY name";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            try (ResultSet rs = pstmt.executeQuery()) {
+			while (rs.next()) {
+				Transaction transaction = new Transaction();
+                    transaction.setId(rs.getString("id"));
+                    transaction.setCategoryId(rs.getString("categoryId"));
+                    transaction.setAmount(rs.getDouble("amount"));
+                    transaction.setName(rs.getString("name"));
+                    transaction.setIncome(rs.getDouble("income"));
+                    transaction.setWalletId(rs.getString("walletId"));
+                    transaction.setCreateTime(rs.getString("createTime"));
+                    transactions.add(transaction);
+			}
+        }
+		} catch (SQLException e) {
+			System.out.println("Error searching transactions by name: " + e.getMessage());
+		}
+		return transactions;
+	}
 }
