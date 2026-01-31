@@ -70,7 +70,7 @@ public class CliController {
      * Main menu loop - handles user input and navigation
      */
     private void mainMenuLoop() {
-        this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+        this.accountData = AccountDataLoader.loadAccountData();
         while (running) {
 
             printMainMenu();
@@ -129,6 +129,15 @@ public class CliController {
                     break;
                 case "17":
                     handleViewReports(accountData);
+                    break;
+                case "18":
+                    AddWallet();
+                    break;
+                case "19":
+                    UpdateWallet();
+                    break;
+                case "20":
+                    DeleteWallet();
                     break;
                 case "0":
                     // looks for users input then call exit program
@@ -368,6 +377,7 @@ public class CliController {
         for (int i = 0; i < wallets.size(); i++) {
             System.out.printf("  %d. %s (Balance: $%.2f)\n", i + 1, wallets.get(i).getName(), wallets.get(i).getBalance());
         }
+        Wallet selectedWallet = null;
         String walletId = null;
         while (walletId == null) {
             System.out.print("Enter the number of the account: ");
@@ -376,6 +386,11 @@ public class CliController {
                 int num = Integer.parseInt(input);
                 if (num >= 1 && num <= wallets.size()) {
                     walletId = wallets.get(num - 1).getId();
+                    selectedWallet = walletService.read(walletId);
+                    if (income == 0 && selectedWallet.getBalance() < amount) {
+                        System.out.println("Warning: Insufficient funds in the selected wallet for this expense.");
+                        return;
+                    }
                 } else {
                     System.out.println("Invalid number. Try again.");
                 }
@@ -384,18 +399,25 @@ public class CliController {
             }
         }
         System.out.println("You selected: " + walletId);
-
+        if (income == 0) {
+            System.out.println("Expense of $" + amount + " will be deducted from wallet " + walletId);
+            selectedWallet.subtractFromBalance(amount);
+        } else {
+            System.out.println("Income of $" + amount + " will be added to wallet " + walletId);
+            selectedWallet.addToBalance(amount);
+        }
         // Only generate timestamp if all inputs are valid
         String timestamp = java.time.LocalDateTime.now().toString();
         String categoryId = selectedCategory.getId();
         Transaction transaction = new Transaction(categoryId, amount, name, income, walletId, timestamp);
-        
+        WalletService walletService = new WalletService();
+        walletService.update(selectedWallet);
         // Save to database using TransactionService
         transactionService.create(transaction);
         System.out.println("Transaction created: " + transaction.getName());
         
         // Refresh account data after creating transaction
-        this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+        this.accountData = AccountDataLoader.loadAccountData();
     }
     
     /**
@@ -598,7 +620,7 @@ public class CliController {
             GenericSQLiteService.update(config);
 
             System.out.println("Transaction updated.");
-            this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+            this.accountData = AccountDataLoader.loadAccountData();
         } catch (NumberFormatException ex) {
             System.out.println("Invalid numeric value: " + ex.getMessage());
         } catch (Exception ex) {
@@ -683,7 +705,7 @@ public class CliController {
             GenericSQLiteService.update(config);
 
             System.out.println("Budget updated.");
-            this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+            this.accountData = AccountDataLoader.loadAccountData();
         } catch (NumberFormatException ex) {
             System.out.println("Invalid numeric value: " + ex.getMessage());
         } catch (Exception ex) {
@@ -769,7 +791,7 @@ public class CliController {
             GenericSQLiteService.update(config);
 
             System.out.println("Goal updated.");
-            this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+            this.accountData = AccountDataLoader.loadAccountData();
         } catch (NumberFormatException ex) {
             System.out.println("Invalid numeric value: " + ex.getMessage());
         } catch (Exception ex) {
@@ -901,13 +923,13 @@ public class CliController {
      * Reloads account data from DB and updates the passed DataHolder in-place.
      */
     private void refreshDataHolder(AccountDataLoader.DataHolder accountData, String accountID) {
-        AccountDataLoader.DataHolder fresh = AccountDataLoader.loadAccountData(accountID);
+        AccountDataLoader.DataHolder fresh = AccountDataLoader.loadAccountData();
         if (fresh == null) return;
 
         accountData.setBudgets(fresh.getBudgets());
         accountData.setGoals(fresh.getGoals());
         accountData.setTransactions(fresh.getTransactions());
-        accountData.setWallet(fresh.getWallet());
+        accountData.setWallets(fresh.getWallets());
     }
 
     /**
@@ -944,9 +966,88 @@ public class CliController {
         System.out.println("========================================");
         System.out.println("17. View Reports");
         System.out.println("========================================");
+        System.out.println("18. Add Wallet ");
+        System.out.println("19. Update Wallet ");
+        System.out.println("20. Delete Wallet ");
+        System.out.println("========================================");
         System.out.println("0. Exit");
     }
 
+    private void AddWallet() {
+        System.out.println("Add Wallet:");
+        String name="";
+        double balance=0.0;
+        String color="";
+        try{
+        System.out.println("Enter wallet name: ");
+        name = scanner.nextLine().trim();
+        System.out.println("Enter initial balance: ");
+        balance = Double.parseDouble(scanner.nextLine().trim());
+        System.out.println("Add wallet color:");
+        color = scanner.nextLine().trim();
+         } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a valid number for balance.");
+            return;
+        }
+        Wallet wallet = new Wallet(name, balance, color);
+        walletService.create(wallet);
+    }
+
+    private void UpdateWallet() {
+        System.out.println("Update Wallet:");
+        List<Wallet> wallets = walletService.readAll();
+        handleAccountSummary();
+        Wallet selectedWallet = null;
+        String walletId = null;
+        while (walletId == null) {
+            System.out.print("Enter the number of the account: ");
+            String input = scanner.nextLine().trim();
+            try {
+                int num = Integer.parseInt(input);
+                if (num >= 1 && num <= wallets.size()) {
+                    walletId = wallets.get(num - 1).getId();
+                    selectedWallet = walletService.read(walletId);
+                } else {
+                    System.out.println("Invalid number. Try again.");
+                }
+        System.out.println("Enter new wallet name (current: " + selectedWallet.getName() + "): ");
+        String name = scanner.nextLine().trim();
+        System.out.println("Enter new balance (current: " + selectedWallet.getBalance() + "): ");
+        double balance = Double.parseDouble(scanner.nextLine().trim());
+        System.out.println("Enter new color (current: " + selectedWallet.getColor() + "): ");
+        String color = scanner.nextLine().trim();
+        selectedWallet.setName(name);
+        selectedWallet.setBalance(balance);
+        selectedWallet.setColor(color);
+        walletService.update(selectedWallet);
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+
+    }
+    public void DeleteWallet() {
+        System.out.println("Delete Wallet:");
+        List<Wallet> wallets = walletService.readAll();
+        handleAccountSummary();
+        String walletId = null;
+        while (walletId == null) {
+            System.out.print("Enter the number of the account: ");
+            String input = scanner.nextLine().trim();
+            try {
+                int num = Integer.parseInt(input);
+                if (num >= 1 && num <= wallets.size()) {
+                    walletId = wallets.get(num - 1).getId();
+                    walletService.delete(walletId);
+                    System.out.println("Wallet deleted: " + wallets.get(num - 1).getName());
+                } else {
+                    System.out.println("Invalid number. Try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+    }
     /**
      * Handle Add Budget menu option
      */
@@ -975,7 +1076,7 @@ public class CliController {
         String endDate = scanner.nextLine().trim();
 
         System.out.print("Enter tracked categories (comma-separated): ");
-        String tracked = scanner.nextLine().trim();
+        scanner.nextLine(); // read and ignore tracked categories (junction table used elsewhere)
 
         Budget budget = new Budget(name, limits, balance, startDate, endDate);
         
@@ -984,7 +1085,7 @@ public class CliController {
         System.out.println("Budget created: " + budget.getName());
         
         // Refresh account data after creating budget
-        this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+        this.accountData = AccountDataLoader.loadAccountData();
     }
 
     /**
@@ -1023,7 +1124,7 @@ public class CliController {
         System.out.println("Goal created: " + goal.getName());
         
         // Refresh account data after creating goal
-        this.accountData = AccountDataLoader.loadAccountData(currentAccountID);
+        this.accountData = AccountDataLoader.loadAccountData();
     }
 
     private void exitProgram() {

@@ -10,7 +10,7 @@ public class AccountDataLoader {
         private List<Budget> budgets;
         private List<Goal> goals;
         private List<Transaction> transactions;
-        private gitgud.pfm.Models.Wallet wallet;
+        private List<Wallet> wallets;
 
         public List<Budget> getBudgets() {
             return budgets;
@@ -36,17 +36,17 @@ public class AccountDataLoader {
             this.transactions = transactions;
         }
 
-        public gitgud.pfm.Models.Wallet getWallet() {
-            return wallet;
+        public List<Wallet> getWallets() {
+            return wallets;
         }
 
-        public void setWallet(gitgud.pfm.Models.Wallet wallet) {
-            this.wallet = wallet;
+        public void setWallets(List<Wallet> wallets) {
+            this.wallets = wallets;
         }
 
     }
 
-    public static DataHolder loadAccountData(String accountID) {
+    public static DataHolder loadAccountData() {
         DataHolder data = new DataHolder();
 
         // Budgets: read all budgets (public data)
@@ -70,11 +70,10 @@ public class AccountDataLoader {
         // Wallet: read Wallet by primary key 'AccountID'
         try {
             WalletService walletService = new WalletService();
-            gitgud.pfm.Models.Wallet wallet = walletService.read(accountID);
-            data.setWallet(wallet);
+            data.wallets = walletService.readAll();
         } catch (Exception e) {
-            System.err.println("Warning: failed to read Wallet with AccountID = " + accountID + ": " + e.getMessage());
-            data.setWallet(null);
+            System.err.println("Warning: failed to read Wallet with AccountID:" + e.getMessage());
+            data.setWallets(null);
         }
 
         // Goals: read all goals (public data)

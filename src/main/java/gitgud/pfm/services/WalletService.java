@@ -36,7 +36,7 @@ public class WalletService implements CRUDInterface<Wallet> {
             System.err.println("Error creating wallet: " + e.getMessage());
         }
     }
-    
+
     /**
      * Read a single wallet by walletId
      * Explicit fields: walletId, name, balance, color
@@ -44,18 +44,16 @@ public class WalletService implements CRUDInterface<Wallet> {
     @Override
     public Wallet read(String walletId) {
         String sql = "SELECT id, name, balance, color FROM Wallet WHERE id = ?";
-        
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, walletId);
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     Wallet wallet = new Wallet();
-                    wallet.setId(rs.getString("walletId"));
+                    wallet.setId(rs.getString("id"));
                     wallet.setName(rs.getString("name"));
                     wallet.setBalance(rs.getDouble("balance"));
                     wallet.setColor(rs.getString("color"));
-                    wallet.setId(rs.getString("walletId")); // Set parent class id
                     return wallet;
                 }
             }
@@ -82,7 +80,6 @@ public class WalletService implements CRUDInterface<Wallet> {
                 wallet.setName(rs.getString("name"));
                 wallet.setBalance(rs.getDouble("balance"));
                 wallet.setColor(rs.getString("color"));
-                wallet.setId(rs.getString("id")); // Set parent class id
                 wallets.add(wallet);
             }
         } catch (SQLException e) {
