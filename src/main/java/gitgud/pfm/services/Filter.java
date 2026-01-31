@@ -5,6 +5,8 @@ import java.util.List;
 
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.TransactionCriteria;
+import gitgud.pfm.Models.Goal;
+import gitgud.pfm.Models.Budget;
 public class Filter {
 
     Filter() {
@@ -69,12 +71,54 @@ public class Filter {
         }
 
         if (criteria.getIncome() != null) {
-            boolean txIsIncome = transaction.getIncome() == 1.0;
-            if (txIsIncome != criteria.getIncome()) {
+            if (transaction.getIncome() != criteria.getIncome()) {
                 return false;
             }
         }
 
         return true;
+    }
+    public List<Transaction> searchTransactions(String searchTerm, AccountDataLoader.DataHolder accountdata) {
+            List<Transaction> transactions = accountdata.getTransactions();
+            List<Transaction> result = new ArrayList<>();
+            if (searchTerm == null || searchTerm.isEmpty()) {
+            return transactions; // No search term, return all
+            }
+            String lowerSearchTerm = searchTerm.toLowerCase();
+            for (Transaction t : transactions) {
+            if ((t.getName() != null && t.getName().toLowerCase().contains(lowerSearchTerm))) {
+                result.add(t);
+            }
+            }
+        return result;
+}
+    public List<Goal> searchGoals(String searchTerm, AccountDataLoader.DataHolder accountdata) {
+            List<Goal> goals = accountdata.getGoals();
+            List<Goal> result = new ArrayList<>();
+            if (searchTerm == null || searchTerm.isEmpty()) {
+                return goals;
+            }
+            String lowerSearchTerm = searchTerm.toLowerCase();
+            for (Goal g : goals) {
+                if (g.getName() != null && g.getName().toLowerCase().contains(lowerSearchTerm)) {
+                    result.add(g);
+                }
+            }
+            return result;
+    }
+
+    public List<Budget> searchBudgets(String searchTerm, AccountDataLoader.DataHolder accountdata) {
+            List<Budget> budgets = accountdata.getBudgets();
+            List<Budget> result = new ArrayList<>();
+            if (searchTerm == null || searchTerm.isEmpty()) {
+                return budgets;
+            }
+            String lowerSearchTerm = searchTerm.toLowerCase();
+            for (Budget b : budgets) {
+                if (b.getName() != null && b.getName().toLowerCase().contains(lowerSearchTerm)) {
+                    result.add(b);
+                }
+            }
+            return result;
     }
 }

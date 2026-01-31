@@ -1,6 +1,7 @@
 package gitgud.pfm.services;
 
 import gitgud.pfm.Models.Budget;
+import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.interfaces.CRUDInterface;
 import java.sql.*;
 import java.util.ArrayList;
@@ -164,4 +165,25 @@ public class BudgetService implements CRUDInterface<Budget> {
         }
         return budgets;
     }
+    public List<Budget> findByName(String namePattern) {
+		List<Budget> budgets = new ArrayList<>();
+		String sql = "SELECT * FROM Budget WHERE name LIKE ? ORDER BY name";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            try (ResultSet rs = pstmt.executeQuery()) {
+			while (rs.next()) {
+				Budget budget = new Budget();
+                    budget.setId(rs.getString("id"));
+                    budget.setName(rs.getString("name"));
+                    budget.setLimitAmount(rs.getDouble("limitAmount"));
+                    budget.setBalance(rs.getDouble("balance"));
+                    budget.setStartDate(rs.getString("startDate"));
+                    budget.setEndDate(rs.getString("endDate"));
+                    budgets.add(budget);
+			}
+        }
+		} catch (SQLException e) {
+			System.out.println("Error searching budgets by name: " + e.getMessage());
+		}
+		return budgets;
+	}
 }

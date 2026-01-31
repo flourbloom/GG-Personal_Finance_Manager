@@ -1,5 +1,6 @@
 package gitgud.pfm.services;
 
+import gitgud.pfm.Models.Budget;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.interfaces.CRUDInterface;
 import java.sql.*;
@@ -169,4 +170,26 @@ public class GoalService implements CRUDInterface<Goal> {
         }
         return goals;
     }
+    public List<Goal> findByName(String namePattern) {
+		List<Goal> goals = new ArrayList<>();
+		String sql = "SELECT * FROM Goal WHERE name LIKE ? ORDER BY name";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            try (ResultSet rs = pstmt.executeQuery()) {
+			while (rs.next()) {
+				Goal goal = new Goal();
+                    goal.setId(rs.getString("id"));
+                    goal.setName(rs.getString("name"));
+                    goal.setTarget(rs.getDouble("target"));
+                    goal.setBalance(rs.getDouble("balance"));
+                    goal.setDeadline(rs.getString("deadline"));
+                    goal.setPriority(rs.getDouble("priority"));
+                    goal.setCreateTime(rs.getString("createAt"));
+                    goals.add(goal);
+			}
+        }
+		} catch (SQLException e) {
+			System.out.println("Error searching goals by name: " + e.getMessage());
+		}
+		return goals;
+	}
 }
