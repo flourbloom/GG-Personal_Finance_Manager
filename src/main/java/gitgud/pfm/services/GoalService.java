@@ -170,10 +170,51 @@ public class GoalService implements CRUDInterface<Goal> {
         }
         return goals;
     }
+    
+    /**
+     * Get goals that are inactive (already reached target)
+     */
+    public List<Goal> getInactiveGoals() {
+        String sql = "SELECT id, name, target, balance, deadline, priority, createAt " +
+                     "FROM Goal WHERE balance >= target " +
+                     "ORDER BY priority DESC, deadline";
+        List<Goal> goals = new ArrayList<>();
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Goal goal = new Goal();
+                goal.setId(rs.getString("id"));
+                goal.setName(rs.getString("name"));
+                goal.setTarget(rs.getDouble("target"));
+                goal.setBalance(rs.getDouble("balance"));
+                goal.setDeadline(rs.getString("deadline"));
+                goal.setPriority(rs.getDouble("priority"));
+                goal.setCreateTime(rs.getString("createAt"));
+                goals.add(goal);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error reading inactive goals: " + e.getMessage());
+        }
+        return goals;
+    }
+    
+    /**
+     * Get all goals ordered: active goals first, then inactive goals
+     */
+    public List<Goal> getAllGoalsOrdered() {
+        List<Goal> result = new ArrayList<>();
+        result.addAll(getActiveGoals());
+        result.addAll(getInactiveGoals());
+        return result;
+    }
+    
     public List<Goal> findByName(String namePattern) {
 		List<Goal> goals = new ArrayList<>();
 		String sql = "SELECT * FROM Goal WHERE name LIKE ? ORDER BY name";
 		try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            pstmt.setString(1, namePattern);
             try (ResultSet rs = pstmt.executeQuery()) {
 			while (rs.next()) {
 				Goal goal = new Goal();

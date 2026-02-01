@@ -142,9 +142,10 @@ public class BudgetService implements CRUDInterface<Budget> {
      * Get budgets that are currently active (current date within startDate and endDate)
      */
     public List<Budget> getActiveBudgets() {
-        String sql = "SELECT id, name, limitAmount, balance, startDate, endDate " +
-                     "FROM Budget WHERE date('now') BETWEEN startDate AND endDate " +
-                     "ORDER BY name";
+        String sql = "SELECT id, name, limitAmount, balance, startDate, endDate, " +
+                 "(julianday(endDate) - julianday('now')) AS days_left " +
+                 "FROM Budget WHERE date('now') BETWEEN startDate AND endDate " +
+                 "ORDER BY days_left ASC";
         List<Budget> budgets = new ArrayList<>();
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -165,6 +166,45 @@ public class BudgetService implements CRUDInterface<Budget> {
         }
         return budgets;
     }
+    
+    /**
+     * Get budgets that are inactive (current date outside startDate and endDate)
+     */
+    public List<Budget> getInactiveBudgets() {
+        String sql = "SELECT id, name, limitAmount, balance, startDate, endDate " +
+                 "FROM Budget WHERE date('now') NOT BETWEEN startDate AND endDate " +
+                 "ORDER BY endDate DESC";
+        List<Budget> budgets = new ArrayList<>();
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Budget budget = new Budget();
+                budget.setId(rs.getString("id"));
+                budget.setName(rs.getString("name"));
+                budget.setLimitAmount(rs.getDouble("limitAmount"));
+                budget.setBalance(rs.getDouble("balance"));
+                budget.setStartDate(rs.getString("startDate"));
+                budget.setEndDate(rs.getString("endDate"));
+                budgets.add(budget);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error reading inactive budgets: " + e.getMessage());
+        }
+        return budgets;
+    }
+    
+    /**
+     * Get all budgets ordered: active budgets first, then inactive budgets
+     */
+    public List<Budget> getAllBudgetsOrdered() {
+        List<Budget> result = new ArrayList<>();
+        result.addAll(getActiveBudgets());
+        result.addAll(getInactiveBudgets());
+        return result;
+    }
+    
     public List<Budget> findByName(String namePattern) {
 		List<Budget> budgets = new ArrayList<>();
 		String sql = "SELECT * FROM Budget WHERE name LIKE ? ORDER BY name";
