@@ -40,7 +40,7 @@ public class Filter {
         }
 
         if (criteria.getCategoryId() != null && !criteria.getCategoryId().isEmpty()) {
-            if (!transaction.getCategoryId().equalsIgnoreCase(criteria.getCategoryId())) {
+            if (!criteria.getCategoryId().contains(transaction.getCategoryId())) {
                 return false;
             }
         }
