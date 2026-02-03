@@ -70,12 +70,12 @@ public class Filter {
             }
         }
 
-        if (criteria.getIncome() != null) {
-            double expectedIncomeFlag = criteria.getIncome() ? 1.0 : 0.0;
-            if (transaction.getIncome() != expectedIncomeFlag) {
-                return false;
-            }
-        }
+        // if (criteria.getIncome() != null) {
+        //     double expectedIncomeFlag = criteria.getIncome() ? 1.0 : 0.0;
+        //     if (transaction.getIncome() != expectedIncomeFlag) {
+        //         return false;
+        //     }
+        // }
 
         return true;
     }

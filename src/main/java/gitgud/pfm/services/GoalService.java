@@ -169,9 +169,7 @@ public class GoalService implements CRUDInterface<Goal> {
         return goals;
     }
     
-    /**
-     * Get goals that are inactive (already reached target)
-     */
+    
     public List<Goal> getInactiveGoals() {
         String sql = "SELECT id, name, target, balance, deadline, priority, createAt " +
                      "FROM Goal WHERE balance >= target " +

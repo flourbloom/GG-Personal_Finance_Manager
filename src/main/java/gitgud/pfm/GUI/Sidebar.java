@@ -27,11 +27,11 @@ public class Sidebar extends VBox {
         navMenu.setPadding(new Insets(20, 12, 20, 12));
         VBox.setVgrow(navMenu, Priority.ALWAYS);
         
-        NavItem dashboard = new NavItem("Dashboard", () -> app.showDashboard());
-        NavItem transactions = new NavItem("Transactions", () -> app.showTransactions());
-        NavItem reports = new NavItem("Reports", () -> app.showReports());
-        NavItem goals = new NavItem("Goals", () -> app.showGoals());
-        NavItem accounts = new NavItem("Accounts", () -> app.showAccounts());
+        NavItem dashboard = new NavItem("Dashboard", "📊", "#3b82f6", () -> app.showDashboard());
+        NavItem transactions = new NavItem("Transactions", "⇄", "#a855f7", () -> app.showTransactions());
+        NavItem reports = new NavItem("Reports", "📈", "#10b981", () -> app.showReports());
+        NavItem goals = new NavItem("Goals", "🚩", "#ef4444", () -> app.showGoals());
+        NavItem accounts = new NavItem("Accounts", "👛", "#f59e0b", () -> app.showAccounts());
         
         navMenu.getChildren().addAll(dashboard, transactions, reports, goals, accounts);
         activeItem = dashboard;
@@ -107,29 +107,31 @@ public class Sidebar extends VBox {
     
     private class NavItem extends HBox {
         private String text;
+        private String icon;
+        private String iconColor;
         private boolean active = false;
         
-        public NavItem(String text, Runnable action) {
+        public NavItem(String text, String icon, String iconColor, Runnable action) {
             this.text = text;
+            this.icon = icon;
+            this.iconColor = iconColor;
             setAlignment(Pos.CENTER_LEFT);
             setSpacing(14);
             setPadding(new Insets(14, 16, 14, 16));
             setStyle("-fx-background-radius: 10; -fx-cursor: hand;");
             
-            Region iconView = new Region();
-            iconView.setPrefSize(16, 16);
-            iconView.setStyle("-fx-background-color: #94a3b8; -fx-background-radius: 4;");
+            Label iconLabel = new Label(icon);
+            iconLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: " + iconColor + ";");
             
             Label label = new Label(text);
             label.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
             
-            getChildren().addAll(iconView, label);
+            getChildren().addAll(iconLabel, label);
             
             setOnMouseEntered(e -> {
                 if (!active) {
                     setStyle("-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 10; -fx-cursor: hand;");
                     label.setStyle("-fx-text-fill: white; -fx-font-size: 15px;");
-                    iconView.setStyle("-fx-background-color: white; -fx-background-radius: 4;");
                 }
             });
 
@@ -137,7 +139,6 @@ public class Sidebar extends VBox {
                 if (!active) {
                     setStyle("-fx-background-radius: 10; -fx-cursor: hand;");
                     label.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
-                    iconView.setStyle("-fx-background-color: #94a3b8; -fx-background-radius: 4;");
                 }
             });
             
@@ -146,14 +147,14 @@ public class Sidebar extends VBox {
         
         public void setActive(boolean active) {
             this.active = active;
+            Label iconLabel = (Label)getChildren().get(0);
+            Label textLabel = (Label)getChildren().get(1);
             if (active) {
                 setStyle("-fx-background-color: #3b82f6; -fx-background-radius: 10; -fx-cursor: hand;");
-                ((Label)getChildren().get(1)).setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: 500;");
-                ((Region)getChildren().get(0)).setStyle("-fx-background-color: white; -fx-background-radius: 4;");
+                textLabel.setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: 500;");
             } else {
                 setStyle("-fx-background-radius: 10; -fx-cursor: hand;");
-                ((Label)getChildren().get(1)).setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
-                ((Region)getChildren().get(0)).setStyle("-fx-background-color: #94a3b8; -fx-background-radius: 4;");
+                textLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
             }
         }
         
