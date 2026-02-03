@@ -21,6 +21,17 @@ public class Goal extends FinancialEntity {
         this.priority = priority;
         this.createTime = createTime;
     }
+
+    /**
+     * New constructor used by CLI: do not require current balance (computed from transactions)
+     */
+    public Goal(String name, double target, String deadline, double priority, String createTime) {
+        super(IdGenerator.generateGoalId(), name, 0.0);
+        this.target = target;
+        this.deadline = deadline;
+        this.priority = priority;
+        this.createTime = createTime;
+    }
     
     public double getTarget() { return target; }
     public void setTarget(double target) { this.target = target; }

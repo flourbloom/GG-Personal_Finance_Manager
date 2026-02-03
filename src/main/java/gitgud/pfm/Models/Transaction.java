@@ -11,6 +11,7 @@ public class Transaction{
     private double amount;
     private String walletId;
     private String createTime;
+    private String goalId;
 
     // No-arg constructor required for reflection-based mapping
     public Transaction() {
@@ -82,5 +83,13 @@ public class Transaction{
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public String getGoalId() {
+        return goalId;
+    }
+
+    public void setGoalId(String goalId) {
+        this.goalId = goalId;
     }
 }
