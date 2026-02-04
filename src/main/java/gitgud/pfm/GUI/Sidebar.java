@@ -27,7 +27,7 @@ public class Sidebar extends VBox {
         navMenu.setPadding(new Insets(20, 12, 20, 12));
         VBox.setVgrow(navMenu, Priority.ALWAYS);
         
-        NavItem dashboard = new NavItem("Dashboard", "📊", "#3b82f6", () -> app.showDashboard());
+        NavItem dashboard = new NavItem("Dashboard", "📋", "#3b82f6", () -> app.showDashboard());
         NavItem transactions = new NavItem("Transactions", "⇄", "#a855f7", () -> app.showTransactions());
         NavItem reports = new NavItem("Reports", "📈", "#10b981", () -> app.showReports());
         NavItem goals = new NavItem("Goals", "🚩", "#ef4444", () -> app.showGoals());

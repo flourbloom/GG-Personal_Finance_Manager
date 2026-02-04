@@ -379,39 +379,59 @@ public class DashboardController implements Initializable {
         });
     }
 
-    private StackPane createTransactionIcon(String category) {
+    private StackPane createTransactionIcon(String categoryId) {
         StackPane pane = new StackPane();
         pane.setPrefSize(44, 44);
 
         String bgColor, emoji;
 
-        switch (category != null ? category : "") {
-            case "food":
-                emoji = "🍴";
-                bgColor = "#fef3c7";
-                break;
-            case "transport":
-                emoji = "🚗";
-                bgColor = "#dbeafe";
-                break;
-            case "shopping":
-                emoji = "🛍";
-                bgColor = "#fce7f3";
-                break;
-            case "bills":
-                emoji = "📄";
+        switch (categoryId != null ? categoryId : "") {
+            case "1": // Food & Drinks
+                emoji = "🍔";
                 bgColor = "#fee2e2";
                 break;
-            case "income":
-                emoji = "↓";
+            case "2": // Transport
+                emoji = "🚗";
+                bgColor = "#ffedd5";
+                break;
+            case "3": // Home Bills
+                emoji = "🏠";
+                bgColor = "#fef3c7";
+                break;
+            case "4": // Self-care
+                emoji = "💆";
+                bgColor = "#ecfccb";
+                break;
+            case "5": // Shopping
+                emoji = "🛒";
                 bgColor = "#dcfce7";
                 break;
-            case "entertainment":
-                emoji = "🎬";
+            case "6": // Health
+                emoji = "💊";
+                bgColor = "#ccfbf1";
+                break;
+            case "7": // Salary (Income)
+                emoji = "💰";
+                bgColor = "#d1fae5";
+                break;
+            case "8": // Investment (Income)
+                emoji = "📈";
+                bgColor = "#e0e7ff";
+                break;
+            case "9": // Subscription
+                emoji = "📱";
+                bgColor = "#cffafe";
+                break;
+            case "10": // Entertainment & Sport
+                emoji = "🎮";
+                bgColor = "#dbeafe";
+                break;
+            case "11": // Traveling
+                emoji = "✈️";
                 bgColor = "#ede9fe";
                 break;
             default:
-                emoji = "●";
+                emoji = "📋";
                 bgColor = "#f1f5f9";
         }
 
