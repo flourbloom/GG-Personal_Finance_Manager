@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="gitgud.pfm.Controllers.EditTransactionCategoryController"
+            style="-fx-background-color: #f0f2f5;">
+    
+    <padding>
+        <Insets top="28" right="28" bottom="28" left="28"/>
+    </padding>
+    
+    <!-- Header -->
+    <top>
+        <VBox spacing="8">
+            <padding>
+                <Insets bottom="24"/>
+            </padding>
+            
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Button fx:id="backButton" 
+                        text="← Back"
+                        style="-fx-background-color: transparent; -fx-text-fill: #3b82f6; -fx-font-size: 14px; -fx-font-weight: 500; -fx-cursor: hand; -fx-padding: 8 0;"/>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+            </HBox>
+            
+            <Label text="Change Category" 
+                   style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+            
+            <Label text="Select a new category for this transaction"
+                   style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
+        </VBox>
+    </top>
+    
+    <!-- Main Content -->
+    <center>
+        <ScrollPane fitToWidth="true" 
+                    style="-fx-background-color: #f0f2f5; -fx-background: #f0f2f5;">
+            <VBox spacing="24" style="-fx-background-color: #f0f2f5;">
+                <padding>
+                    <Insets top="8" right="0" bottom="0" left="0"/>
+                </padding>
+                
+                <!-- Expenses Section -->
+                <VBox spacing="16">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Region prefWidth="18" prefHeight="18" 
+                                style="-fx-background-color: #ef4444; -fx-background-radius: 4;"/>
+                        <Label text="Expenses" 
+                               style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+                    </HBox>
+                    
+                    <FlowPane fx:id="expenseCategoriesPane" 
+                              hgap="16" vgap="16"
+                              style="-fx-background-color: #f0f2f5;"/>
+                </VBox>
+                
+                <!-- Income Section -->
+                <VBox spacing="16">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Region prefWidth="18" prefHeight="18" 
+                                style="-fx-background-color: #10b981; -fx-background-radius: 4;"/>
+                        <Label text="Income" 
+                               style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+                    </HBox>
+                    
+                    <FlowPane fx:id="incomeCategoriesPane" 
+                              hgap="16" vgap="16"
+                              style="-fx-background-color: #f0f2f5;"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+</BorderPane>

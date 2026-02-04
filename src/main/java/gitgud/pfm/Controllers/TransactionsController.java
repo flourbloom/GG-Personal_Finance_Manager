@@ -125,8 +125,9 @@ public class TransactionsController implements Initializable {
     private HBox createTransactionItem(Transaction tx) {
         HBox item = new HBox(16);
         item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(12, 16, 12, 16));
-        item.setStyle("-fx-border-color: #f1f5f9; -fx-border-width: 0 0 1 0;");
+        item.setPadding(new Insets(14, 18, 14, 18));
+        item.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 10;");
+        VBox.setMargin(item, new Insets(0, 0, 8, 0));
 
         // Transaction name and details
         VBox nameBox = new VBox(2);
@@ -178,141 +179,36 @@ public class TransactionsController implements Initializable {
     }
 
     private void showEditTransactionDialog(Transaction tx) {
-        Dialog<Transaction> dialog = new Dialog<>();
-        dialog.setTitle("Edit Transaction");
-        dialog.setHeaderText("Modify transaction details");
-
-        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
-        ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, deleteButtonType, ButtonType.CANCEL);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-
-        TextField nameField = new TextField(tx.getName());
-        nameField.setPromptText("Transaction name");
-
-        TextField amountField = new TextField(String.valueOf(tx.getAmount()));
-        amountField.setPromptText("0.00");
-
-        ComboBox<String> typeBox = new ComboBox<>();
-        typeBox.getItems().addAll("Expense", "Income");
-        typeBox.setValue(tx.getIncome() > 0 ? "Income" : "Expense");
-
-        ComboBox<String> categoryBox = new ComboBox<>();
-        categoryBox.getItems().addAll("food", "transport", "shopping", "bills", "entertainment", "income", "other");
-        categoryBox.setValue(tx.getCategoryId() != null ? tx.getCategoryId() : "other");
-
-        // Wallet selector
-        ComboBox<String> walletBox = new ComboBox<>();
-        java.util.Map<String, String> walletIdMap = new java.util.HashMap<>();
-        for (var wallet : dataStore.getWallets()) {
-            String displayName = wallet.getName() + " ($" + String.format("%.2f", wallet.getBalance()) + ")";
-            walletBox.getItems().add(displayName);
-            walletIdMap.put(displayName, wallet.getId());
-        }
-        // Select current wallet
-        for (var entry : walletIdMap.entrySet()) {
-            if (entry.getValue().equals(tx.getWalletId())) {
-                walletBox.setValue(entry.getKey());
-                break;
-            }
-        }
-
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Amount:"), 0, 1);
-        grid.add(amountField, 1, 1);
-        grid.add(new Label("Type:"), 0, 2);
-        grid.add(typeBox, 1, 2);
-        grid.add(new Label("Category:"), 0, 3);
-        grid.add(categoryBox, 1, 3);
-        grid.add(new Label("Account:"), 0, 4);
-        grid.add(walletBox, 1, 4);
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Style the delete button
-        Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
-        deleteButton.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626;");
-
-        // Store original values for balance adjustment
-        final String originalWalletId = tx.getWalletId();
-        final double originalAmount = tx.getAmount();
-        final boolean originalWasIncome = tx.getIncome() > 0;
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == saveButtonType) {
-                try {
-                    double newAmount = Double.parseDouble(amountField.getText());
-                    boolean newIsIncome = typeBox.getValue().equals("Income");
-                    String newWalletId = walletIdMap.get(walletBox.getValue());
-                    
-                    // Revert old transaction from old wallet
-                    if (originalWalletId != null) {
-                        var oldWallet = dataStore.getWalletById(originalWalletId);
-                        if (oldWallet != null) {
-                            double revertAmount = originalWasIncome ? -originalAmount : originalAmount;
-                            oldWallet.setBalance(oldWallet.getBalance() + revertAmount);
-                            dataStore.updateWallet(oldWallet);
-                        }
-                    }
-                    
-                    // Apply new transaction to new wallet
-                    if (newWalletId != null) {
-                        var newWallet = dataStore.getWalletById(newWalletId);
-                        if (newWallet != null) {
-                            double applyAmount = newIsIncome ? newAmount : -newAmount;
-                            newWallet.setBalance(newWallet.getBalance() + applyAmount);
-                            dataStore.updateWallet(newWallet);
-                        }
-                    }
-                    
-                    tx.setName(nameField.getText());
-                    tx.setAmount(newAmount);
-                    tx.setIncome(newIsIncome ? 1.0 : 0.0);
-                    tx.setCategoryId(categoryBox.getValue());
-                    tx.setWalletId(newWalletId);
-                    return tx;
-                } catch (NumberFormatException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setContentText("Invalid amount!");
-                    alert.show();
-                    return null;
-                }
-            } else if (dialogButton == deleteButtonType) {
-                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                confirm.setTitle("Delete Transaction");
-                confirm.setHeaderText("Are you sure you want to delete this transaction?");
-                confirm.setContentText("This action cannot be undone.");
-                confirm.showAndWait().ifPresent(response -> {
-                    if (response == ButtonType.OK) {
-                        // Revert transaction from wallet before deleting
-                        if (originalWalletId != null) {
-                            var wallet = dataStore.getWalletById(originalWalletId);
-                            if (wallet != null) {
-                                double revertAmount = originalWasIncome ? -originalAmount : originalAmount;
-                                wallet.setBalance(wallet.getBalance() + revertAmount);
-                                dataStore.updateWallet(wallet);
-                            }
-                        }
-                        dataStore.deleteTransaction(tx.getId());
-                        dataStore.notifyWalletRefresh();
-                        refresh();
-                    }
-                });
-                return null;
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(updatedTx -> {
-            dataStore.updateTransaction(updatedTx);
-            dataStore.notifyWalletRefresh();
+        try {
+            // Create popup stage
+            Stage popupStage = new Stage();
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.setTitle("Edit Transaction");
+            
+            // Load the edit form FXML
+            FXMLLoader formLoader = new FXMLLoader(getClass().getResource("/gitgud/pfm/edit-transaction-form.fxml"));
+            BorderPane formRoot = formLoader.load();
+            EditTransactionFormController formController = formLoader.getController();
+            formController.setDialogStage(popupStage);
+            formController.setFormRoot(formRoot);
+            formController.setTransaction(tx);
+            formController.setOnSaveCallback(() -> refresh());
+            
+            // Show the dialog
+            Scene scene = new Scene(formRoot, 720, 520);
+            popupStage.setScene(scene);
+            popupStage.showAndWait();
+            
+            // Refresh transactions after popup closes
             refresh();
-        });
+        } catch (IOException e) {
+            System.err.println("Error loading Edit Transaction dialog: " + e.getMessage());
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("Failed to open Edit Transaction dialog");
+            alert.showAndWait();
+        }
     }
     private void previousPage() {
         if (currentPage > 1) {
@@ -353,7 +249,7 @@ public class TransactionsController implements Initializable {
             formController.setCategoryController(categoryController);
             
             // Start with category selection
-            Scene scene = new Scene(categoryRoot, 700, 600);
+            Scene scene = new Scene(categoryRoot, 720, 600);
             popupStage.setScene(scene);
             popupStage.showAndWait();
             

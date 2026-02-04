@@ -234,16 +234,103 @@ public class ReportsController implements Initializable {
     private void loadMonthlyTrendsChart() {
         monthlyTrendsChart.getData().clear();
 
+        List<Transaction> transactions = dataStore.getTransactions();
+        
+        // Get the last 6 months
+        LocalDate now = LocalDate.now();
+        Map<String, Double> monthlySpending = new LinkedHashMap<>();
+        List<String> monthLabels = new ArrayList<>();
+        
+        // Initialize last 6 months with 0
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM");
+        for (int i = 5; i >= 0; i--) {
+            LocalDate monthDate = now.minusMonths(i);
+            String monthLabel = monthDate.format(monthFormatter);
+            monthlySpending.put(monthLabel, 0.0);
+            monthLabels.add(monthLabel);
+        }
+        
+        // Group expenses by month
+        for (Transaction tx : transactions) {
+            // Only count expenses (income <= 0 means expense)
+            if (tx.getIncome() > 0) {
+                continue;
+            }
+            
+            try {
+                String createTime = tx.getCreateTime();
+                if (createTime != null && !createTime.isEmpty()) {
+                    LocalDate txDate = LocalDate.parse(createTime.substring(0, 10));
+                    
+                    // Check if transaction is within the last 6 months
+                    LocalDate sixMonthsAgo = now.minusMonths(6).withDayOfMonth(1);
+                    if (!txDate.isBefore(sixMonthsAgo)) {
+                        String monthLabel = txDate.format(monthFormatter);
+                        // Only add if this month is in our map
+                        if (monthlySpending.containsKey(monthLabel)) {
+                            monthlySpending.merge(monthLabel, tx.getAmount(), Double::sum);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Skip transactions with invalid dates
+            }
+        }
+
+        // Configure Y axis (amount with markings)
+        NumberAxis yAxis = (NumberAxis) monthlyTrendsChart.getYAxis();
+        double maxValue = monthlySpending.values().stream().mapToDouble(Double::doubleValue).max().orElse(100);
+        double upperBound = Math.max(100, Math.ceil(maxValue * 1.2 / 1000) * 1000);
+        double tickUnit = Math.max(100, Math.ceil(upperBound / 5 / 100) * 100);
+        
+        yAxis.setAutoRanging(false);
+        yAxis.setLowerBound(0);
+        yAxis.setUpperBound(upperBound);
+        yAxis.setTickUnit(tickUnit);
+        yAxis.setMinorTickVisible(true);
+        yAxis.setMinorTickCount(5);
+        yAxis.setTickLabelsVisible(true);
+        yAxis.setTickMarkVisible(true);
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Monthly Spending");
-        series.getData().add(new XYChart.Data<>("Jan", 1200));
-        series.getData().add(new XYChart.Data<>("Feb", 1400));
-        series.getData().add(new XYChart.Data<>("Mar", 1100));
-        series.getData().add(new XYChart.Data<>("Apr", 1350));
-        series.getData().add(new XYChart.Data<>("May", 1250));
-        series.getData().add(new XYChart.Data<>("Jun", 1500));
+        
+        // Add data with month labels
+        for (String month : monthLabels) {
+            double amount = monthlySpending.get(month);
+            series.getData().add(new XYChart.Data<>(month, amount));
+        }
 
         monthlyTrendsChart.getData().add(series);
+        
+        // Add labels on top of bars after rendering
+        monthlyTrendsChart.applyCss();
+        monthlyTrendsChart.layout();
+        
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            double amount = data.getYValue().doubleValue();
+            String month = data.getXValue();
+            
+            if (data.getNode() != null) {
+                data.getNode().setStyle("-fx-bar-fill: #3b82f6;");
+                
+                // Create a VBox to hold both month label and amount
+                VBox labelBox = new VBox(2);
+                labelBox.setAlignment(Pos.CENTER);
+                
+                // Amount label on top
+                Label amountLabel = new Label("$" + String.format("%.0f", amount));
+                amountLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
+                
+                labelBox.getChildren().add(amountLabel);
+                
+                // Position the labels above the bar
+                StackPane barNode = (StackPane) data.getNode();
+                barNode.getChildren().add(labelBox);
+                StackPane.setAlignment(labelBox, Pos.TOP_CENTER);
+                StackPane.setMargin(labelBox, new Insets(-20, 0, 0, 0));
+            }
+        }
     }
 
     private void loadCategoryBreakdown() {
