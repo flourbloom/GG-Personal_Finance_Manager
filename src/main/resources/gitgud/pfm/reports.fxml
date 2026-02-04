@@ -155,12 +155,12 @@
                     <Insets top="24" right="24" bottom="24" left="24"/>
                 </padding>
                 <Label text="Monthly Spending Trends" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
-                <BarChart fx:id="monthlyTrendsChart" prefHeight="280" legendVisible="false">
+                <BarChart fx:id="monthlyTrendsChart" prefHeight="350" legendVisible="false" barGap="4" categoryGap="20" animated="false">
                     <xAxis>
-                        <CategoryAxis fx:id="trendsXAxis" label="Month"/>
+                        <CategoryAxis fx:id="trendsXAxis" side="BOTTOM" tickMarkVisible="true" tickLabelsVisible="true" animated="false"/>
                     </xAxis>
                     <yAxis>
-                        <NumberAxis fx:id="trendsYAxis" label="Amount ($)"/>
+                        <NumberAxis fx:id="trendsYAxis" side="LEFT" label="Amount ($)" tickMarkVisible="true" tickLabelsVisible="true" minorTickVisible="true" animated="false"/>
                     </yAxis>
                 </BarChart>
             </VBox>
