@@ -9,18 +9,21 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
 
+import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class TransactionController implements Initializable {
     
@@ -142,110 +145,40 @@ public class TransactionController implements Initializable {
     
     @FXML
     private void handleAddTransaction() {
-        Dialog<Transaction> dialog = new Dialog<>();
-        dialog.setTitle("Add New Transaction");
-        dialog.setHeaderText("Enter transaction details");
-        
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
-        
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-        
-        TextField nameField = new TextField();
-        nameField.setPromptText("Transaction name");
-        
-        TextField amountField = new TextField();
-        amountField.setPromptText("Amount");
-        
-        ComboBox<String> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll("Income", "Expense");
-        typeCombo.setValue("Expense");
-        
-        ComboBox<Category> categoryCombo = new ComboBox<>();
-        List<Category> categories = categoryService.getAllCategories();
-        categoryCombo.getItems().addAll(categories);
-        categoryCombo.setConverter(new javafx.util.StringConverter<Category>() {
-            @Override
-            public String toString(Category category) {
-                return category != null ? category.getName() : "";
-            }
-            @Override
-            public Category fromString(String string) {
-                return null;
-            }
-        });
-        if (!categories.isEmpty()) {
-            categoryCombo.setValue(categories.get(0));
-        }
-        
-        ComboBox<Wallet> accountCombo = new ComboBox<>();
-        List<Wallet> wallets = dataStore.getWallets();
-        accountCombo.getItems().addAll(wallets);
-        accountCombo.setConverter(new javafx.util.StringConverter<Wallet>() {
-            @Override
-            public String toString(Wallet wallet) {
-                return wallet != null ? wallet.getName() : "";
-            }
-            @Override
-            public Wallet fromString(String string) {
-                return null;
-            }
-        });
-        if (!wallets.isEmpty()) {
-            accountCombo.setValue(wallets.get(0));
-        }
-        
-        DatePicker datePicker = new DatePicker();
-        datePicker.setValue(java.time.LocalDate.now());
-        
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Amount:"), 0, 1);
-        grid.add(amountField, 1, 1);
-        grid.add(new Label("Type:"), 0, 2);
-        grid.add(typeCombo, 1, 2);
-        grid.add(new Label("Category:"), 0, 3);
-        grid.add(categoryCombo, 1, 3);
-        grid.add(new Label("Account:"), 0, 4);
-        grid.add(accountCombo, 1, 4);
-        grid.add(new Label("Date:"), 0, 5);
-        grid.add(datePicker, 1, 5);
-        
-        dialog.getDialogPane().setContent(grid);
-        
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                try {
-                    String name = nameField.getText();
-                    double amount = Double.parseDouble(amountField.getText());
-                    double income = typeCombo.getValue().equals("Income") ? 1.0 : 0.0;
-                    String categoryId = categoryCombo.getValue().getId();
-                    String walletId = accountCombo.getValue().getId();
-                    String dateTime = datePicker.getValue().atStartOfDay()
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                    
-                    return new Transaction(categoryId, amount, name, income, walletId, dateTime);
-                } catch (Exception e) {
-                    showAlert("Invalid input", "Please check your input values.");
-                    return null;
-                }
-            }
-            return null;
-        });
-        
-        Optional<Transaction> result = dialog.showAndWait();
-        result.ifPresent(transaction -> {
-            // Update wallet balance
-            updateWalletBalance(transaction.getWalletId(), transaction.getAmount(), 
-                              transaction.getIncome() == 1.0);
+        try {
+            // Create popup stage
+            Stage popupStage = new Stage();
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.setTitle("Add Transaction");
             
-            dataStore.addTransaction(transaction);
+            // Load the form FXML
+            FXMLLoader formLoader = new FXMLLoader(getClass().getResource("/gitgud/pfm/add-transaction-form.fxml"));
+            BorderPane formRoot = formLoader.load();
+            AddTransactionFormController formController = formLoader.getController();
+            formController.setDialogStage(popupStage);
+            formController.setFormRoot(formRoot);
+            
+            // Load the category selection FXML
+            FXMLLoader categoryLoader = new FXMLLoader(getClass().getResource("/gitgud/pfm/add-transaction-category.fxml"));
+            BorderPane categoryRoot = categoryLoader.load();
+            AddTransactionCategoryController categoryController = categoryLoader.getController();
+            categoryController.setDialogStage(popupStage);
+            categoryController.setFormController(formController);
+            formController.setCategoryController(categoryController);
+            
+            // Start with category selection
+            Scene scene = new Scene(categoryRoot, 700, 600);
+            popupStage.setScene(scene);
+            popupStage.showAndWait();
+            
+            // Refresh transactions after popup closes
             loadTransactions();
             updateBalanceDisplay();
-        });
+        } catch (IOException e) {
+            System.err.println("Error loading Add Transaction dialog: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Error", "Failed to open Add Transaction dialog");
+        }
     }
     
     private void handleEditTransaction(Transaction transaction) {
@@ -269,8 +202,30 @@ public class TransactionController implements Initializable {
         typeCombo.setValue(transaction.getIncome() == 1.0 ? "Income" : "Expense");
         
         ComboBox<Category> categoryCombo = new ComboBox<>();
-        List<Category> categories = categoryService.getAllCategories();
-        categoryCombo.getItems().addAll(categories);
+        List<Category> allCategories = categoryService.getAllCategories();
+        
+        // Helper method to filter categories by type
+        Runnable updateCategoryCombo = () -> {
+            String selectedType = typeCombo.getValue();
+            Category.Type categoryType = selectedType.equals("Income") ? Category.Type.INCOME : Category.Type.EXPENSE;
+            Category currentSelection = categoryCombo.getValue();
+            categoryCombo.getItems().clear();
+            for (Category cat : allCategories) {
+                if (cat.getType() == categoryType) {
+                    categoryCombo.getItems().add(cat);
+                }
+            }
+            // Try to keep current selection if still valid
+            if (currentSelection != null && categoryCombo.getItems().contains(currentSelection)) {
+                categoryCombo.setValue(currentSelection);
+            } else if (!categoryCombo.getItems().isEmpty()) {
+                categoryCombo.setValue(categoryCombo.getItems().get(0));
+            }
+        };
+        
+        // Set up listener for type changes
+        typeCombo.setOnAction(e -> updateCategoryCombo.run());
+        
         categoryCombo.setConverter(new javafx.util.StringConverter<Category>() {
             @Override
             public String toString(Category category) {
@@ -281,7 +236,12 @@ public class TransactionController implements Initializable {
                 return null;
             }
         });
-        for (Category cat : categories) {
+        
+        // Initialize categories based on transaction's type
+        updateCategoryCombo.run();
+        
+        // Set the current category
+        for (Category cat : categoryCombo.getItems()) {
             if (cat.getId().equals(transaction.getCategoryId())) {
                 categoryCombo.setValue(cat);
                 break;

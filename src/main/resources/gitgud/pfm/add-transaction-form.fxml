@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="gitgud.pfm.Controllers.AddTransactionFormController"
+            style="-fx-background-color: white;">
+    
+    <padding>
+        <Insets top="24" right="24" bottom="24" left="24"/>
+    </padding>
+    
+    <!-- Header Section -->
+    <top>
+        <VBox spacing="16">
+            <Button fx:id="backButton" 
+                    text="← Back to Categories"
+                    style="-fx-background-color: transparent; -fx-text-fill: #3b82f6; -fx-font-size: 14px; -fx-font-weight: 500; -fx-cursor: hand; -fx-padding: 8 0;"/>
+            
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <StackPane fx:id="iconCircle" prefWidth="48" prefHeight="48"
+                           style="-fx-background-color: #e0f2fe; -fx-background-radius: 24;">
+                    <Label fx:id="iconLabel" style="-fx-font-size: 24px;"/>
+                </StackPane>
+                
+                <VBox spacing="4">
+                    <Label fx:id="categoryNameLabel" 
+                           style="-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                    <Label fx:id="categoryTypeLabel" 
+                           style="-fx-font-size: 13px; -fx-font-weight: 500;"/>
+                </VBox>
+            </HBox>
+            
+            <Separator/>
+        </VBox>
+    </top>
+    
+    <!-- Form Fields -->
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-background: white;">
+            <VBox spacing="16" style="-fx-background-color: white;">
+                <padding>
+                    <Insets top="0" right="0" bottom="0" left="0"/>
+                </padding>
+                
+                <!-- Amount Field -->
+                <VBox spacing="8">
+                    <Label text="Amount" 
+                           style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                    <TextField fx:id="amountField" 
+                               promptText="$Enter amount..."
+                               style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-padding: 12 16; -fx-font-size: 14px;"/>
+                </VBox>
+                
+                <!-- Date Field -->
+                <VBox spacing="8">
+                    <Label text="Date" 
+                           style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                    <DatePicker fx:id="datePicker" 
+                                style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-font-size: 14px;"
+                                maxWidth="Infinity"/>
+                </VBox>
+                
+                <!-- Description Field -->
+                <VBox spacing="8">
+                    <Label text="Description" 
+                           style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                    <TextField fx:id="descriptionField" 
+                               promptText="Enter description (optional)..."
+                               style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-padding: 12 16; -fx-font-size: 14px;"/>
+                </VBox>
+                
+                <!-- Wallet Field -->
+                <VBox spacing="8">
+                    <Label text="Wallet" 
+                           style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                    <ComboBox fx:id="walletCombo" 
+                              promptText="Select wallet..."
+                              style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-font-size: 14px;"
+                              maxWidth="Infinity"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+    <!-- Buttons -->
+    <bottom>
+        <HBox spacing="12" alignment="CENTER_RIGHT">
+            <padding>
+                <Insets top="16" right="0" bottom="0" left="0"/>
+            </padding>
+            
+            <Button fx:id="cancelButton" 
+                    text="Cancel"
+                    style="-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-background-radius: 10; -fx-padding: 12 24; -fx-font-size: 14px; -fx-font-weight: 600; -fx-cursor: hand;"/>
+            
+            <Button fx:id="saveButton" 
+                    text="Save Transaction"
+                    style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 12 24; -fx-font-size: 14px; -fx-font-weight: 600; -fx-cursor: hand;"/>
+        </HBox>
+    </bottom>
+    
+</BorderPane>
