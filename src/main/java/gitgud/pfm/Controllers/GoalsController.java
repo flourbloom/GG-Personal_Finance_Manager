@@ -156,8 +156,9 @@ public class GoalsController implements Initializable {
         if (sortBy != null) {
             switch (sortBy) {
                 case "Priority":
+                    // Priority 1 is highest, so sort ascending (lower number = higher priority)
                     goals = goals.stream()
-                            .sorted(Comparator.comparingDouble(Goal::getPriority).reversed())
+                            .sorted(Comparator.comparingDouble(Goal::getPriority))
                             .collect(Collectors.toList());
                     break;
                 case "Deadline":
@@ -851,6 +852,7 @@ public class GoalsController implements Initializable {
         dialog.showAndWait().ifPresent(amount -> {
             goal.setBalance(goal.getBalance() + amount);
             dataStore.updateGoal(goal);
+            dataStore.notifyGoalRefresh();
             refresh();
             
             Alert success = new Alert(Alert.AlertType.INFORMATION);
@@ -981,6 +983,7 @@ public class GoalsController implements Initializable {
                 confirm.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
                         dataStore.deleteGoal(goal.getId());
+                        dataStore.notifyGoalRefresh();
                         refresh();
                     }
                 });
@@ -991,6 +994,7 @@ public class GoalsController implements Initializable {
 
         dialog.showAndWait().ifPresent(updatedGoal -> {
             dataStore.updateGoal(updatedGoal);
+            dataStore.notifyGoalRefresh();
             refresh();
         });
     }
@@ -1123,6 +1127,7 @@ public class GoalsController implements Initializable {
 
         dialog.showAndWait().ifPresent(goal -> {
             dataStore.addGoal(goal);
+            dataStore.notifyGoalRefresh();
             refresh();
             
             // Success notification
