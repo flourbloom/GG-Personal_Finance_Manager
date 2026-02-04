@@ -91,7 +91,7 @@ public class DatabaseInitializer {
                 addColumnIfNotExists(connection, "Budget", "walletId", "TEXT");
             }
 
-            // Create Goal table (links to wallet for funding)
+            // Create Goal table (account-wide goals)
             if (!tableExists(connection, "Goal")) {
                 String createGoalSQL = """
                     CREATE TABLE "Goal" (
@@ -102,9 +102,7 @@ public class DatabaseInitializer {
                         "deadline"  TEXT,
                         "priority"  NUMERIC,
                         "createAt"  TEXT,
-                        "walletId"  TEXT,
-                        PRIMARY KEY("id"),
-                        FOREIGN KEY("walletId") REFERENCES "Wallet"("id") ON DELETE SET NULL
+                        PRIMARY KEY("id")
                     )
                     """;
                 statement.execute(createGoalSQL);
