@@ -280,10 +280,10 @@ public class BudgetService implements CRUDInterface<Budget> {
 
     /**
      * Get all categories associated with a specific budget
-     * Explicit fields: c.id, c.name, c.description, c.type, bc.categoryLimit
+     * Explicit fields: c.id, c.name, c.description, c.type, c.color
      */
     public List<Category> getCategoriesForBudget(String budgetId) {
-        String sql = "SELECT DISTINCT c.id, c.name, c.description, c.color " +
+        String sql = "SELECT DISTINCT c.id, c.name, c.description, c.type, c.color " +
                      "FROM Category c " +
                      "INNER JOIN Budget_Category bc ON c.id = bc.categoryID " +
                      "WHERE bc.budgetID = ? " +
@@ -299,6 +299,16 @@ public class BudgetService implements CRUDInterface<Budget> {
                     category.setId(rs.getString("id"));
                     category.setName(rs.getString("name"));
                     category.setDescription(rs.getString("description"));
+                    
+                    String typeStr = rs.getString("type");
+                    if (typeStr != null) {
+                        try {
+                            category.setType(Category.Type.valueOf(typeStr));
+                        } catch (IllegalArgumentException e) {
+                            category.setType(Category.Type.EXPENSE);
+                        }
+                    }
+                    
                     categories.add(category);
                 }
             }

@@ -2,6 +2,7 @@ package gitgud.pfm.services;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -53,18 +54,24 @@ public class DatabaseInitializer {
             }
 
             // Create Category table (referenced by transactions and budgets)
+            boolean categoryTableCreated = false;
             if (!tableExists(connection, "Category")) {
                 String createCategorySQL = """
                     CREATE TABLE "Category" (
                         "id"  TEXT NOT NULL,
                         "name"  TEXT NOT NULL,
                         "description"  TEXT,
+                        "type"  TEXT NOT NULL DEFAULT 'EXPENSE',
                         "color"  TEXT,
                         PRIMARY KEY("id")
                     )
                     """;
                 statement.execute(createCategorySQL);
                 System.out.println("✓ Created table: Category");
+                categoryTableCreated = true;
+            } else {
+                // Add type column if it doesn't exist (for existing databases)
+                addColumnIfNotExists(connection, "Category", "type", "TEXT NOT NULL DEFAULT 'EXPENSE'");
             }
 
             // Create Budget table (links to categories via junction table)
@@ -148,11 +155,64 @@ public class DatabaseInitializer {
                 addColumnIfNotExists(connection, "Budget_Category", "categoryLimit", "NUMERIC");
             }
 
+            // Seed default categories if the table was just created or is empty
+            if (categoryTableCreated || isCategoryTableEmpty(connection)) {
+                seedDefaultCategories(connection);
+            }
+
             System.out.println("Database initialization complete with proper foreign key relationships.");
 
         } catch (SQLException e) {
             System.err.println("Error initializing database: " + e.getMessage());
             throw e;
+        }
+    }
+
+    /**
+     * Check if the Category table is empty
+     */
+    private static boolean isCategoryTableEmpty(Connection connection) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Category";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1) == 0;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Seed default categories into the database
+     */
+    private static void seedDefaultCategories(Connection connection) throws SQLException {
+        String insertSQL = "INSERT OR IGNORE INTO Category (id, name, description, type) VALUES (?, ?, ?, ?)";
+        
+        // Default categories matching CategoryService.getDefaultCategories()
+        Object[][] defaultCategories = {
+            {"1", "Food & Drinks", "Meals, groceries, and beverages", "EXPENSE"},
+            {"2", "Transport", "Public transport, fuel, taxis, etc.", "EXPENSE"},
+            {"3", "Home Bills", "Rent, electricity, water, gas, etc.", "EXPENSE"},
+            {"4", "Self-care", "Personal care, beauty, spa, etc.", "EXPENSE"},
+            {"5", "Shopping", "Clothes, gadgets, and other shopping", "EXPENSE"},
+            {"6", "Health", "Medical, pharmacy, insurance", "EXPENSE"},
+            {"7", "Salary", "Monthly salary income", "INCOME"},
+            {"8", "Investment", "Investment returns, dividends, etc.", "INCOME"},
+            {"9", "Subscription", "Streaming, software, memberships", "EXPENSE"},
+            {"10", "Entertainment & Sport", "Movies, games, sports activities", "EXPENSE"},
+            {"11", "Traveling", "Flights, hotels, vacation expenses", "EXPENSE"}
+        };
+
+        try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
+            for (Object[] cat : defaultCategories) {
+                pstmt.setString(1, (String) cat[0]);
+                pstmt.setString(2, (String) cat[1]);
+                pstmt.setString(3, (String) cat[2]);
+                pstmt.setString(4, (String) cat[3]);
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+            System.out.println("✓ Seeded " + defaultCategories.length + " default categories");
         }
     }
 

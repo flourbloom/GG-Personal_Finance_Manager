@@ -751,14 +751,33 @@ public class CliController {
      */
     private void handleViewBudgets(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== View Budgets ===");
-        System.out.printf("%-20s %10s %10s %-12s %-12s%n", "Name", "Limits", "Balance", "Start", "End");
-        for (Budget b : accountData.getBudgets()) {
-                System.out.printf("%-20s %10.2f %10.2f %-12s %-12s%n",
-                    b.getName(),
-                    b.getLimitAmount(),
-                    b.getBalance(),
-                    b.getStartDate(),
-                    b.getEndDate());
+        List<Budget> budgets = accountData.getBudgets();
+        
+        if (budgets.isEmpty()) {
+            System.out.println("No budgets found. Create a budget using option 7.");
+            return;
+        }
+        
+        System.out.printf("%-20s %12s %12s %-12s %-12s %-30s%n", "Name", "Limit", "Spent", "Start", "End", "Tracked Categories");
+        System.out.println("-".repeat(100));
+        
+        for (Budget b : budgets) {
+            // Get tracked categories for this budget
+            List<Category> trackedCategories = budgetService.getCategoriesForBudget(b.getId());
+            StringBuilder categoryNames = new StringBuilder();
+            for (int i = 0; i < trackedCategories.size(); i++) {
+                if (i > 0) categoryNames.append(", ");
+                categoryNames.append(trackedCategories.get(i).getName());
+            }
+            String categoriesStr = categoryNames.length() > 0 ? categoryNames.toString() : "(none)";
+            
+            System.out.printf("%-20s $%,10.2f $%,10.2f %-12s %-12s %-30s%n",
+                b.getName(),
+                b.getLimitAmount(),
+                b.getBalance(),
+                b.getStartDate() != null ? b.getStartDate().substring(0, Math.min(10, b.getStartDate().length())) : "",
+                b.getEndDate() != null ? b.getEndDate().substring(0, Math.min(10, b.getEndDate().length())) : "",
+                categoriesStr.length() > 30 ? categoriesStr.substring(0, 27) + "..." : categoriesStr);
         }
     }
 
@@ -967,7 +986,7 @@ public class CliController {
             return;
         }
 
-        System.out.println("Fields: name, limitamount, balance, startdate, enddate");
+        System.out.println("Fields: name, limitamount, balance, startdate, enddate, categories");
         System.out.print("Enter field to update: ");
         String field = scanner.nextLine().trim().toLowerCase();
 
@@ -1005,11 +1024,41 @@ public class CliController {
                     found.setEndDate(endDate);
                     updates.put("endDate", endDate);
                     break;
-                // TODO: trackedCategories update handling
-                // case "trackedCategoryIds":
-                // found.setTrackedCategoryIds(newValue);
-                // updates.put("trackedCategoryIds", newValue);
-                // break;
+                case "categories":
+                    // Show available categories
+                    System.out.println("\nAvailable Categories:");
+                    List<Category> categories = categoryService.getAllCategories();
+                    for (int i = 0; i < categories.size(); i++) {
+                        Category cat = categories.get(i);
+                        boolean isLinked = budgetService.isCategoryInBudget(found.getId(), cat.getId());
+                        String marker = isLinked ? " [TRACKED]" : "";
+                        System.out.println("  " + (i + 1) + ". " + cat.getName() + " (" + cat.getType() + ")" + marker);
+                    }
+                    
+                    System.out.print("\nEnter category numbers to track (comma-separated, replaces existing): ");
+                    String tracked = scanner.nextLine().trim();
+                    
+                    if (!tracked.isEmpty()) {
+                        List<String> categoryIds = new java.util.ArrayList<>();
+                        String[] selections = tracked.split(",");
+                        for (String selection : selections) {
+                            try {
+                                int index = Integer.parseInt(selection.trim()) - 1;
+                                if (index >= 0 && index < categories.size()) {
+                                    categoryIds.add(categories.get(index).getId());
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.println("  Invalid selection: " + selection);
+                            }
+                        }
+                        budgetService.setCategoriesForBudget(found.getId(), categoryIds);
+                        System.out.println("Categories updated for budget.");
+                    } else {
+                        budgetService.removeAllCategoriesFromBudget(found.getId());
+                        System.out.println("All categories removed from budget.");
+                    }
+                    this.accountData = AccountDataLoader.loadAccountData();
+                    return; // Categories handled separately
                 default:
                     System.out.println("Unknown field.");
                     return;
@@ -1403,13 +1452,39 @@ public class CliController {
         System.out.print("Enter end date (YYYY-MM-DD): ");
         String endDate = scanner.nextLine().trim();
 
-        System.out.print("Enter tracked categories (comma-separated): ");
+        // Display available categories for user to select
+        System.out.println("\nAvailable Categories:");
+        List<Category> categories = categoryService.getAllCategories();
+        for (int i = 0; i < categories.size(); i++) {
+            Category cat = categories.get(i);
+            System.out.println("  " + (i + 1) + ". " + cat.getName() + " (" + cat.getType() + ")");
+        }
+        
+        System.out.print("\nEnter category numbers to track (comma-separated, e.g., 1,3,5): ");
         String tracked = scanner.nextLine().trim();
 
         Budget budget = new Budget(name, limits, balance, startDate, endDate);
 
         // Save to database using BudgetService
         budgetService.create(budget);
+        
+        // Link selected categories to the budget
+        if (!tracked.isEmpty()) {
+            String[] categorySelections = tracked.split(",");
+            for (String selection : categorySelections) {
+                try {
+                    int index = Integer.parseInt(selection.trim()) - 1;
+                    if (index >= 0 && index < categories.size()) {
+                        Category selectedCategory = categories.get(index);
+                        budgetService.addCategoryToBudget(budget.getId(), selectedCategory.getId());
+                        System.out.println("  Linked category: " + selectedCategory.getName());
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("  Invalid selection: " + selection);
+                }
+            }
+        }
+        
         System.out.println("Budget created: " + budget.getName());
 
         // Refresh account data after creating budget
