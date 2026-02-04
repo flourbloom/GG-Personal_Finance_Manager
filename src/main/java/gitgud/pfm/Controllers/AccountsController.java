@@ -270,6 +270,14 @@ public class AccountsController implements Initializable {
         
         // Add hover effects
         addCardHoverEffect(card, walletColor);
+        
+        // Double-click to open edit dialog
+        card.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                showEditWalletDialog(wallet);
+            }
+        });
+        card.setCursor(javafx.scene.Cursor.HAND);
 
         VBox details = new VBox(4);
         HBox.setHgrow(details, Priority.ALWAYS);
@@ -428,7 +436,8 @@ public class AccountsController implements Initializable {
         grid.add(balanceField, 1, 2);
 
         dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().setPrefWidth(450);
+        dialog.getDialogPane().setPrefWidth(500);
+        dialog.getDialogPane().setMinWidth(480);
 
         // Style the delete button
         Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
