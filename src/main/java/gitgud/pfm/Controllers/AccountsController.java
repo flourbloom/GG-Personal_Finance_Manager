@@ -98,6 +98,7 @@ public class AccountsController implements Initializable {
 
         balanceBox.getChildren().addAll(balance, balanceLabel);
 
+<<<<<<< HEAD
         // Edit button with pencil icon
         Button editBtn = new Button("✎");
         editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; " +
@@ -185,6 +186,12 @@ public class AccountsController implements Initializable {
         });
     }
 
+=======
+        card.getChildren().addAll(avatar, details, balanceBox);
+        return card;
+    }
+
+>>>>>>> 119913d (in the middle of translating fxml)
     @FXML
     private void showAddAccountDialog() {
         Dialog<Wallet> dialog = new Dialog<>();

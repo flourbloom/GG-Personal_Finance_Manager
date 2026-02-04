@@ -82,6 +82,7 @@
     </VBox>
     
     <!-- Profile Section -->
+<<<<<<< HEAD
     <!-- Wallet Selector Section -->
     <VBox spacing="10" style="-fx-background-color: linear-gradient(to bottom, rgba(59,130,246,0.1), rgba(59,130,246,0.05)); -fx-background-radius: 14; -fx-border-color: rgba(59,130,246,0.3); -fx-border-width: 1; -fx-border-radius: 14;">
         <VBox.margin>
@@ -113,4 +114,31 @@
                    style="-fx-text-fill: #10b981; -fx-font-size: 20px; -fx-font-weight: 900;"/>
         </VBox>
     </VBox>
+=======
+    <HBox fx:id="profileSection" spacing="12" alignment="CENTER_LEFT" 
+          style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 12;">
+        <VBox.margin>
+            <Insets top="0" right="12" bottom="0" left="12"/>
+        </VBox.margin>
+        <padding>
+            <Insets top="16" right="20" bottom="16" left="20"/>
+        </padding>
+        
+        <!-- Avatar -->
+        <Region fx:id="avatarRegion" prefWidth="40" prefHeight="40" 
+                style="-fx-background-color: #3b82f6; -fx-background-radius: 20;"/>
+        
+        <!-- Profile Info -->
+        <VBox spacing="2" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+            <Label fx:id="profileNameLabel" text="John Doe" 
+                   style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: 600;"/>
+            <Label fx:id="profileEmailLabel" text="john@email.com" 
+                   style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;"/>
+        </VBox>
+        
+        <!-- Settings Icon -->
+        <Label fx:id="settingsIcon" text="⚙" 
+               style="-fx-text-fill: #94a3b8; -fx-opacity: 0.6; -fx-font-size: 14px; -fx-cursor: hand;"/>
+    </HBox>
+>>>>>>> 119913d (in the middle of translating fxml)
 </VBox>

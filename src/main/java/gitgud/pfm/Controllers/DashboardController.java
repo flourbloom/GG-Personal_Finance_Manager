@@ -124,6 +124,7 @@ public class DashboardController implements Initializable {
 
         progressBox.getChildren().addAll(miniProgress, percent);
 
+<<<<<<< HEAD
         // Edit button with pencil icon
         Button editBtn = new Button("✎");
         editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; " +
@@ -222,6 +223,12 @@ public class DashboardController implements Initializable {
         });
     }
 
+=======
+        item.getChildren().addAll(info, progressBox);
+        return item;
+    }
+
+>>>>>>> 119913d (in the middle of translating fxml)
     private void loadSpendingChart() {
         spendingChart.getData().clear();
 
@@ -282,6 +289,7 @@ public class DashboardController implements Initializable {
         Label amount = new Label(sign + String.format("$%.2f", tx.getAmount()));
         amount.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; -fx-text-fill: " + color + ";");
 
+<<<<<<< HEAD
         // Edit button with pencil icon
         Button editBtn = new Button("✎");
         editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; " +
@@ -379,6 +387,12 @@ public class DashboardController implements Initializable {
         });
     }
 
+=======
+        item.getChildren().addAll(icon, details, amount);
+        return item;
+    }
+
+>>>>>>> 119913d (in the middle of translating fxml)
     private StackPane createTransactionIcon(String category) {
         StackPane pane = new StackPane();
         pane.setPrefSize(44, 44);

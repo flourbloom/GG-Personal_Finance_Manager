@@ -3,15 +3,29 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<<<<<<< HEAD
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="gitgud.pfm.Controllers.TransactionController"
+=======
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            fx:controller="gitgud.pfm.Controllers.TransactionsController"
+            fx:id="rootPane"
+>>>>>>> 119913d (in the middle of translating fxml)
             style="-fx-background-color: #f0f2f5;">
     <padding>
         <Insets top="28" right="28" bottom="28" left="28"/>
     </padding>
     
+<<<<<<< HEAD
+=======
+    <!-- Header -->
+>>>>>>> 119913d (in the middle of translating fxml)
     <top>
         <HBox spacing="20" alignment="CENTER_LEFT">
             <padding>
@@ -19,20 +33,29 @@
             </padding>
             <Label text="All Transactions" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
             <Region HBox.hgrow="ALWAYS"/>
+<<<<<<< HEAD
             <Label fx:id="balanceLabel" text="Balance: $0.00"
                    style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
             <Button fx:id="addButton" text="+ Add Transaction"
                     onAction="#handleAddTransaction"
+=======
+            <Button fx:id="addTransactionButton" text="Add Transaction"
+>>>>>>> 119913d (in the middle of translating fxml)
                     style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: 600; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand;"/>
         </HBox>
     </top>
     
+<<<<<<< HEAD
+=======
+    <!-- Main Content -->
+>>>>>>> 119913d (in the middle of translating fxml)
     <center>
         <VBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
             <padding>
                 <Insets top="24" right="24" bottom="24" left="24"/>
             </padding>
             
+<<<<<<< HEAD
             <TableView fx:id="transactionTable" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
                 <columns>
                     <TableColumn fx:id="dateColumn" text="Date" prefWidth="150"/>
@@ -47,6 +70,75 @@
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                 </columnResizePolicy>
             </TableView>
+=======
+            <!-- Filters Section -->
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <Label text="Filter by:" style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
+                <ComboBox fx:id="categoryFilter" promptText="All Categories" prefWidth="150">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="All Categories"/>
+                            <String fx:value="Food"/>
+                            <String fx:value="Transport"/>
+                            <String fx:value="Shopping"/>
+                            <String fx:value="Bills"/>
+                            <String fx:value="Entertainment"/>
+                            <String fx:value="Income"/>
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+                <ComboBox fx:id="typeFilter" promptText="All Types" prefWidth="120">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="All Types"/>
+                            <String fx:value="Income"/>
+                            <String fx:value="Expense"/>
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+                <DatePicker fx:id="fromDatePicker" promptText="From Date"/>
+                <DatePicker fx:id="toDatePicker" promptText="To Date"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="searchField" promptText="Search transactions..." prefWidth="200" 
+                           style="-fx-background-radius: 8; -fx-padding: 10;"/>
+            </HBox>
+            
+            <Separator/>
+            
+            <!-- Transactions Table Header -->
+            <HBox spacing="16" alignment="CENTER_LEFT" style="-fx-background-color: #f8fafc; -fx-background-radius: 8;">
+                <padding>
+                    <Insets top="12" right="16" bottom="12" left="16"/>
+                </padding>
+                <Label text="Transaction" prefWidth="250" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #64748b;"/>
+                <Label text="Category" prefWidth="120" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #64748b;"/>
+                <Label text="Date" prefWidth="120" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #64748b;"/>
+                <Label text="Wallet" prefWidth="120" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #64748b;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Amount" prefWidth="100" alignment="CENTER_RIGHT" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #64748b;"/>
+            </HBox>
+            
+            <!-- Transactions List Container -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <VBox fx:id="transactionsList" spacing="4">
+                    <!-- Transaction items will be dynamically added here -->
+                </VBox>
+            </ScrollPane>
+            
+            <!-- Pagination -->
+            <HBox spacing="8" alignment="CENTER">
+                <padding>
+                    <Insets top="16"/>
+                </padding>
+                <Button fx:id="prevPageButton" text="Previous" style="-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-padding: 8 16; -fx-background-radius: 6;"/>
+                <Label fx:id="pageInfoLabel" text="Page 1 of 1" style="-fx-font-size: 14px; -fx-text-fill: #64748b;">
+                    <HBox.margin>
+                        <Insets left="16" right="16"/>
+                    </HBox.margin>
+                </Label>
+                <Button fx:id="nextPageButton" text="Next" style="-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-padding: 8 16; -fx-background-radius: 6;"/>
+            </HBox>
+>>>>>>> 119913d (in the middle of translating fxml)
         </VBox>
     </center>
 </BorderPane>

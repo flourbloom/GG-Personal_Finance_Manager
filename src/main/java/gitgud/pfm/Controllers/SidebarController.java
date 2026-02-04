@@ -1,15 +1,23 @@
 package gitgud.pfm.Controllers;
 
+<<<<<<< HEAD
 import gitgud.pfm.GUI.data.DataStore;
 import gitgud.pfm.Models.Wallet;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ComboBox;
+=======
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+>>>>>>> 119913d (in the middle of translating fxml)
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 
 import java.net.URL;
+<<<<<<< HEAD
 import java.util.List;
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
 import java.util.ResourceBundle;
 
 public class SidebarController implements Initializable {
@@ -22,8 +30,16 @@ public class SidebarController implements Initializable {
     @FXML private HBox reportsNavItem;
     @FXML private HBox goalsNavItem;
     @FXML private HBox accountsNavItem;
+<<<<<<< HEAD
     @FXML private ComboBox<Wallet> walletSelector;
     @FXML private Label walletBalanceLabel;
+=======
+    @FXML private HBox profileSection;
+    @FXML private Region avatarRegion;
+    @FXML private Label profileNameLabel;
+    @FXML private Label profileEmailLabel;
+    @FXML private Label settingsIcon;
+>>>>>>> 119913d (in the middle of translating fxml)
 
     private HBox activeItem;
     private Runnable onDashboardClick;
@@ -31,12 +47,18 @@ public class SidebarController implements Initializable {
     private Runnable onReportsClick;
     private Runnable onGoalsClick;
     private Runnable onAccountsClick;
+<<<<<<< HEAD
     private DataStore dataStore;
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         activeItem = dashboardNavItem;
+<<<<<<< HEAD
         dataStore = DataStore.getInstance();
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
         
         // Setup click handlers
         setupNavItem(dashboardNavItem, "Dashboard");
@@ -45,6 +67,7 @@ public class SidebarController implements Initializable {
         setupNavItem(goalsNavItem, "Goals");
         setupNavItem(accountsNavItem, "Accounts");
         
+<<<<<<< HEAD
         setupWalletSelector();
     }
     
@@ -144,6 +167,14 @@ public class SidebarController implements Initializable {
             if (walletBalanceLabel != null) {
                 walletBalanceLabel.setText(String.format("$%.2f", newBalance));
             }
+=======
+        // Setup settings icon hover
+        if (settingsIcon != null) {
+            settingsIcon.setOnMouseEntered(e -> 
+                settingsIcon.setStyle("-fx-text-fill: #94a3b8; -fx-opacity: 1; -fx-font-size: 14px; -fx-cursor: hand;"));
+            settingsIcon.setOnMouseExited(e -> 
+                settingsIcon.setStyle("-fx-text-fill: #94a3b8; -fx-opacity: 0.6; -fx-font-size: 14px;"));
+>>>>>>> 119913d (in the middle of translating fxml)
         }
     }
 
@@ -248,4 +279,20 @@ public class SidebarController implements Initializable {
     public void setOnAccountsClick(Runnable action) {
         this.onAccountsClick = action;
     }
+<<<<<<< HEAD
+=======
+
+    // Profile setters
+    public void setProfileName(String name) {
+        if (profileNameLabel != null) {
+            profileNameLabel.setText(name);
+        }
+    }
+
+    public void setProfileEmail(String email) {
+        if (profileEmailLabel != null) {
+            profileEmailLabel.setText(email);
+        }
+    }
+>>>>>>> 119913d (in the middle of translating fxml)
 }

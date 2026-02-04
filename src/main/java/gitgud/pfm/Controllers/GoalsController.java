@@ -2,19 +2,27 @@ package gitgud.pfm.Controllers;
 
 import gitgud.pfm.GUI.data.DataStore;
 import gitgud.pfm.Models.Goal;
+<<<<<<< HEAD
 import javafx.animation.*;
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+<<<<<<< HEAD
 import javafx.util.Duration;
 
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+=======
+
+import java.net.URL;
+>>>>>>> 119913d (in the middle of translating fxml)
 import java.util.Comparator;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -38,20 +46,27 @@ public class GoalsController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         dataStore = DataStore.getInstance();
         
+<<<<<<< HEAD
         // Style the add goal button with hover effects
         styleAddGoalButton();
         
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
         addGoalButton.setOnAction(e -> showAddGoalDialog());
         
         if (sortGoalsCombo != null) {
             sortGoalsCombo.setOnAction(e -> loadGoals());
+<<<<<<< HEAD
             styleSortComboBox();
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
         }
         
         updateSummary();
         loadGoals();
     }
 
+<<<<<<< HEAD
     private void styleAddGoalButton() {
         if (addGoalButton == null) return;
         
@@ -133,6 +148,8 @@ public class GoalsController implements Initializable {
         );
     }
 
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
     private void updateSummary() {
         List<Goal> goals = dataStore.getGoals();
         
@@ -162,7 +179,11 @@ public class GoalsController implements Initializable {
                     break;
                 case "Deadline":
                     goals = goals.stream()
+<<<<<<< HEAD
                             .sorted(Comparator.comparing(g -> g.getDeadline() != null ? g.getDeadline() : "9999-12-31"))
+=======
+                            .sorted(Comparator.comparing(g -> g.getDeadline() != null ? g.getDeadline() : ""))
+>>>>>>> 119913d (in the middle of translating fxml)
                             .collect(Collectors.toList());
                     break;
                 case "Progress":
@@ -179,6 +200,7 @@ public class GoalsController implements Initializable {
         }
 
         for (Goal goal : goals) {
+<<<<<<< HEAD
             VBox goalCard = createEnhancedGoalCard(goal);
             goalsList.getChildren().add(goalCard);
             
@@ -993,11 +1015,75 @@ public class GoalsController implements Initializable {
             dataStore.updateGoal(updatedGoal);
             refresh();
         });
+=======
+            VBox goalCard = createGoalCard(goal);
+            goalsList.getChildren().add(goalCard);
+        }
+
+        if (goals.isEmpty()) {
+            Label emptyLabel = new Label("No goals yet. Click 'Add Goal' to create one.");
+            emptyLabel.setStyle("-fx-text-fill: #64748b; -fx-font-size: 14px;");
+            goalsList.getChildren().add(emptyLabel);
+        }
+    }
+
+    private VBox createGoalCard(Goal goal) {
+        VBox card = new VBox(10);
+        card.setPadding(new Insets(16));
+        card.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12; " +
+                "-fx-border-color: #e2e8f0; -fx-border-radius: 12;");
+
+        HBox titleBox = new HBox(12);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+
+        Label name = new Label(goal.getName());
+        name.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label priority = new Label("Priority: " + (int) goal.getPriority());
+        priority.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+
+        Label deadline = new Label(goal.getDeadline() != null ? goal.getDeadline() : "No deadline");
+        deadline.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
+
+        titleBox.getChildren().addAll(name, spacer, priority, deadline);
+
+        // Progress bar
+        double progress = goal.getTarget() > 0 ? goal.getBalance() / goal.getTarget() : 0;
+        ProgressBar progressBar = new ProgressBar(Math.min(1.0, progress));
+        progressBar.setPrefWidth(Double.MAX_VALUE);
+        progressBar.setStyle("-fx-control-inner-background: #e2e8f0;");
+        
+        // Color based on progress
+        if (progress >= 1.0) {
+            progressBar.setStyle("-fx-accent: #22c55e;");
+        } else if (progress >= 0.5) {
+            progressBar.setStyle("-fx-accent: #3b82f6;");
+        } else {
+            progressBar.setStyle("-fx-accent: #f59e0b;");
+        }
+
+        HBox progressBox = new HBox(12);
+        progressBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(progressBar, Priority.ALWAYS);
+        progressBox.getChildren().add(progressBar);
+
+        Label progressLabel = new Label(String.format("$%.2f / $%.2f (%.0f%%)", 
+            goal.getBalance(), goal.getTarget(), progress * 100));
+        progressLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+        progressBox.getChildren().add(progressLabel);
+
+        card.getChildren().addAll(titleBox, progressBox);
+        return card;
+>>>>>>> 119913d (in the middle of translating fxml)
     }
 
     @FXML
     private void showAddGoalDialog() {
         Dialog<Goal> dialog = new Dialog<>();
+<<<<<<< HEAD
         dialog.setTitle("🎯 Create New Goal");
         
         // Custom header with gradient
@@ -1114,6 +1200,52 @@ public class GoalsController implements Initializable {
                     alert.setHeaderText(null);
                     alert.setContentText("Please enter a valid number for the target amount!");
                     styleAlert(alert);
+=======
+        dialog.setTitle("Add New Goal");
+        dialog.setHeaderText("Enter goal details");
+
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Goal name");
+
+        TextField targetField = new TextField();
+        targetField.setPromptText("Target amount");
+        targetField.setText("1000");
+
+        TextField deadlineField = new TextField();
+        deadlineField.setPromptText("Deadline (YYYY-MM-DD)");
+
+        Spinner<Integer> prioritySpinner = new Spinner<>(1, 10, 5);
+
+        grid.add(new Label("Goal Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Target Amount:"), 0, 1);
+        grid.add(targetField, 1, 1);
+        grid.add(new Label("Deadline:"), 0, 2);
+        grid.add(deadlineField, 1, 2);
+        grid.add(new Label("Priority:"), 0, 3);
+        grid.add(prioritySpinner, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                try {
+                    double target = Double.parseDouble(targetField.getText());
+                    return new Goal(nameField.getText(), target, 0,
+                            deadlineField.getText(), prioritySpinner.getValue(),
+                            java.time.LocalDateTime.now().toString());
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("Invalid input!");
+>>>>>>> 119913d (in the middle of translating fxml)
                     alert.show();
                     return null;
                 }
@@ -1124,6 +1256,7 @@ public class GoalsController implements Initializable {
         dialog.showAndWait().ifPresent(goal -> {
             dataStore.addGoal(goal);
             refresh();
+<<<<<<< HEAD
             
             // Success notification
             Alert success = new Alert(Alert.AlertType.INFORMATION);
@@ -1221,6 +1354,8 @@ public class GoalsController implements Initializable {
                     );
                 }
             }
+=======
+>>>>>>> 119913d (in the middle of translating fxml)
         });
     }
 
@@ -1228,4 +1363,8 @@ public class GoalsController implements Initializable {
         updateSummary();
         loadGoals();
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 119913d (in the middle of translating fxml)

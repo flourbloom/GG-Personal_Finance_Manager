@@ -252,7 +252,6 @@ public class TransactionsController implements Initializable {
             refresh();
         });
     }
-
     private void previousPage() {
         if (currentPage > 1) {
             currentPage--;
