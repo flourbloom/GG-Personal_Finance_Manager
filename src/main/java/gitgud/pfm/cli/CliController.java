@@ -155,21 +155,21 @@ public class CliController {
             System.out.println("No accounts found.");
         } else {
             System.out.println("\nAccounts:");
-            System.out.println("----------------------------------------");
-            System.out.printf("%-15s %-20s %15s\n", "Account ID", "Name", "Balance");
-            System.out.println("----------------------------------------");
+            System.out.println("-".repeat(50));
+            System.out.printf("%-20s %15s %-10s%n", "Name", "Balance", "Color");
+            System.out.println("-".repeat(50));
 
             for (Wallet wallet : wallets) {
-                System.out.printf("%-15s %-20s $%,14.2f\n",
-                        wallet.getId(),
-                        wallet.getName(),
-                        wallet.getBalance());
+                System.out.printf("%-20s $%,14.2f %-10s%n",
+                        truncate(wallet.getName(), 20),
+                        wallet.getBalance(),
+                        truncate(wallet.getColor(), 10));
             }
 
-            System.out.println("----------------------------------------");
+            System.out.println("-".repeat(50));
             double totalBalance = walletService.getTotalBalance();
-            System.out.printf("%-35s $%,14.2f\n", "Total Balance:", totalBalance);
-            System.out.println("========================================\n");
+            System.out.printf("%-20s $%,14.2f%n", "Total Balance:", totalBalance);
+            System.out.println("=".repeat(50) + "\n");
         }
     }
 
@@ -187,35 +187,34 @@ public class CliController {
         } else {
             // Create a map of category ID to category name
             Map<String, String> categoryMap = new HashMap<>();
-            List<Category> categories = categoryService.getDefaultCategories();
+            List<Category> categories = categoryService.getAllCategories();
             for (Category category : categories) {
                 categoryMap.put(category.getId(), category.getName());
             }
 
             System.out.println("\nTransactions (most recent first):");
-            System.out.println(
-                    "------------------------------------------------------------------------------------------------------");
-            System.out.printf("%-15s %-20s %-15s %-12s $%-12s %-15s %-20s\n",
-                    "ID", "Name", "Category", "Wallet", "Amount", "Goal ID", "Date");
-            System.out.println(
-                    "------------------------------------------------------------------------------------------------------");
+            System.out.println("-".repeat(95));
+            System.out.printf("%-18s %-15s %-12s %10s %-8s %-12s %-12s%n",
+                    "Name", "Category", "Wallet", "Amount", "Type", "Goal", "Date");
+            System.out.println("-".repeat(95));
 
             double totalIncome = 0.0;
             double totalExpenses = 0.0;
 
             for (Transaction tx : transactions) {
-                String type = tx.getIncome() == 1 ? "[+]" : "[-]";
+                String type = tx.getIncome() == 1 ? "Income" : "Expense";
                 String categoryName = categoryMap.getOrDefault(tx.getCategoryId(), tx.getCategoryId());
-                String goalDisplay = tx.getGoalId() != null ? tx.getGoalId() : "-";
-                System.out.printf("%-15s %-20s %-15s %-12s %s$%-11.2f %-15s %-20s\n",
-                        tx.getId(),
-                        tx.getName().length() > 20 ? tx.getName().substring(0, 17) + "..." : tx.getName(),
-                        categoryName,
-                        tx.getWalletId(),
-                        type,
+                String goalDisplay = tx.getGoalId() != null ? truncate(tx.getGoalId(), 12) : "-";
+                String date = tx.getCreateTime() != null ? tx.getCreateTime().substring(0, Math.min(10, tx.getCreateTime().length())) : "";
+                
+                System.out.printf("%-18s %-15s %-12s $%,9.2f %-8s %-12s %-12s%n",
+                        truncate(tx.getName(), 18),
+                        truncate(categoryName, 15),
+                        truncate(tx.getWalletId(), 12),
                         tx.getAmount(),
+                        type,
                         goalDisplay,
-                        tx.getCreateTime().length() > 20 ? tx.getCreateTime().substring(0, 19) : tx.getCreateTime());
+                        date);
 
                 if (tx.getIncome() == 1) {
                     totalIncome += tx.getAmount();
@@ -224,12 +223,11 @@ public class CliController {
                 }
             }
 
-            System.out.println(
-                    "------------------------------------------------------------------------------------------------------");
+            System.out.println("-".repeat(95));
             System.out.println("Total transactions: " + transactions.size());
-            System.out.printf("Total Income: $%,.2f\n", totalIncome);
-            System.out.printf("Total Expenses: $%,.2f\n", totalExpenses);
-            System.out.printf("Net: $%,.2f\n", totalIncome - totalExpenses);
+            System.out.printf("Total Income: $%,.2f%n", totalIncome);
+            System.out.printf("Total Expenses: $%,.2f%n", totalExpenses);
+            System.out.printf("Net: $%,.2f%n", totalIncome - totalExpenses);
             System.out.println("\n");
         }
     }
@@ -246,25 +244,39 @@ public class CliController {
             System.out.println("No budgets found.");
         } else {
             System.out.println("\nBudgets:");
-            System.out
-                    .println("--------------------------------------------------------------------------------------");
-            System.out.printf("%-15s %-20s %12s %12s %-12s %-12s\n",
-                    "ID", "Name", "Limit", "Balance", "Start Date", "End Date");
-            System.out
-                    .println("--------------------------------------------------------------------------------------");
+            System.out.println("-".repeat(90));
+            System.out.printf("%-15s %12s %12s %12s %-10s %-10s %-18s%n",
+                    "Name", "Limit", "Spent", "Remaining", "Start", "End", "Categories");
+            System.out.println("-".repeat(90));
 
             for (Budget budget : budgets) {
-                System.out.printf("%-15s %-20s $%,10.2f $%,10.2f %-12s %-12s\n",
-                        budget.getId(),
-                        budget.getName(),
+                // Get tracked categories
+                List<Category> trackedCategories = budgetService.getCategoriesForBudget(budget.getId());
+                StringBuilder categoryNames = new StringBuilder();
+                for (int i = 0; i < trackedCategories.size(); i++) {
+                    if (i > 0) categoryNames.append(", ");
+                    categoryNames.append(trackedCategories.get(i).getName());
+                }
+                String categoriesStr = categoryNames.length() > 0 ? categoryNames.toString() : "(none)";
+                
+                // Calculate actual spent amount
+                double spent = budgetService.getTotalSpentForBudget(budget.getId());
+                double remaining = budget.getLimitAmount() - spent;
+                
+                String startDate = budget.getStartDate() != null ? budget.getStartDate().substring(0, Math.min(10, budget.getStartDate().length())) : "";
+                String endDate = budget.getEndDate() != null ? budget.getEndDate().substring(0, Math.min(10, budget.getEndDate().length())) : "";
+                
+                System.out.printf("%-15s $%,10.2f $%,10.2f $%,10.2f %-10s %-10s %-18s%n",
+                        truncate(budget.getName(), 15),
                         budget.getLimitAmount(),
-                        budget.getBalance(),
-                        budget.getStartDate(),
-                        budget.getEndDate());
+                        spent,
+                        remaining,
+                        startDate,
+                        endDate,
+                        truncate(categoriesStr, 18));
             }
 
-            System.out
-                    .println("--------------------------------------------------------------------------------------");
+            System.out.println("-".repeat(90));
             System.out.println("Total budgets: " + budgets.size() + "\n");
         }
     }
@@ -281,29 +293,26 @@ public class CliController {
         if (goals.isEmpty()) {
             System.out.println("No goals found.");
         } else {
-                System.out.println("\nGoals (Balance computed from allocated transactions):");
-                System.out.println("----------------------------------------------------------------------------------------------------------------");
-                System.out.printf("%-30s %-20s %13s %13s %8s %8s %-12s %9s\n",
-                    "ID", "Name", "Target", "Current", "TxCnt", "Priority", "Deadline", "Progress");
-                System.out.println("----------------------------------------------------------------------------------------------------------------");
+            System.out.println("\nGoals (Balance computed from allocated transactions):");
+            System.out.println("-".repeat(85));
+            System.out.printf("%-18s %12s %12s %-10s %8s %9s%n",
+                "Name", "Target", "Current", "Deadline", "Priority", "Progress");
+            System.out.println("-".repeat(85));
 
-                for (Goal goal : goals) {
+            for (Goal goal : goals) {
                 int txCount = goal.getTxCount();
                 double progress = goal.getProgress();
-                String nameDisplay = goal.getName() != null && goal.getName().length() > 20
-                    ? goal.getName().substring(0, 17) + "..."
-                    : goal.getName();
-                System.out.printf("%-30s %-20s %,11.2f $%,11.2f $%,8d %8.1f %-12s %8.1f%%\n",
-                    goal.getId(),
-                    nameDisplay,
+                String deadline = goal.getDeadline() != null ? goal.getDeadline().substring(0, Math.min(10, goal.getDeadline().length())) : "";
+                
+                System.out.printf("%-18s $%,10.2f $%,10.2f %-10s %8.1f %8.1f%%%n",
+                    truncate(goal.getName(), 18),
                     goal.getTarget(),
                     goal.getBalance(),
-                    txCount,
+                    deadline,
                     goal.getPriority(),
-                    goal.getDeadline(),
                     progress);
             }
-            System.out.println("----------------------------------------------------------------------------------------------------------------");
+            System.out.println("-".repeat(85));
             System.out.println("Total goals: " + goals.size());
             System.out.println("\n💡 Tip: Allocate transactions to goals when adding them (Option 3)\n");
         }
@@ -322,7 +331,7 @@ public class CliController {
         // ID is auto-generated
 
         // Show all categories grouped by type with continuous numbering
-        var defaultCategories = categoryService.getDefaultCategories();
+        var defaultCategories = categoryService.getAllCategories();
         System.out.println("Available Categories:");
         int categoryIndex = 1;
 
@@ -635,7 +644,7 @@ public class CliController {
         String transactionName = "Goal: " + selectedGoal.getName();
         
         // Use first available category
-        var categories = categoryService.getDefaultCategories();
+        var categories = categoryService.getAllCategories();
         String categoryId = categories.isEmpty() ? "CAT_GOAL" : categories.get(0).getId();
         
         // Create transaction (expense - money leaving wallet)
@@ -720,22 +729,25 @@ public class CliController {
 
         // Create a map of category ID to category name
         Map<String, String> categoryMap = new HashMap<>();
-        List<Category> categories = categoryService.getDefaultCategories();
+        List<Category> categories = categoryService.getAllCategories();
         for (Category category : categories) {
             categoryMap.put(category.getId(), category.getName());
         }
 
-        System.out.printf("%-20s %10s %-20s %10s %-15s %20s%n", "Name", "Amount", "Categories", "Income", "Wallet ID",
-                "Created At");
+        System.out.printf("%-20s %10s %-15s %7s %-12s %-15s%n", "Name", "Amount", "Category", "Type", "Wallet", "Date");
+        System.out.println("-".repeat(85));
         for (Transaction t : accountData.getTransactions()) {
             String categoryName = categoryMap.getOrDefault(t.getCategoryId(), t.getCategoryId());
-            System.out.printf("%-20s %10.2f %-20s %10.2f %-15s %20s%n",
-                    t.getName(),
+            String type = t.getIncome() > 0 ? "Income" : "Expense";
+            String date = t.getCreateTime() != null ? t.getCreateTime().substring(0, Math.min(10, t.getCreateTime().length())) : "";
+            
+            System.out.printf("%-20s $%9.2f %-15s %-7s %-12s %-15s%n",
+                    truncate(t.getName(), 20),
                     t.getAmount(),
-                    categoryName,
-                    t.getIncome(),
-                    t.getWalletId(),
-                    t.getCreateTime());
+                    truncate(categoryName, 15),
+                    type,
+                    truncate(t.getWalletId(), 12),
+                    date);
         }
     }
 
@@ -751,14 +763,41 @@ public class CliController {
      */
     private void handleViewBudgets(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== View Budgets ===");
-        System.out.printf("%-20s %10s %10s %-12s %-12s%n", "Name", "Limits", "Balance", "Start", "End");
-        for (Budget b : accountData.getBudgets()) {
-                System.out.printf("%-20s %10.2f %10.2f %-12s %-12s%n",
-                    b.getName(),
-                    b.getLimitAmount(),
-                    b.getBalance(),
-                    b.getStartDate(),
-                    b.getEndDate());
+        List<Budget> budgets = accountData.getBudgets();
+        
+        if (budgets.isEmpty()) {
+            System.out.println("No budgets found. Create a budget using option 7.");
+            return;
+        }
+        
+        System.out.printf("%-15s %12s %12s %12s %-10s %-10s %-25s%n", "Name", "Limit", "Spent", "Remaining", "Start", "End", "Categories");
+        System.out.println("-".repeat(105));
+        
+        for (Budget b : budgets) {
+            // Get tracked categories for this budget
+            List<Category> trackedCategories = budgetService.getCategoriesForBudget(b.getId());
+            StringBuilder categoryNames = new StringBuilder();
+            for (int i = 0; i < trackedCategories.size(); i++) {
+                if (i > 0) categoryNames.append(", ");
+                categoryNames.append(trackedCategories.get(i).getName());
+            }
+            String categoriesStr = categoryNames.length() > 0 ? categoryNames.toString() : "(none)";
+            
+            // Calculate actual spent amount from tracked category transactions
+            double spent = budgetService.getTotalSpentForBudget(b.getId());
+            double remaining = b.getLimitAmount() - spent;
+            
+            String startDate = b.getStartDate() != null ? b.getStartDate().substring(0, Math.min(10, b.getStartDate().length())) : "";
+            String endDate = b.getEndDate() != null ? b.getEndDate().substring(0, Math.min(10, b.getEndDate().length())) : "";
+            
+            System.out.printf("%-15s $%,10.2f $%,10.2f $%,10.2f %-10s %-10s %-25s%n",
+                truncate(b.getName(), 15),
+                b.getLimitAmount(),
+                spent,
+                remaining,
+                startDate,
+                endDate,
+                truncate(categoriesStr, 25));
         }
     }
 
@@ -774,16 +813,19 @@ public class CliController {
      */
     private void handleViewGoals(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== View Goals ===");
-        System.out.printf("%-20s %10s %10s %-12s %10s %20s%n", "Name", "Target", "Current", "Deadline", "Priority",
-                "Created At");
+        System.out.printf("%-15s %12s %12s %-10s %8s %-15s%n", "Name", "Target", "Current", "Deadline", "Priority", "Created");
+        System.out.println("-".repeat(80));
         for (Goal g : accountData.getGoals()) {
-            System.out.printf("%-20s %10.2f %10.2f %-12s %10.2f %20s%n",
-                    g.getName(),
+            String deadline = g.getDeadline() != null ? g.getDeadline().substring(0, Math.min(10, g.getDeadline().length())) : "";
+            String created = g.getCreateTime() != null ? g.getCreateTime().substring(0, Math.min(10, g.getCreateTime().length())) : "";
+            
+            System.out.printf("%-15s $%,10.2f $%,10.2f %-10s %8.1f %-15s%n",
+                    truncate(g.getName(), 15),
                     g.getTarget(),
                     g.getBalance(),
-                    g.getDeadline(),
+                    deadline,
                     g.getPriority(),
-                    g.getCreateTime());
+                    created);
         }
     }
 
@@ -833,7 +875,7 @@ public class CliController {
                     updates.put("amount", amt);
                     break;
                 case "category":
-                    var defaultCategories = categoryService.getDefaultCategories();
+                    var defaultCategories = categoryService.getAllCategories();
                     System.out.println("\nAvailable Categories:");
                     int categoryIndex = 1;
 
@@ -967,7 +1009,7 @@ public class CliController {
             return;
         }
 
-        System.out.println("Fields: name, limitamount, balance, startdate, enddate");
+        System.out.println("Fields: name, limitamount, balance, startdate, enddate, categories");
         System.out.print("Enter field to update: ");
         String field = scanner.nextLine().trim().toLowerCase();
 
@@ -1005,11 +1047,41 @@ public class CliController {
                     found.setEndDate(endDate);
                     updates.put("endDate", endDate);
                     break;
-                // TODO: trackedCategories update handling
-                // case "trackedCategoryIds":
-                // found.setTrackedCategoryIds(newValue);
-                // updates.put("trackedCategoryIds", newValue);
-                // break;
+                case "categories":
+                    // Show available categories
+                    System.out.println("\nAvailable Categories:");
+                    List<Category> categories = categoryService.getAllCategories();
+                    for (int i = 0; i < categories.size(); i++) {
+                        Category cat = categories.get(i);
+                        boolean isLinked = budgetService.isCategoryInBudget(found.getId(), cat.getId());
+                        String marker = isLinked ? " [TRACKED]" : "";
+                        System.out.println("  " + (i + 1) + ". " + cat.getName() + " (" + cat.getType() + ")" + marker);
+                    }
+                    
+                    System.out.print("\nEnter category numbers to track (comma-separated, replaces existing): ");
+                    String tracked = scanner.nextLine().trim();
+                    
+                    if (!tracked.isEmpty()) {
+                        List<String> categoryIds = new java.util.ArrayList<>();
+                        String[] selections = tracked.split(",");
+                        for (String selection : selections) {
+                            try {
+                                int index = Integer.parseInt(selection.trim()) - 1;
+                                if (index >= 0 && index < categories.size()) {
+                                    categoryIds.add(categories.get(index).getId());
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.println("  Invalid selection: " + selection);
+                            }
+                        }
+                        budgetService.setCategoriesForBudget(found.getId(), categoryIds);
+                        System.out.println("Categories updated for budget.");
+                    } else {
+                        budgetService.removeAllCategoriesFromBudget(found.getId());
+                        System.out.println("All categories removed from budget.");
+                    }
+                    this.accountData = AccountDataLoader.loadAccountData();
+                    return; // Categories handled separately
                 default:
                     System.out.println("Unknown field.");
                     return;
@@ -1403,13 +1475,39 @@ public class CliController {
         System.out.print("Enter end date (YYYY-MM-DD): ");
         String endDate = scanner.nextLine().trim();
 
-        System.out.print("Enter tracked categories (comma-separated): ");
+        // Display available categories for user to select
+        System.out.println("\nAvailable Categories:");
+        List<Category> categories = categoryService.getAllCategories();
+        for (int i = 0; i < categories.size(); i++) {
+            Category cat = categories.get(i);
+            System.out.println("  " + (i + 1) + ". " + cat.getName() + " (" + cat.getType() + ")");
+        }
+        
+        System.out.print("\nEnter category numbers to track (comma-separated, e.g., 1,3,5): ");
         String tracked = scanner.nextLine().trim();
 
         Budget budget = new Budget(name, limits, balance, startDate, endDate);
 
         // Save to database using BudgetService
         budgetService.create(budget);
+        
+        // Link selected categories to the budget
+        if (!tracked.isEmpty()) {
+            String[] categorySelections = tracked.split(",");
+            for (String selection : categorySelections) {
+                try {
+                    int index = Integer.parseInt(selection.trim()) - 1;
+                    if (index >= 0 && index < categories.size()) {
+                        Category selectedCategory = categories.get(index);
+                        budgetService.addCategoryToBudget(budget.getId(), selectedCategory.getId());
+                        System.out.println("  Linked category: " + selectedCategory.getName());
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("  Invalid selection: " + selection);
+                }
+            }
+        }
+        
         System.out.println("Budget created: " + budget.getName());
 
         // Refresh account data after creating budget
@@ -1489,5 +1587,14 @@ public class CliController {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    /**
+     * Truncate text to specified length with ellipsis
+     */
+    private String truncate(String text, int maxLength) {
+        if (text == null) return "";
+        if (text.length() <= maxLength) return text;
+        return text.substring(0, maxLength - 3) + "...";
     }
 }

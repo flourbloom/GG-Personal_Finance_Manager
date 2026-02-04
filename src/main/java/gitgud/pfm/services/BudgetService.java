@@ -280,10 +280,10 @@ public class BudgetService implements CRUDInterface<Budget> {
 
     /**
      * Get all categories associated with a specific budget
-     * Explicit fields: c.id, c.name, c.description, c.type, bc.categoryLimit
+     * Explicit fields: c.id, c.name, c.description, c.type, c.color
      */
     public List<Category> getCategoriesForBudget(String budgetId) {
-        String sql = "SELECT DISTINCT c.id, c.name, c.description, c.color " +
+        String sql = "SELECT DISTINCT c.id, c.name, c.description, c.type, c.color " +
                      "FROM Category c " +
                      "INNER JOIN Budget_Category bc ON c.id = bc.categoryID " +
                      "WHERE bc.budgetID = ? " +
@@ -299,6 +299,16 @@ public class BudgetService implements CRUDInterface<Budget> {
                     category.setId(rs.getString("id"));
                     category.setName(rs.getString("name"));
                     category.setDescription(rs.getString("description"));
+                    
+                    String typeStr = rs.getString("type");
+                    if (typeStr != null) {
+                        try {
+                            category.setType(Category.Type.valueOf(typeStr));
+                        } catch (IllegalArgumentException e) {
+                            category.setType(Category.Type.EXPENSE);
+                        }
+                    }
+                    
                     categories.add(category);
                 }
             }
@@ -552,35 +562,42 @@ public class BudgetService implements CRUDInterface<Budget> {
     
     /**
      * Calculate total spending for a budget within its date range
-     * Only counts expense transactions (income = 0)
+     * Only counts expense transactions (income = 0) for TRACKED categories
+     * Uses the Budget_Category junction table to determine which categories to include
      */
     public double getTotalSpentForBudget(String budgetId) {
         Budget budget = read(budgetId);
         if (budget == null) return 0.0;
         
-        String sql;
-        PreparedStatement pstmt;
+        // Check if budget has any tracked categories
+        List<Category> trackedCategories = getCategoriesForBudget(budgetId);
+        if (trackedCategories.isEmpty()) {
+            // No categories tracked - return 0 (or could sum all expenses)
+            return 0.0;
+        }
         
-        try {
-            // If budget is wallet-specific, filter by walletId
+        // Build SQL to sum transactions only for tracked categories
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COALESCE(SUM(t.amount), 0) as total ");
+        sql.append("FROM transaction_records t ");
+        sql.append("INNER JOIN Budget_Category bc ON t.categoryId = bc.categoryID ");
+        sql.append("WHERE bc.budgetID = ? ");
+        sql.append("AND t.income = 0 ");
+        sql.append("AND t.createTime BETWEEN ? AND ? ");
+        
+        // If budget is wallet-specific, add wallet filter
+        if (budget.getWalletId() != null && !budget.getWalletId().isEmpty()) {
+            sql.append("AND t.walletId = ? ");
+        }
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            pstmt.setString(paramIndex++, budgetId);
+            pstmt.setString(paramIndex++, budget.getStartDate());
+            pstmt.setString(paramIndex++, budget.getEndDate());
+            
             if (budget.getWalletId() != null && !budget.getWalletId().isEmpty()) {
-                sql = "SELECT COALESCE(SUM(amount), 0) as total " +
-                      "FROM transaction_records " +
-                      "WHERE income = 0 AND walletId = ? " +
-                      "AND createTime BETWEEN ? AND ?";
-                pstmt = connection.prepareStatement(sql);
-                pstmt.setString(1, budget.getWalletId());
-                pstmt.setString(2, budget.getStartDate());
-                pstmt.setString(3, budget.getEndDate());
-            } else {
-                // Account-wide budget: sum all transactions
-                sql = "SELECT COALESCE(SUM(amount), 0) as total " +
-                      "FROM transaction_records " +
-                      "WHERE income = 0 " +
-                      "AND createTime BETWEEN ? AND ?";
-                pstmt = connection.prepareStatement(sql);
-                pstmt.setString(1, budget.getStartDate());
-                pstmt.setString(2, budget.getEndDate());
+                pstmt.setString(paramIndex++, budget.getWalletId());
             }
             
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -588,9 +605,8 @@ public class BudgetService implements CRUDInterface<Budget> {
                     return rs.getDouble("total");
                 }
             }
-            pstmt.close();
         } catch (SQLException e) {
-            System.err.println("Error calculating total spent: " + e.getMessage());
+            System.err.println("Error calculating total spent for budget: " + e.getMessage());
         }
         return 0.0;
     }

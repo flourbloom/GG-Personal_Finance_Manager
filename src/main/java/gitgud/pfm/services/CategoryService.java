@@ -2,6 +2,7 @@ package gitgud.pfm.services;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,34 +18,35 @@ public class CategoryService implements CRUDInterface<Category> {
 
     public List<Category> getDefaultCategories() {
         return List.of(
+            // EXPENSE categories (IDs 1-9)
             new Category("1", "Food & Drinks", "Meals, groceries, and beverages", Category.Type.EXPENSE),
             new Category("2", "Transport", "Public transport, fuel, taxis, etc.", Category.Type.EXPENSE),
             new Category("3", "Home Bills", "Rent, electricity, water, gas, etc.", Category.Type.EXPENSE),
             new Category("4", "Self-care", "Personal care, beauty, spa, etc.", Category.Type.EXPENSE),
             new Category("5", "Shopping", "Clothes, gadgets, and other shopping", Category.Type.EXPENSE),
             new Category("6", "Health", "Medical, pharmacy, insurance", Category.Type.EXPENSE),
-            new Category("7", "Salary", "Monthly salary income", Category.Type.INCOME),
-            new Category("8", "Investment", "Investment returns, dividends, etc.", Category.Type.INCOME),
-            new Category("9", "Subscription", "Streaming, software, memberships", Category.Type.EXPENSE),
-            new Category("10", "Entertainment & Sport", "Movies, games, sports activities", Category.Type.EXPENSE),
-            new Category("11", "Traveling", "Flights, hotels, vacation expenses", Category.Type.EXPENSE)
+            new Category("7", "Subscription", "Streaming, software, memberships", Category.Type.EXPENSE),
+            new Category("8", "Entertainment & Sport", "Movies, games, sports activities", Category.Type.EXPENSE),
+            new Category("9", "Traveling", "Flights, hotels, vacation expenses", Category.Type.EXPENSE),
+            // INCOME categories (IDs 10-11)
+            new Category("10", "Salary", "Monthly salary income", Category.Type.INCOME),
+            new Category("11", "Investment", "Investment returns, dividends, etc.", Category.Type.INCOME)
         );
     }
 
     /**
      * Create a new category in the database
-     * Explicit fields: id, name, description, type, budget, isDefault
+     * Explicit fields: id, name, description, type
      */
     @Override
     public void create(Category category) {
-        String sql = "INSERT INTO categories (id, name, description, type) " +
-                     "VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO Category (id, name, description, type) VALUES (?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, category.getId());
             pstmt.setString(2, category.getName());
             pstmt.setString(3, category.getDescription());
-            pstmt.setString(4, category.getType().toString());
+            pstmt.setString(4, category.getType() != null ? category.getType().toString() : "EXPENSE");
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -52,23 +54,160 @@ public class CategoryService implements CRUDInterface<Category> {
         }
     }
 
+    /**
+     * Read a single category by id
+     */
     @Override
     public Category read(String id) {
-        // Implementation omitted for brevity
+        String sql = "SELECT id, name, description, type FROM Category WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Category category = new Category();
+                    category.setId(rs.getString("id"));
+                    category.setName(rs.getString("name"));
+                    category.setDescription(rs.getString("description"));
+                    
+                    String typeStr = rs.getString("type");
+                    if (typeStr != null) {
+                        try {
+                            category.setType(Category.Type.valueOf(typeStr));
+                        } catch (IllegalArgumentException e) {
+                            category.setType(Category.Type.EXPENSE);
+                        }
+                    }
+                    return category;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error reading category: " + e.getMessage());
+        }
         return null;
     }
 
+    /**
+     * Update an existing category
+     */
     @Override
     public void update(Category category) {
-        // Implementation omitted for brevity
+        String sql = "UPDATE Category SET name = ?, description = ?, type = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, category.getName());
+            pstmt.setString(2, category.getDescription());
+            pstmt.setString(3, category.getType() != null ? category.getType().toString() : "EXPENSE");
+            pstmt.setString(4, category.getId());
+            
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error updating category: " + e.getMessage());
+        }
     }
     
+    /**
+     * Delete a category by id
+     */
     @Override
     public void delete(String id) {
-        // Implementation omitted for brevity
+        String sql = "DELETE FROM Category WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting category: " + e.getMessage());
+        }
     }
 
+    /**
+     * Get all categories from the database
+     * Falls back to default categories if database is empty
+     * Orders by ID since database is seeded with EXPENSE categories first, then INCOME
+     */
     public List<Category> getAllCategories() {
-        return new ArrayList<>(getDefaultCategories());
+        String sql = "SELECT id, name, description, type FROM Category ORDER BY CAST(id AS INTEGER)";
+        List<Category> categories = new ArrayList<>();
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Category category = new Category();
+                category.setId(rs.getString("id"));
+                category.setName(rs.getString("name"));
+                category.setDescription(rs.getString("description"));
+                
+                String typeStr = rs.getString("type");
+                if (typeStr != null) {
+                    try {
+                        category.setType(Category.Type.valueOf(typeStr));
+                    } catch (IllegalArgumentException e) {
+                        category.setType(Category.Type.EXPENSE);
+                    }
+                }
+                categories.add(category);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error reading all categories: " + e.getMessage());
+        }
+        
+        // If no categories in database, return the hardcoded defaults
+        // This provides a fallback but the database should be seeded on init
+        if (categories.isEmpty()) {
+            return new ArrayList<>(getDefaultCategories());
+        }
+        
+        return categories;
+    }
+    
+    /**
+     * Get categories by type (INCOME or EXPENSE)
+     * Orders by ID to maintain display order
+     */
+    public List<Category> getCategoriesByType(Category.Type type) {
+        String sql = "SELECT id, name, description, type FROM Category WHERE type = ? ORDER BY CAST(id AS INTEGER)";
+        List<Category> categories = new ArrayList<>();
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, type.toString());
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Category category = new Category();
+                    category.setId(rs.getString("id"));
+                    category.setName(rs.getString("name"));
+                    category.setDescription(rs.getString("description"));
+                    category.setType(type);
+                    categories.add(category);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error reading categories by type: " + e.getMessage());
+        }
+        
+        return categories;
+    }
+    
+    /**
+     * Check if a category exists in the database
+     */
+    public boolean exists(String id) {
+        String sql = "SELECT COUNT(*) FROM Category WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking category existence: " + e.getMessage());
+        }
+        return false;
     }
 }
