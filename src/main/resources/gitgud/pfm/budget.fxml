@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.PieChart?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21"
+            fx:controller="gitgud.pfm.Controllers.BudgetController"
+            fx:id="rootPane"
+            fitToWidth="true"
+            style="-fx-background-color: #f0f2f5; -fx-background: #f0f2f5;">
+    
+    <VBox spacing="24" style="-fx-background-color: #f0f2f5;">
+        <padding>
+            <Insets top="28" right="28" bottom="28" left="28"/>
+        </padding>
+        
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="16">
+            <VBox spacing="4">
+                <Label text="Budget Management" style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                <Label text="Track and manage your monthly spending limits" style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="addBudgetButton" text="+ New Budget" 
+                    style="-fx-background-color: linear-gradient(to right, #3b82f6, #2563eb); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 12 24; -fx-font-size: 15px; -fx-font-weight: 600; -fx-cursor: hand;"/>
+        </HBox>
+        
+        <!-- Summary Cards Row -->
+        <HBox spacing="20">
+            <!-- Total Budget Card -->
+            <VBox HBox.hgrow="ALWAYS" spacing="8" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Region prefWidth="12" prefHeight="12" style="-fx-background-color: #3b82f6; -fx-background-radius: 6;"/>
+                    <Label text="Total Budget" style="-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-font-weight: 500;"/>
+                </HBox>
+                <Label fx:id="totalBudgetLabel" text="0.00" style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+            </VBox>
+            
+            <!-- Total Spent Card -->
+            <VBox HBox.hgrow="ALWAYS" spacing="8" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Region prefWidth="12" prefHeight="12" style="-fx-background-color: #ef4444; -fx-background-radius: 6;"/>
+                    <Label text="Total Spent" style="-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-font-weight: 500;"/>
+                </HBox>
+                <Label fx:id="totalSpentLabel" text="0.00" style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #ef4444;"/>
+            </VBox>
+            
+            <!-- Remaining Card -->
+            <VBox HBox.hgrow="ALWAYS" spacing="8" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Region prefWidth="12" prefHeight="12" style="-fx-background-color: #22c55e; -fx-background-radius: 6;"/>
+                    <Label text="Remaining" style="-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-font-weight: 500;"/>
+                </HBox>
+                <Label fx:id="remainingLabel" text="0.00" style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #22c55e;"/>
+            </VBox>
+            
+            <!-- Active Budgets Card -->
+            <VBox HBox.hgrow="ALWAYS" spacing="8" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Region prefWidth="12" prefHeight="12" style="-fx-background-color: #f59e0b; -fx-background-radius: 6;"/>
+                    <Label text="Active Budgets" style="-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-font-weight: 500;"/>
+                </HBox>
+                <Label fx:id="activeBudgetsLabel" text="0" style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Monthly Budget Overview Card -->
+        <VBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
+            <padding>
+                <Insets top="24" right="24" bottom="24" left="24"/>
+            </padding>
+            
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT">
+                <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <Region prefWidth="18" prefHeight="18" style="-fx-background-color: #3b82f6; -fx-background-radius: 4;"/>
+                    <Label text="Monthly Budget Overview" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+                </HBox>
+                <ComboBox fx:id="monthSelector" value="This Month" style="-fx-font-size: 13px;">
+                </ComboBox>
+            </HBox>
+            
+            <!-- Budget Progress -->
+            <VBox spacing="12">
+                <HBox alignment="CENTER_LEFT">
+                    <Label fx:id="budgetSpentLabel" text="0" style="-fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                    <Label text=" of " style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
+                    <Label fx:id="budgetLimitLabel" text="0" style="-fx-font-size: 18px; -fx-text-fill: #64748b;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="budgetPercentLabel" text="0%" style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #f59e0b;"/>
+                </HBox>
+                <ProgressBar fx:id="budgetProgress" progress="0" prefHeight="14" maxWidth="Infinity" style="-fx-accent: #3b82f6;"/>
+                <Label fx:id="budgetHintLabel" text="Set a budget to track your spending" style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
+            </VBox>
+        </VBox>
+        
+        <!-- Budgets List Card -->
+        <VBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
+            <padding>
+                <Insets top="24" right="24" bottom="24" left="24"/>
+            </padding>
+            
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT">
+                <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <Region prefWidth="18" prefHeight="18" style="-fx-background-color: #3b82f6; -fx-background-radius: 4;"/>
+                    <Label text="All Budgets" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+                </HBox>
+                <ComboBox fx:id="filterCombo" value="All" style="-fx-font-size: 13px;">
+                </ComboBox>
+            </HBox>
+            
+            <!-- Budgets List Container -->
+            <VBox fx:id="budgetsList" spacing="12">
+                <!-- Budget items will be dynamically added here -->
+            </VBox>
+        </VBox>
+    </VBox>
+</ScrollPane>

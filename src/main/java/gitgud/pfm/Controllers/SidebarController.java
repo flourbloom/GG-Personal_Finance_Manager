@@ -22,6 +22,7 @@ public class SidebarController implements Initializable {
     @FXML private HBox reportsNavItem;
     @FXML private HBox goalsNavItem;
     @FXML private HBox accountsNavItem;
+    @FXML private HBox budgetNavItem;
     @FXML private ComboBox<Wallet> walletSelector;
     @FXML private Label walletBalanceLabel;
 
@@ -31,6 +32,7 @@ public class SidebarController implements Initializable {
     private Runnable onReportsClick;
     private Runnable onGoalsClick;
     private Runnable onAccountsClick;
+    private Runnable onBudgetClick;
     private DataStore dataStore;
 
     @Override
@@ -47,6 +49,9 @@ public class SidebarController implements Initializable {
         setupNavItem(reportsNavItem, "Reports");
         setupNavItem(goalsNavItem, "Goals");
         setupNavItem(accountsNavItem, "Accounts");
+        if (budgetNavItem != null) {
+            setupNavItem(budgetNavItem, "Budget");
+        }
         
         setupWalletSelector();
     }
@@ -117,6 +122,9 @@ public class SidebarController implements Initializable {
                 Wallet selected = walletSelector.getValue();
                 if (selected != null && walletBalanceLabel != null) {
                     walletBalanceLabel.setText(String.format("$%.2f", selected.getBalance()));
+                    // Update color based on balance (red for negative, green for positive)
+                    String balanceColor = selected.getBalance() >= 0 ? "#10b981" : "#f87171";
+                    walletBalanceLabel.setStyle("-fx-text-fill: " + balanceColor + "; -fx-font-size: 20px; -fx-font-weight: 900;");
                 }
             });
         }
@@ -130,7 +138,11 @@ public class SidebarController implements Initializable {
             if (!wallets.isEmpty()) {
                 walletSelector.setValue(wallets.get(0));
                 if (walletBalanceLabel != null) {
-                    walletBalanceLabel.setText(String.format("$%.2f", wallets.get(0).getBalance()));
+                    double balance = wallets.get(0).getBalance();
+                    walletBalanceLabel.setText(String.format("$%.2f", balance));
+                    // Update color based on balance (red for negative, green for positive)
+                    String balanceColor = balance >= 0 ? "#10b981" : "#f87171";
+                    walletBalanceLabel.setStyle("-fx-text-fill: " + balanceColor + "; -fx-font-size: 20px; -fx-font-weight: 900;");
                 }
             }
         }
@@ -146,6 +158,9 @@ public class SidebarController implements Initializable {
             selected.setBalance(newBalance);
             if (walletBalanceLabel != null) {
                 walletBalanceLabel.setText(String.format("$%.2f", newBalance));
+                // Update color based on balance (red for negative, green for positive)
+                String balanceColor = newBalance >= 0 ? "#10b981" : "#f87171";
+                walletBalanceLabel.setStyle("-fx-text-fill: " + balanceColor + "; -fx-font-size: 20px; -fx-font-weight: 900;");
             }
         }
     }
@@ -185,6 +200,9 @@ public class SidebarController implements Initializable {
                 case "Accounts":
                     if (onAccountsClick != null) onAccountsClick.run();
                     break;
+                case "Budget":
+                    if (onBudgetClick != null) onBudgetClick.run();
+                    break;
             }
         });
     }
@@ -196,6 +214,9 @@ public class SidebarController implements Initializable {
         resetNavItem(reportsNavItem);
         resetNavItem(goalsNavItem);
         resetNavItem(accountsNavItem);
+        if (budgetNavItem != null) {
+            resetNavItem(budgetNavItem);
+        }
 
         // Set active item
         HBox item = null;
@@ -215,6 +236,9 @@ public class SidebarController implements Initializable {
             case "Accounts":
                 item = accountsNavItem;
                 break;
+            case "Budget":
+                item = budgetNavItem;
+                break;
         }
 
         if (item != null) {
@@ -226,6 +250,7 @@ public class SidebarController implements Initializable {
     }
 
     private void resetNavItem(HBox item) {
+        if (item == null) return;
         item.setStyle("-fx-background-radius: 10; -fx-cursor: hand;");
         Label textLabel = (Label) item.getChildren().get(1);
         textLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 15px;");
@@ -250,5 +275,9 @@ public class SidebarController implements Initializable {
 
     public void setOnAccountsClick(Runnable action) {
         this.onAccountsClick = action;
+    }
+
+    public void setOnBudgetClick(Runnable action) {
+        this.onBudgetClick = action;
     }
 }

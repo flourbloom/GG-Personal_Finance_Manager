@@ -12,6 +12,7 @@ public class Budget extends FinancialEntity {
     private String endDate;
     private PeriodType periodType; // WEEKLY, MONTHLY, YEARLY, CUSTOM
     private String walletId; // Optional: link budget to specific wallet/account
+    private String categoryId; // Optional: link budget to specific category
 
     // No-arg constructor required for reflection-based mapping (do not auto-persist)
     public Budget() {
@@ -26,6 +27,7 @@ public class Budget extends FinancialEntity {
         this.endDate = endDate;
         this.periodType = PeriodType.CUSTOM;
         this.walletId = null; // Account-wide by default
+        this.categoryId = null;
     }
     
     public Budget(String name, double limitAmount, double balance, String startDate, 
@@ -36,6 +38,18 @@ public class Budget extends FinancialEntity {
         this.endDate = endDate;
         this.periodType = periodType != null ? periodType : PeriodType.CUSTOM;
         this.walletId = walletId;
+        this.categoryId = null;
+    }
+    
+    public Budget(String name, double limitAmount, double balance, String startDate, 
+                  String endDate, PeriodType periodType, String walletId, String categoryId) {
+        super(IdGenerator.generateBudgetId(), name, balance);
+        this.limitAmount = limitAmount;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.periodType = periodType != null ? periodType : PeriodType.CUSTOM;
+        this.walletId = walletId;
+        this.categoryId = categoryId;
     }
     
     public double getLimitAmount() { return limitAmount; }
@@ -53,10 +67,20 @@ public class Budget extends FinancialEntity {
     public String getWalletId() { return walletId; }
     public void setWalletId(String walletId) { this.walletId = walletId; }
     
+    public String getCategoryId() { return categoryId; }
+    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
+    
     /**
      * Check if this budget is account-wide (not linked to specific wallet)
      */
     public boolean isAccountWide() {
         return walletId == null || walletId.isEmpty();
+    }
+    
+    /**
+     * Check if this budget is for a specific category
+     */
+    public boolean isCategoryBudget() {
+        return categoryId != null && !categoryId.isEmpty();
     }
 }

@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Screen;
 import javafx.geometry.Rectangle2D;
+import gitgud.pfm.Controllers.DashboardController;
 import gitgud.pfm.Controllers.SidebarController;
 
 import java.io.IOException;
@@ -26,6 +27,10 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         root = new BorderPane();
         
+        // Set up navigation callbacks for DashboardController
+        DashboardController.setOnNavigateToGoals(this::showGoals);
+        DashboardController.setOnNavigateToTransactions(this::showTransactions);
+        
         // Load sidebar from FXML
         try {
             FXMLLoader sidebarLoader = new FXMLLoader(getClass().getResource("/gitgud/pfm/sidebar.fxml"));
@@ -38,6 +43,7 @@ public class App extends Application {
             sidebarController.setOnReportsClick(this::showReports);
             sidebarController.setOnGoalsClick(this::showGoals);
             sidebarController.setOnAccountsClick(this::showAccounts);
+            sidebarController.setOnBudgetClick(this::showBudget);
             
             root.setLeft(sidebar);
         } catch (IOException e) {
@@ -134,6 +140,16 @@ public class App extends Application {
         }
         if (sidebarController != null) {
             sidebarController.setActiveItem("Accounts");
+        }
+    }
+    
+    public void showBudget() {
+        Node view = loadFXML("budget.fxml");
+        if (view != null) {
+            root.setCenter(view);
+        }
+        if (sidebarController != null) {
+            sidebarController.setActiveItem("Budget");
         }
     }
 
