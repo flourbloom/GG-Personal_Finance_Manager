@@ -118,6 +118,12 @@ public class CliController {
                     handleDeleteGoal(accountData);
                     break;
                 case "14":
+                    handleDeleteTransaction(accountData);
+                    break;
+                case "15":
+                    handleDeleteBudget(accountData);
+                    break;
+                case "17":
                     handleViewReports(accountData);
                     break;
                 case "0":
@@ -1208,54 +1214,99 @@ public class CliController {
 
     private void handleDeleteGoal(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== Delete Goal ===");
-        System.out.println("Available Goals:");
-        handleViewGoals(accountData);
-        System.out.print("\nEnter the name of the Goal you want to delete: ");
-        String goalNameInput = scanner.nextLine().trim();
 
-        Goal goalToDelete = null;
-        for (Goal g : accountData.getGoals()) {
-            if (g.getName() != null && g.getName().equals(goalNameInput)) {
-                goalToDelete = g;
-                break;
-            }
-        }
-
-        if (goalToDelete == null) {
-            System.out.println("ERROR: Goal '" + goalNameInput + "' not found.");
+        List<Goal> goals = accountData.getGoals();
+        if (goals.isEmpty()) {
+            System.out.println("No goals found.");
             return;
         }
 
+        System.out.println("Available Goals:");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.printf("%-3s %-10s %-25s %12s %12s %6s %8s %-12s %-20s\n",
+                "#", "ID", "Name", "Target", "Current", "TxCnt", "Priority", "Deadline", "Created At");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        for (int i = 0; i < goals.size(); i++) {
+            Goal g = goals.get(i);
+            int txCount = g.getTxCount();
+            String nameDisplay = g.getName() != null && g.getName().length() > 25 ? g.getName().substring(0, 22) + "..." : g.getName();
+            System.out.printf("%-3d %-10s %-25s $%,10.2f $%,10.2f %6d %8.1f %-12s %-20s\n",
+                    i + 1,
+                    g.getId(),
+                    nameDisplay,
+                    g.getTarget(),
+                    g.getBalance(),
+                    txCount,
+                    g.getPriority(),
+                    g.getDeadline(),
+                    g.getCreateTime());
+        }
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+
+        Goal goalToDelete = null;
+        while (goalToDelete == null) {
+            System.out.print("Select goal number to delete (or 0 to cancel): ");
+            String sel = scanner.nextLine().trim();
+            try {
+                int num = Integer.parseInt(sel);
+                if (num == 0) {
+                    System.out.println("Cancelled.");
+                    return;
+                }
+                if (num >= 1 && num <= goals.size()) {
+                    goalToDelete = goals.get(num - 1);
+                } else {
+                    System.out.println("Invalid number. Try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+
         String goalId = goalToDelete.getId();
-        
-        // Count transactions allocated to this goal
+
+        // Count transactions allocated to this goal (in-memory)
         int allocatedTxCount = 0;
         for (Transaction tx : accountData.getTransactions()) {
             if (tx.getGoalId() != null && tx.getGoalId().equals(goalId)) {
                 allocatedTxCount++;
             }
         }
-        
-        // Show warning if there are allocated transactions
+
         if (allocatedTxCount > 0) {
             System.out.println("\n⚠️  WARNING: This goal has " + allocatedTxCount + " transaction(s) allocated to it.");
-            System.out.println("These transactions will be unlinked. Continue? (y/n): ");
+            System.out.print("These transactions will be unlinked in-memory. Continue and delete goal? (y/n): ");
+            String confirm = scanner.nextLine().trim().toLowerCase();
+            if (!confirm.equals("y")) {
+                System.out.println("Deletion cancelled.");
+                return;
+            }
+        } else {
+            System.out.print("Confirm delete '" + goalToDelete.getName() + "' (y/n): ");
             String confirm = scanner.nextLine().trim().toLowerCase();
             if (!confirm.equals("y")) {
                 System.out.println("Deletion cancelled.");
                 return;
             }
         }
-        
-        System.out.println("\nConfirming deletion of Goal: " + goalToDelete.getName() +
-                " (Target Amount: " + goalToDelete.getTarget() + ")");
 
         try {
             // Persist delete via GoalService
             goalService.delete(goalId);
+
+            // Unlink any in-memory transaction references to this goal
+            for (Transaction tx : accountData.getTransactions()) {
+                if (tx.getGoalId() != null && tx.getGoalId().equals(goalId)) {
+                    tx.setGoalId(null);
+                }
+            }
+
+            // Remove from in-memory goals list
             accountData.getGoals().remove(goalToDelete);
+
             System.out.println("SUCCESS: Goal '" + goalToDelete.getName() + "' has been deleted successfully.");
-            // refresh in-memory data to reflect persisted changes
+
+            // Refresh in-memory data from DB
             refreshDataHolder(accountData);
         } catch (Exception ex) {
             System.out.println("ERROR: Failed to delete goal: " + ex.getMessage());
