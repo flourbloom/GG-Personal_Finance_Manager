@@ -50,6 +50,51 @@ public class SidebarController implements Initializable {
     
     private void setupWalletSelector() {
         if (walletSelector != null) {
+            // Custom cell factory for dropdown items - show name and balance
+            walletSelector.setCellFactory(lv -> new javafx.scene.control.ListCell<Wallet>() {
+                @Override
+                protected void updateItem(Wallet wallet, boolean empty) {
+                    super.updateItem(wallet, empty);
+                    if (empty || wallet == null) {
+                        setText(null);
+                        setGraphic(null);
+                        setStyle("");
+                    } else {
+                        javafx.scene.layout.HBox container = new javafx.scene.layout.HBox(8);
+                        container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        
+                        javafx.scene.control.Label nameLabel = new javafx.scene.control.Label(wallet.getName());
+                        nameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 600;");
+                        
+                        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+                        
+                        javafx.scene.control.Label balanceLabel = new javafx.scene.control.Label(String.format("$%.2f", wallet.getBalance()));
+                        balanceLabel.setStyle("-fx-text-fill: #10b981; -fx-font-size: 12px; -fx-font-weight: 700;");
+                        
+                        container.getChildren().addAll(nameLabel, spacer, balanceLabel);
+                        setGraphic(container);
+                        setText(null);
+                        setStyle("-fx-background-color: transparent; -fx-padding: 10 12;");
+                    }
+                }
+            });
+            
+            // Custom button cell for selected item display
+            walletSelector.setButtonCell(new javafx.scene.control.ListCell<Wallet>() {
+                @Override
+                protected void updateItem(Wallet wallet, boolean empty) {
+                    super.updateItem(wallet, empty);
+                    if (empty || wallet == null) {
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        setText("💳  " + wallet.getName());
+                        setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 600;");
+                    }
+                }
+            });
+            
             refreshWallets();
             walletSelector.setOnAction(e -> {
                 Wallet selected = walletSelector.getValue();

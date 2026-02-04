@@ -82,28 +82,35 @@
     </VBox>
     
     <!-- Profile Section -->
-    <VBox spacing="8" style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 12;">
+    <!-- Wallet Selector Section -->
+    <VBox spacing="10" style="-fx-background-color: linear-gradient(to bottom, rgba(59,130,246,0.1), rgba(59,130,246,0.05)); -fx-background-radius: 14; -fx-border-color: rgba(59,130,246,0.3); -fx-border-width: 1; -fx-border-radius: 14;">
         <VBox.margin>
-            <Insets top="0" right="12" bottom="0" left="12"/>
+            <Insets top="8" right="12" bottom="0" left="12"/>
         </VBox.margin>
         <padding>
-            <Insets top="16" right="16" bottom="16" left="16"/>
+            <Insets top="14" right="14" bottom="14" left="14"/>
         </padding>
         
-        <Label text="Select Wallet" 
-               style="-fx-text-fill: #94a3b8; -fx-font-size: 12px; -fx-font-weight: 600;"/>
+        <!-- Header -->
+        <HBox spacing="6" alignment="CENTER_LEFT">
+            <Label text="💳" style="-fx-font-size: 14px;"/>
+            <Label text="Active Wallet" 
+                   style="-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 700;"/>
+        </HBox>
         
-        <ComboBox fx:id="walletSelector"
-                  style="-fx-background-color: rgba(0,0,0,0.3); -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8px; -fx-border-color: #3b82f6; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6;">
+        <!-- ComboBox -->
+        <ComboBox fx:id="walletSelector" maxHeight="36"
+                  style="-fx-background-color: rgba(30,41,59,0.6); -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 12; -fx-border-color: #3b82f6; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-background-radius: 8; -fx-focus-color: #3b82f6; -fx-faint-focus-color: rgba(59,130,246,0.2);">
             <tooltip>
-                <Tooltip text="Select which wallet to use for transactions"/>
+                <Tooltip text="Select wallet for transactions"/>
             </tooltip>
         </ComboBox>
         
-        <HBox spacing="4" alignment="CENTER_LEFT">
-            <Label text="Balance:" style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;"/>
+        <!-- Balance Display -->
+        <VBox spacing="6" style="-fx-background-color: rgba(59,130,246,0.15); -fx-background-radius: 10; -fx-border-color: rgba(59,130,246,0.4); -fx-border-width: 1; -fx-border-radius: 10; -fx-padding: 12;">
+            <Label text="Current Balance" style="-fx-text-fill: #94a3b8; -fx-font-size: 10px; -fx-font-weight: 700; -fx-letter-spacing: 1;"/>
             <Label fx:id="walletBalanceLabel" text="0.00" 
-                   style="-fx-text-fill: #22c55e; -fx-font-size: 13px; -fx-font-weight: 600;"/>
-        </HBox>
+                   style="-fx-text-fill: #10b981; -fx-font-size: 20px; -fx-font-weight: 900;"/>
+        </VBox>
     </VBox>
 </VBox>
