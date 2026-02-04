@@ -15,4 +15,5 @@ module gitgud.pfm {
     exports gitgud.pfm.GUI;
     exports gitgud.pfm.GUI.data;
     exports gitgud.pfm.Controllers;
+    exports gitgud.pfm.Models;
 }
