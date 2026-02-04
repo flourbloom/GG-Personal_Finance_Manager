@@ -28,12 +28,13 @@ public class Sidebar extends VBox {
         VBox.setVgrow(navMenu, Priority.ALWAYS);
         
         NavItem dashboard = new NavItem("Dashboard", () -> app.showDashboard());
+        NavItem addTransaction = new NavItem("Add Transaction", () -> app.showCategories());
         NavItem transactions = new NavItem("Transactions", () -> app.showTransactions());
         NavItem reports = new NavItem("Reports", () -> app.showReports());
         NavItem goals = new NavItem("Goals", () -> app.showGoals());
         NavItem accounts = new NavItem("Accounts", () -> app.showAccounts());
         
-        navMenu.getChildren().addAll(dashboard, transactions, reports, goals, accounts);
+        navMenu.getChildren().addAll(dashboard, addTransaction, transactions, reports, goals, accounts);
         activeItem = dashboard;
         dashboard.setActive(true);
         

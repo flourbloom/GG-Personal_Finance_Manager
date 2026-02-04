@@ -24,7 +24,10 @@ public class CategoryService implements CRUDInterface<Category> {
             new Category("5", "Shopping", "Clothes, gadgets, and other shopping", Category.Type.EXPENSE),
             new Category("6", "Health", "Medical, pharmacy, insurance", Category.Type.EXPENSE),
             new Category("7", "Salary", "Monthly salary income", Category.Type.INCOME),
-            new Category("8", "Investment", "Investment returns, dividends, etc.", Category.Type.INCOME)
+            new Category("8", "Investment", "Investment returns, dividends, etc.", Category.Type.INCOME),
+            new Category("9", "Subscription", "Streaming, software, memberships", Category.Type.EXPENSE),
+            new Category("10", "Entertainment & Sport", "Movies, games, sports activities", Category.Type.EXPENSE),
+            new Category("11", "Traveling", "Flights, hotels, vacation expenses", Category.Type.EXPENSE)
         );
     }
 

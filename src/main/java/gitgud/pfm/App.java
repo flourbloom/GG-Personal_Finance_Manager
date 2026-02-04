@@ -12,6 +12,7 @@ import gitgud.pfm.GUI.TransactionsView;
 import gitgud.pfm.GUI.ReportsView;
 import gitgud.pfm.GUI.GoalsView;
 import gitgud.pfm.GUI.AccountsView;
+import gitgud.pfm.GUI.CategoryCardsView;
 
 /**
  * JavaFX App - Personal Finance Manager
@@ -84,6 +85,11 @@ public class App extends Application {
     public void showAccounts() {
         root.setCenter(new AccountsView());
         sidebar.setActiveItem("Accounts");
+    }
+    
+    public void showCategories() {
+        root.setCenter(new CategoryCardsView());
+        sidebar.setActiveItem("Add Transaction");
     }
 
     public static void main(String[] args) {
