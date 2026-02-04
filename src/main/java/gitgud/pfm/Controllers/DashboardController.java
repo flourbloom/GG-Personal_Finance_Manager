@@ -1,6 +1,7 @@
 package gitgud.pfm.Controllers;
 
 import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.Models.Budget;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
 import javafx.fxml.FXML;
@@ -8,19 +9,23 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 import java.net.URL;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DashboardController implements Initializable {
 
     @FXML private ScrollPane rootPane;
     @FXML private Label totalSpentLabel;
+    @FXML private Label budgetLimitLabel;
     @FXML private Label goalPercentLabel;
     @FXML private ProgressBar goalProgress;
     @FXML private Label goalHintLabel;
@@ -29,12 +34,30 @@ public class DashboardController implements Initializable {
     @FXML private LineChart<Number, Number> spendingChart;
     @FXML private VBox transactionsList;
     @FXML private Hyperlink viewAllTransactions;
+    @FXML private Hyperlink viewAllGoals;
+    @FXML private NumberAxis xAxis;
 
     private DataStore dataStore;
+    private static Runnable onNavigateToGoals;
+    private static Runnable onNavigateToTransactions;
+
+    public static void setOnNavigateToGoals(Runnable callback) {
+        onNavigateToGoals = callback;
+    }
+
+    public static void setOnNavigateToTransactions(Runnable callback) {
+        onNavigateToTransactions = callback;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         dataStore = DataStore.getInstance();
+        
+        // Register for goal and budget refresh notifications
+        dataStore.addGoalRefreshListener(this::refreshPriorityGoals);
+        dataStore.addBudgetRefreshListener(this::refreshBudgetGoal);
+        // Also listen for wallet/transaction changes to update budget display
+        dataStore.addWalletRefreshListener(this::refreshBudgetGoal);
         
         updateBudgetGoal();
         loadPriorityGoals();
@@ -45,26 +68,73 @@ public class DashboardController implements Initializable {
         if (periodSelect != null) {
             periodSelect.setOnAction(e -> loadSpendingChart());
         }
+        
+        // Setup navigation for View All links
+        if (viewAllGoals != null) {
+            viewAllGoals.setOnAction(e -> {
+                if (onNavigateToGoals != null) {
+                    onNavigateToGoals.run();
+                }
+            });
+        }
+        
+        if (viewAllTransactions != null) {
+            viewAllTransactions.setOnAction(e -> {
+                if (onNavigateToTransactions != null) {
+                    onNavigateToTransactions.run();
+                }
+            });
+        }
+    }
+    
+    private void refreshPriorityGoals() {
+        javafx.application.Platform.runLater(this::loadPriorityGoals);
+    }
+    
+    private void refreshBudgetGoal() {
+        javafx.application.Platform.runLater(this::updateBudgetGoal);
     }
 
     private void updateBudgetGoal() {
-        double budgetLimit = 3000.0;
+        // Get budget limit from monthly budget in database, default to 3000.0
+        double budgetLimit = getMonthlyBudgetLimit();
         double totalSpent = dataStore.getTotalExpenses();
         
         double percent = Math.min(100, (totalSpent / budgetLimit) * 100);
         double remaining = Math.max(0, budgetLimit - totalSpent);
         
         totalSpentLabel.setText(String.format("$%.2f", totalSpent));
+        // Update budget limit label dynamically
+        if (budgetLimitLabel != null) {
+            budgetLimitLabel.setText(String.format("$%.0f", budgetLimit));
+        }
         goalPercentLabel.setText(String.format("%.0f%%", percent));
         goalProgress.setProgress(percent / 100.0);
         goalHintLabel.setText(String.format("$%.2f remaining this month", remaining));
+    }
+    
+    private double getMonthlyBudgetLimit() {
+        List<Budget> budgets = dataStore.getBudgets();
+        // Look for a monthly budget
+        for (Budget budget : budgets) {
+            if (budget.getPeriodType() == Budget.PeriodType.MONTHLY) {
+                return budget.getLimitAmount();
+            }
+        }
+        // Return first budget limit if exists, otherwise default
+        if (!budgets.isEmpty()) {
+            return budgets.get(0).getLimitAmount();
+        }
+        return 3000.0; // Default budget limit
     }
 
     private void loadPriorityGoals() {
         priorityGoalsList.getChildren().clear();
         
+        // Priority 1 is highest, so filter goals with priority <= 5 (top priorities)
         List<Goal> priorityGoals = dataStore.getGoals().stream()
-                .filter(g -> g.getPriority() > 5 && g.getBalance() < g.getTarget())
+                .filter(g -> g.getPriority() <= 5 && g.getBalance() < g.getTarget())
+                .sorted((a, b) -> Double.compare(a.getPriority(), b.getPriority())) // Sort by priority (1 first)
                 .collect(Collectors.toList());
 
         for (Goal goal : priorityGoals) {
@@ -208,6 +278,7 @@ public class DashboardController implements Initializable {
                 confirm.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
                         dataStore.deleteGoal(goal.getId());
+                        dataStore.notifyGoalRefresh();
                         refresh();
                     }
                 });
@@ -218,28 +289,107 @@ public class DashboardController implements Initializable {
 
         dialog.showAndWait().ifPresent(updatedGoal -> {
             dataStore.updateGoal(updatedGoal);
+            dataStore.notifyGoalRefresh();
             refresh();
         });
     }
 
     private void loadSpendingChart() {
         spendingChart.getData().clear();
+        
+        // Get all transactions (expenses only) from all accounts
+        List<Transaction> allTransactions = dataStore.getTransactions();
+        
+        // Get current month and last month
+        YearMonth currentMonth = YearMonth.now();
+        YearMonth lastMonth = currentMonth.minusMonths(1);
+        
+        int daysInCurrentMonth = currentMonth.lengthOfMonth();
+        int daysInLastMonth = lastMonth.lengthOfMonth();
+        
+        // Update x-axis bounds based on current month
+        if (xAxis != null) {
+            xAxis.setLowerBound(1);
+            xAxis.setUpperBound(daysInCurrentMonth);
+            xAxis.setTickUnit(1);
+            xAxis.setMinorTickVisible(false);
+            // Format tick labels as integers
+            xAxis.setTickLabelFormatter(new javafx.util.StringConverter<Number>() {
+                @Override
+                public String toString(Number object) {
+                    return String.valueOf(object.intValue());
+                }
+                @Override
+                public Number fromString(String string) {
+                    return Integer.parseInt(string);
+                }
+            });
+        }
+        
+        // Create maps to store daily expenses
+        Map<Integer, Double> thisMonthExpenses = new HashMap<>();
+        Map<Integer, Double> lastMonthExpenses = new HashMap<>();
+        
+        // Initialize all days with 0
+        for (int day = 1; day <= daysInCurrentMonth; day++) {
+            thisMonthExpenses.put(day, 0.0);
+        }
+        for (int day = 1; day <= daysInLastMonth; day++) {
+            lastMonthExpenses.put(day, 0.0);
+        }
+        
+        // Parse transactions and aggregate by day
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        for (Transaction tx : allTransactions) {
+            if (tx.getIncome() > 0) continue; // Skip income transactions
+            
+            try {
+                String createTime = tx.getCreateTime();
+                LocalDate txDate;
+                
+                // Try parsing with datetime format first, then date only
+                try {
+                    txDate = LocalDate.parse(createTime, formatter);
+                } catch (Exception e) {
+                    try {
+                        txDate = LocalDate.parse(createTime, dateOnlyFormatter);
+                    } catch (Exception e2) {
+                        continue; // Skip if date cannot be parsed
+                    }
+                }
+                
+                int dayOfMonth = txDate.getDayOfMonth();
+                YearMonth txMonth = YearMonth.from(txDate);
+                
+                if (txMonth.equals(currentMonth)) {
+                    thisMonthExpenses.merge(dayOfMonth, tx.getAmount(), Double::sum);
+                } else if (txMonth.equals(lastMonth)) {
+                    lastMonthExpenses.merge(dayOfMonth, tx.getAmount(), Double::sum);
+                }
+            } catch (Exception e) {
+                // Skip transactions with invalid dates
+            }
+        }
+        
+        // Create series for this month
+        XYChart.Series<Number, Number> thisMonthSeries = new XYChart.Series<>();
+        thisMonthSeries.setName("This Month");
+        for (int day = 1; day <= daysInCurrentMonth; day++) {
+            thisMonthSeries.getData().add(new XYChart.Data<>(day, thisMonthExpenses.get(day)));
+        }
+        
+        // Create series for last month
+        XYChart.Series<Number, Number> lastMonthSeries = new XYChart.Series<>();
+        lastMonthSeries.setName("Last Month");
+        int maxDays = Math.min(daysInLastMonth, daysInCurrentMonth);
+        for (int day = 1; day <= maxDays; day++) {
+            lastMonthSeries.getData().add(new XYChart.Data<>(day, lastMonthExpenses.get(day)));
+        }
 
-        XYChart.Series<Number, Number> thisMonth = new XYChart.Series<>();
-        thisMonth.setName("This Month");
-        thisMonth.getData().add(new XYChart.Data<>(1, 350));
-        thisMonth.getData().add(new XYChart.Data<>(2, 420));
-        thisMonth.getData().add(new XYChart.Data<>(3, 380));
-        thisMonth.getData().add(new XYChart.Data<>(4, 450));
-
-        XYChart.Series<Number, Number> lastMonth = new XYChart.Series<>();
-        lastMonth.setName("Last Month");
-        lastMonth.getData().add(new XYChart.Data<>(1, 300));
-        lastMonth.getData().add(new XYChart.Data<>(2, 380));
-        lastMonth.getData().add(new XYChart.Data<>(3, 340));
-        lastMonth.getData().add(new XYChart.Data<>(4, 400));
-
-        spendingChart.getData().addAll(thisMonth, lastMonth);
+        spendingChart.getData().add(thisMonthSeries);
+        spendingChart.getData().add(lastMonthSeries);
     }
 
     private void loadRecentTransactions() {

@@ -47,7 +47,7 @@
                     <HBox.hgrow><javafx.scene.layout.Priority fx:constant="ALWAYS"/></HBox.hgrow>
                     <Label fx:id="totalSpentLabel" text="0" style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
                     <Label text="of" style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
-                    <Label text="3,000" style="-fx-font-size: 18px; -fx-text-fill: #64748b;"/>
+                    <Label fx:id="budgetLimitLabel" text="3000" style="-fx-font-size: 18px; -fx-text-fill: #64748b;"/>
                 </HBox>
                 <Label fx:id="goalPercentLabel" text="0%" style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #f59e0b;"/>
             </HBox>
@@ -79,7 +79,7 @@
                     <Region prefWidth="18" prefHeight="18" style="-fx-background-color: #3b82f6; -fx-background-radius: 4;"/>
                     <Label text="Priority Goals" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
                 </HBox>
-                <Hyperlink text="View All" style="-fx-font-size: 14px; -fx-text-fill: #3b82f6; -fx-font-weight: 500;"/>
+                <Hyperlink fx:id="viewAllGoals" text="View All" style="-fx-font-size: 14px; -fx-text-fill: #3b82f6; -fx-font-weight: 500;"/>
             </HBox>
             
             <!-- Goals List Container -->
@@ -118,7 +118,7 @@
             <!-- Line Chart -->
             <LineChart fx:id="spendingChart" prefHeight="280" legendVisible="true">
                 <xAxis>
-                    <NumberAxis fx:id="xAxis" label="Week" lowerBound="1" upperBound="4" tickUnit="1"/>
+                    <NumberAxis fx:id="xAxis" label="Day" lowerBound="1" upperBound="31" tickUnit="1" minorTickVisible="false"/>
                 </xAxis>
                 <yAxis>
                     <NumberAxis fx:id="yAxis" label="Amount ($)"/>
