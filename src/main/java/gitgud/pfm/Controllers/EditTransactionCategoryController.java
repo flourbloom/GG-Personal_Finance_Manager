@@ -37,12 +37,12 @@ public class EditTransactionCategoryController implements Initializable {
         EXPENSE_CATEGORIES.put("Self-care", new CategoryInfo("4", "#84cc16", "💆"));
         EXPENSE_CATEGORIES.put("Shopping", new CategoryInfo("5", "#22c55e", "🛒"));
         EXPENSE_CATEGORIES.put("Health", new CategoryInfo("6", "#14b8a6", "💊"));
-        EXPENSE_CATEGORIES.put("Subscription", new CategoryInfo("9", "#06b6d4", "📱"));
-        EXPENSE_CATEGORIES.put("Entertainment & Sport", new CategoryInfo("10", "#3b82f6", "🎮"));
-        EXPENSE_CATEGORIES.put("Traveling", new CategoryInfo("11", "#8b5cf6", "✈️"));
+        EXPENSE_CATEGORIES.put("Subscription", new CategoryInfo("7", "#06b6d4", "📱"));
+        EXPENSE_CATEGORIES.put("Entertainment & Sport", new CategoryInfo("8", "#3b82f6", "🎮"));
+        EXPENSE_CATEGORIES.put("Traveling", new CategoryInfo("9", "#8b5cf6", "✈️"));
         
-        INCOME_CATEGORIES.put("Salary", new CategoryInfo("7", "#10b981", "💰"));
-        INCOME_CATEGORIES.put("Investment", new CategoryInfo("8", "#6366f1", "📈"));
+        INCOME_CATEGORIES.put("Salary", new CategoryInfo("10", "#10b981", "💰"));
+        INCOME_CATEGORIES.put("Investment", new CategoryInfo("11", "#6366f1", "📈"));
     }
     
     public void setDialogStage(Stage stage) {
