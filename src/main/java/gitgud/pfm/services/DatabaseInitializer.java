@@ -109,11 +109,16 @@ public class DatabaseInitializer {
                         "deadline"  TEXT,
                         "priority"  NUMERIC,
                         "createAt"  TEXT,
-                        PRIMARY KEY("id")
+                        "walletId"  TEXT,
+                        PRIMARY KEY("id"),
+                        FOREIGN KEY("walletId") REFERENCES "Wallet"("id") ON DELETE SET NULL
                     )
                     """;
                 statement.execute(createGoalSQL);
                 System.out.println("✓ Created table: Goal");
+            } else {
+                // Add walletId column if it doesn't exist (for existing databases)
+                addColumnIfNotExists(connection, "Goal", "walletId", "TEXT");
             }
 
             // Create transaction_records table with proper foreign key to Category
@@ -184,23 +189,26 @@ public class DatabaseInitializer {
 
     /**
      * Seed default categories into the database
+     * Categories are ordered by type (EXPENSE first, then INCOME) to match CLI display
      */
     private static void seedDefaultCategories(Connection connection) throws SQLException {
         String insertSQL = "INSERT OR IGNORE INTO Category (id, name, description, type) VALUES (?, ?, ?, ?)";
         
-        // Default categories matching CategoryService.getDefaultCategories()
+        // Default categories grouped by type to match display order
         Object[][] defaultCategories = {
+            // EXPENSE categories first (IDs 1-9)
             {"1", "Food & Drinks", "Meals, groceries, and beverages", "EXPENSE"},
             {"2", "Transport", "Public transport, fuel, taxis, etc.", "EXPENSE"},
             {"3", "Home Bills", "Rent, electricity, water, gas, etc.", "EXPENSE"},
             {"4", "Self-care", "Personal care, beauty, spa, etc.", "EXPENSE"},
             {"5", "Shopping", "Clothes, gadgets, and other shopping", "EXPENSE"},
             {"6", "Health", "Medical, pharmacy, insurance", "EXPENSE"},
-            {"7", "Salary", "Monthly salary income", "INCOME"},
-            {"8", "Investment", "Investment returns, dividends, etc.", "INCOME"},
-            {"9", "Subscription", "Streaming, software, memberships", "EXPENSE"},
-            {"10", "Entertainment & Sport", "Movies, games, sports activities", "EXPENSE"},
-            {"11", "Traveling", "Flights, hotels, vacation expenses", "EXPENSE"}
+            {"7", "Subscription", "Streaming, software, memberships", "EXPENSE"},
+            {"8", "Entertainment & Sport", "Movies, games, sports activities", "EXPENSE"},
+            {"9", "Traveling", "Flights, hotels, vacation expenses", "EXPENSE"},
+            // INCOME categories last (IDs 10-11)
+            {"10", "Salary", "Monthly salary income", "INCOME"},
+            {"11", "Investment", "Investment returns, dividends, etc.", "INCOME"}
         };
 
         try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {

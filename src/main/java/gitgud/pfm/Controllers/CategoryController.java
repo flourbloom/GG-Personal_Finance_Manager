@@ -35,7 +35,7 @@ public class CategoryController implements Initializable {
 	private void updatePredefinedCategoryButtons() {
 		customExpensePane.getChildren().clear();
 		customIncomePane.getChildren().clear();
-		for (Category c : service.getDefaultCategories()) {
+		for (Category c : service.getAllCategories()) {
 			Button btn = new Button(c.getName());
 			btn.setStyle("-fx-background-radius: 20; -fx-padding: 10 20; -fx-background-color: #b3d9ff;");
 			btn.setOnAction(e -> showAlert("Edit Predefined Category: " + c.getName()));

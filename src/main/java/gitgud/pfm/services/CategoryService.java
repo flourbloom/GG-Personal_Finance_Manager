@@ -18,17 +18,19 @@ public class CategoryService implements CRUDInterface<Category> {
 
     public List<Category> getDefaultCategories() {
         return List.of(
+            // EXPENSE categories (IDs 1-9)
             new Category("1", "Food & Drinks", "Meals, groceries, and beverages", Category.Type.EXPENSE),
             new Category("2", "Transport", "Public transport, fuel, taxis, etc.", Category.Type.EXPENSE),
             new Category("3", "Home Bills", "Rent, electricity, water, gas, etc.", Category.Type.EXPENSE),
             new Category("4", "Self-care", "Personal care, beauty, spa, etc.", Category.Type.EXPENSE),
             new Category("5", "Shopping", "Clothes, gadgets, and other shopping", Category.Type.EXPENSE),
             new Category("6", "Health", "Medical, pharmacy, insurance", Category.Type.EXPENSE),
-            new Category("7", "Salary", "Monthly salary income", Category.Type.INCOME),
-            new Category("8", "Investment", "Investment returns, dividends, etc.", Category.Type.INCOME),
-            new Category("9", "Subscription", "Streaming, software, memberships", Category.Type.EXPENSE),
-            new Category("10", "Entertainment & Sport", "Movies, games, sports activities", Category.Type.EXPENSE),
-            new Category("11", "Traveling", "Flights, hotels, vacation expenses", Category.Type.EXPENSE)
+            new Category("7", "Subscription", "Streaming, software, memberships", Category.Type.EXPENSE),
+            new Category("8", "Entertainment & Sport", "Movies, games, sports activities", Category.Type.EXPENSE),
+            new Category("9", "Traveling", "Flights, hotels, vacation expenses", Category.Type.EXPENSE),
+            // INCOME categories (IDs 10-11)
+            new Category("10", "Salary", "Monthly salary income", Category.Type.INCOME),
+            new Category("11", "Investment", "Investment returns, dividends, etc.", Category.Type.INCOME)
         );
     }
 
@@ -123,9 +125,10 @@ public class CategoryService implements CRUDInterface<Category> {
     /**
      * Get all categories from the database
      * Falls back to default categories if database is empty
+     * Orders by ID since database is seeded with EXPENSE categories first, then INCOME
      */
     public List<Category> getAllCategories() {
-        String sql = "SELECT id, name, description, type FROM Category ORDER BY name";
+        String sql = "SELECT id, name, description, type FROM Category ORDER BY CAST(id AS INTEGER)";
         List<Category> categories = new ArrayList<>();
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -162,9 +165,10 @@ public class CategoryService implements CRUDInterface<Category> {
     
     /**
      * Get categories by type (INCOME or EXPENSE)
+     * Orders by ID to maintain display order
      */
     public List<Category> getCategoriesByType(Category.Type type) {
-        String sql = "SELECT id, name, description, type FROM Category WHERE type = ? ORDER BY name";
+        String sql = "SELECT id, name, description, type FROM Category WHERE type = ? ORDER BY CAST(id AS INTEGER)";
         List<Category> categories = new ArrayList<>();
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
