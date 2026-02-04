@@ -98,8 +98,91 @@ public class AccountsController implements Initializable {
 
         balanceBox.getChildren().addAll(balance, balanceLabel);
 
-        card.getChildren().addAll(avatar, details, balanceBox);
+        // Edit button with pencil icon
+        Button editBtn = new Button("✎");
+        editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; " +
+                "-fx-text-fill: #64748b; -fx-padding: 4 8;");
+        editBtn.setOnMouseEntered(e -> editBtn.setStyle("-fx-background-color: #f1f5f9; -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #3b82f6; -fx-padding: 4 8; -fx-background-radius: 6;"));
+        editBtn.setOnMouseExited(e -> editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #64748b; -fx-padding: 4 8;"));
+        editBtn.setOnAction(e -> showEditWalletDialog(wallet));
+
+        card.getChildren().addAll(avatar, details, balanceBox, editBtn);
         return card;
+    }
+
+    private void showEditWalletDialog(Wallet wallet) {
+        Dialog<Wallet> dialog = new Dialog<>();
+        dialog.setTitle("Edit Wallet");
+        dialog.setHeaderText("Modify wallet details");
+
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, deleteButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField nameField = new TextField(wallet.getName());
+        nameField.setPromptText("Wallet name");
+
+        ComboBox<String> typeBox = new ComboBox<>();
+        typeBox.getItems().addAll("bank", "cash", "credit");
+        typeBox.setValue(wallet.getColor() != null ? wallet.getColor() : "bank");
+
+        TextField balanceField = new TextField(String.valueOf(wallet.getBalance()));
+        balanceField.setPromptText("0.00");
+
+        grid.add(new Label("Wallet Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Wallet Type:"), 0, 1);
+        grid.add(typeBox, 1, 1);
+        grid.add(new Label("Balance:"), 0, 2);
+        grid.add(balanceField, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Style the delete button
+        Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
+        deleteButton.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626;");
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                try {
+                    double balance = Double.parseDouble(balanceField.getText());
+                    wallet.setName(nameField.getText());
+                    wallet.setColor(typeBox.getValue());
+                    wallet.setBalance(balance);
+                    return wallet;
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("Invalid balance!");
+                    alert.show();
+                    return null;
+                }
+            } else if (dialogButton == deleteButtonType) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Delete Wallet");
+                confirm.setHeaderText("Are you sure you want to delete this wallet?");
+                confirm.setContentText("This action cannot be undone.");
+                confirm.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        dataStore.deleteWallet(wallet.getId());
+                        refresh();
+                    }
+                });
+                return null;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updatedWallet -> {
+            dataStore.updateWallet(updatedWallet);
+            refresh();
+        });
     }
 
     @FXML

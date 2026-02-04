@@ -124,8 +124,102 @@ public class DashboardController implements Initializable {
 
         progressBox.getChildren().addAll(miniProgress, percent);
 
-        item.getChildren().addAll(info, progressBox);
+        // Edit button with pencil icon
+        Button editBtn = new Button("✎");
+        editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; " +
+                "-fx-text-fill: #64748b; -fx-padding: 4 8;");
+        editBtn.setOnMouseEntered(e -> editBtn.setStyle("-fx-background-color: rgba(255,255,255,0.5); -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #3b82f6; -fx-padding: 4 8; -fx-background-radius: 6;"));
+        editBtn.setOnMouseExited(e -> editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #64748b; -fx-padding: 4 8;"));
+        editBtn.setOnAction(e -> showEditGoalDialog(goal));
+
+        item.getChildren().addAll(info, progressBox, editBtn);
         return item;
+    }
+
+    private void showEditGoalDialog(Goal goal) {
+        Dialog<Goal> dialog = new Dialog<>();
+        dialog.setTitle("Edit Goal");
+        dialog.setHeaderText("Modify goal details");
+
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, deleteButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField nameField = new TextField(goal.getName());
+        nameField.setPromptText("Goal name");
+
+        TextField targetField = new TextField(String.valueOf(goal.getTarget()));
+        targetField.setPromptText("Target amount");
+
+        TextField currentField = new TextField(String.valueOf(goal.getBalance()));
+        currentField.setPromptText("Current saved");
+
+        TextField deadlineField = new TextField(goal.getDeadline() != null ? goal.getDeadline() : "");
+        deadlineField.setPromptText("Deadline (YYYY-MM-DD)");
+
+        Spinner<Integer> prioritySpinner = new Spinner<>(1, 10, (int) goal.getPriority());
+
+        grid.add(new Label("Goal Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Target Amount:"), 0, 1);
+        grid.add(targetField, 1, 1);
+        grid.add(new Label("Current Saved:"), 0, 2);
+        grid.add(currentField, 1, 2);
+        grid.add(new Label("Deadline:"), 0, 3);
+        grid.add(deadlineField, 1, 3);
+        grid.add(new Label("Priority:"), 0, 4);
+        grid.add(prioritySpinner, 1, 4);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Style the delete button
+        Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
+        deleteButton.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626;");
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                try {
+                    double target = Double.parseDouble(targetField.getText());
+                    double current = Double.parseDouble(currentField.getText());
+                    goal.setName(nameField.getText());
+                    goal.setTarget(target);
+                    goal.setBalance(current);
+                    goal.setDeadline(deadlineField.getText().isEmpty() ? null : deadlineField.getText());
+                    goal.setPriority(prioritySpinner.getValue());
+                    return goal;
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("Invalid input!");
+                    alert.show();
+                    return null;
+                }
+            } else if (dialogButton == deleteButtonType) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Delete Goal");
+                confirm.setHeaderText("Are you sure you want to delete this goal?");
+                confirm.setContentText("This action cannot be undone.");
+                confirm.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        dataStore.deleteGoal(goal.getId());
+                        refresh();
+                    }
+                });
+                return null;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updatedGoal -> {
+            dataStore.updateGoal(updatedGoal);
+            refresh();
+        });
     }
 
     private void loadSpendingChart() {
@@ -188,8 +282,101 @@ public class DashboardController implements Initializable {
         Label amount = new Label(sign + String.format("$%.2f", tx.getAmount()));
         amount.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; -fx-text-fill: " + color + ";");
 
-        item.getChildren().addAll(icon, details, amount);
+        // Edit button with pencil icon
+        Button editBtn = new Button("✎");
+        editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; " +
+                "-fx-text-fill: #64748b; -fx-padding: 4 8;");
+        editBtn.setOnMouseEntered(e -> editBtn.setStyle("-fx-background-color: #f1f5f9; -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #3b82f6; -fx-padding: 4 8; -fx-background-radius: 6;"));
+        editBtn.setOnMouseExited(e -> editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #64748b; -fx-padding: 4 8;"));
+        editBtn.setOnAction(e -> showEditTransactionDialog(tx));
+
+        HBox.setMargin(editBtn, new Insets(0, 0, 0, 12));
+
+        item.getChildren().addAll(icon, details, amount, editBtn);
         return item;
+    }
+
+    private void showEditTransactionDialog(Transaction tx) {
+        Dialog<Transaction> dialog = new Dialog<>();
+        dialog.setTitle("Edit Transaction");
+        dialog.setHeaderText("Modify transaction details");
+
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, deleteButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField nameField = new TextField(tx.getName());
+        nameField.setPromptText("Transaction name");
+
+        TextField amountField = new TextField(String.valueOf(tx.getAmount()));
+        amountField.setPromptText("0.00");
+
+        ComboBox<String> typeBox = new ComboBox<>();
+        typeBox.getItems().addAll("Expense", "Income");
+        typeBox.setValue(tx.getIncome() > 0 ? "Income" : "Expense");
+
+        ComboBox<String> categoryBox = new ComboBox<>();
+        categoryBox.getItems().addAll("food", "transport", "shopping", "bills", "entertainment", "income", "other");
+        categoryBox.setValue(tx.getCategoryId() != null ? tx.getCategoryId() : "other");
+
+        grid.add(new Label("Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Amount:"), 0, 1);
+        grid.add(amountField, 1, 1);
+        grid.add(new Label("Type:"), 0, 2);
+        grid.add(typeBox, 1, 2);
+        grid.add(new Label("Category:"), 0, 3);
+        grid.add(categoryBox, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Style the delete button
+        Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
+        deleteButton.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626;");
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                try {
+                    double amount = Double.parseDouble(amountField.getText());
+                    double income = typeBox.getValue().equals("Income") ? amount : 0;
+                    tx.setName(nameField.getText());
+                    tx.setAmount(amount);
+                    tx.setIncome(income);
+                    tx.setCategoryId(categoryBox.getValue());
+                    return tx;
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("Invalid amount!");
+                    alert.show();
+                    return null;
+                }
+            } else if (dialogButton == deleteButtonType) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Delete Transaction");
+                confirm.setHeaderText("Are you sure you want to delete this transaction?");
+                confirm.setContentText("This action cannot be undone.");
+                confirm.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        dataStore.deleteTransaction(tx.getId());
+                        refresh();
+                    }
+                });
+                return null;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updatedTx -> {
+            dataStore.updateTransaction(updatedTx);
+            refresh();
+        });
     }
 
     private StackPane createTransactionIcon(String category) {

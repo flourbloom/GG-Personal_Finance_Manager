@@ -121,7 +121,17 @@ public class GoalsController implements Initializable {
         Label deadline = new Label(goal.getDeadline() != null ? goal.getDeadline() : "No deadline");
         deadline.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
 
-        titleBox.getChildren().addAll(name, spacer, priority, deadline);
+        // Edit button with pencil icon
+        Button editBtn = new Button("✎");
+        editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; " +
+                "-fx-text-fill: #64748b; -fx-padding: 4 8;");
+        editBtn.setOnMouseEntered(e -> editBtn.setStyle("-fx-background-color: #f1f5f9; -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #3b82f6; -fx-padding: 4 8; -fx-background-radius: 6;"));
+        editBtn.setOnMouseExited(e -> editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; " +
+                "-fx-font-size: 16px; -fx-text-fill: #64748b; -fx-padding: 4 8;"));
+        editBtn.setOnAction(e -> showEditGoalDialog(goal));
+
+        titleBox.getChildren().addAll(name, spacer, priority, deadline, editBtn);
 
         // Progress bar
         double progress = goal.getTarget() > 0 ? goal.getBalance() / goal.getTarget() : 0;
@@ -150,6 +160,90 @@ public class GoalsController implements Initializable {
 
         card.getChildren().addAll(titleBox, progressBox);
         return card;
+    }
+
+    private void showEditGoalDialog(Goal goal) {
+        Dialog<Goal> dialog = new Dialog<>();
+        dialog.setTitle("Edit Goal");
+        dialog.setHeaderText("Modify goal details");
+
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, deleteButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField nameField = new TextField(goal.getName());
+        nameField.setPromptText("Goal name");
+
+        TextField targetField = new TextField(String.valueOf(goal.getTarget()));
+        targetField.setPromptText("Target amount");
+
+        TextField currentField = new TextField(String.valueOf(goal.getBalance()));
+        currentField.setPromptText("Current saved");
+
+        TextField deadlineField = new TextField(goal.getDeadline() != null ? goal.getDeadline() : "");
+        deadlineField.setPromptText("Deadline (YYYY-MM-DD)");
+
+        Spinner<Integer> prioritySpinner = new Spinner<>(1, 10, (int) goal.getPriority());
+
+        grid.add(new Label("Goal Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Target Amount:"), 0, 1);
+        grid.add(targetField, 1, 1);
+        grid.add(new Label("Current Saved:"), 0, 2);
+        grid.add(currentField, 1, 2);
+        grid.add(new Label("Deadline:"), 0, 3);
+        grid.add(deadlineField, 1, 3);
+        grid.add(new Label("Priority:"), 0, 4);
+        grid.add(prioritySpinner, 1, 4);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Style the delete button
+        Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
+        deleteButton.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626;");
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                try {
+                    double target = Double.parseDouble(targetField.getText());
+                    double current = Double.parseDouble(currentField.getText());
+                    goal.setName(nameField.getText());
+                    goal.setTarget(target);
+                    goal.setBalance(current);
+                    goal.setDeadline(deadlineField.getText().isEmpty() ? null : deadlineField.getText());
+                    goal.setPriority(prioritySpinner.getValue());
+                    return goal;
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("Invalid input!");
+                    alert.show();
+                    return null;
+                }
+            } else if (dialogButton == deleteButtonType) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Delete Goal");
+                confirm.setHeaderText("Are you sure you want to delete this goal?");
+                confirm.setContentText("This action cannot be undone.");
+                confirm.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        dataStore.deleteGoal(goal.getId());
+                        refresh();
+                    }
+                });
+                return null;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updatedGoal -> {
+            dataStore.updateGoal(updatedGoal);
+            refresh();
+        });
     }
 
     @FXML
