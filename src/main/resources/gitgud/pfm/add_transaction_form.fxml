@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="gitgud.pfm.Controllers.AddTransactionFormController"
+            fitToWidth="true" style="-fx-background-color: white; -fx-background: white;">
+    <VBox fx:id="formContent" spacing="20" style="-fx-background-color: white;">
+        <padding>
+            <Insets bottom="24" left="24" right="24" top="24"/>
+        </padding>
+        
+        <!-- Back Button -->
+        <Button fx:id="backButton" text="← Back to Categories" 
+                style="-fx-background-color: transparent; -fx-text-fill: #3b82f6; -fx-font-size: 14px; -fx-font-weight: 500; -fx-cursor: hand; -fx-padding: 8 0;"
+                onAction="#handleBackButton"/>
+        
+        <!-- Header with category info -->
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <StackPane fx:id="iconCircle" prefWidth="48" prefHeight="48" style="-fx-background-radius: 24;">
+                <Label fx:id="iconLabel" style="-fx-font-size: 24px;"/>
+            </StackPane>
+            <VBox spacing="4">
+                <Label fx:id="categoryNameLabel" style="-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                <Label fx:id="categoryTypeLabel" style="-fx-font-size: 13px; -fx-font-weight: 500;"/>
+            </VBox>
+        </HBox>
+        
+        <Separator/>
+        
+        <!-- Form Fields -->
+        <VBox spacing="16">
+            <!-- Amount Field -->
+            <VBox spacing="8">
+                <Label text="Amount" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                <TextField fx:id="amountField" promptText="Enter amount..."
+                           style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-padding: 12 16; -fx-font-size: 14px;"/>
+            </VBox>
+            
+            <!-- Date Field -->
+            <VBox spacing="8">
+                <Label text="Date" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                <DatePicker fx:id="datePicker" maxWidth="Infinity"
+                            style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-font-size: 14px;"/>
+            </VBox>
+            
+            <!-- Description Field -->
+            <VBox spacing="8">
+                <Label text="Description" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                <TextField fx:id="descriptionField" promptText="Enter description (optional)..."
+                           style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-padding: 12 16; -fx-font-size: 14px;"/>
+            </VBox>
+            
+            <!-- Wallet Selector -->
+            <VBox spacing="8">
+                <Label text="Wallet" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                <ComboBox fx:id="walletCombo" maxWidth="Infinity" promptText="Select wallet..."
+                          style="-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-font-size: 14px;"/>
+            </VBox>
+        </VBox>
+        
+        <!-- Buttons -->
+        <HBox alignment="CENTER_RIGHT" spacing="12">
+            <padding>
+                <Insets top="8"/>
+            </padding>
+            <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel"
+                    style="-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-background-radius: 10; -fx-padding: 12 24; -fx-font-size: 14px; -fx-font-weight: 600; -fx-cursor: hand;"/>
+            <Button fx:id="saveButton" text="Save Transaction" onAction="#handleSave"
+                    style="-fx-background-radius: 10; -fx-padding: 12 24; -fx-font-size: 14px; -fx-font-weight: 600; -fx-cursor: hand;"/>
+        </HBox>
+    </VBox>
+</ScrollPane>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="gitgud.pfm.Controllers.AddTransactionCategoriesController"
+            fitToWidth="true" style="-fx-background-color: #f0f2f5; -fx-background: #f0f2f5;">
+    <VBox fx:id="mainContent" spacing="24" style="-fx-background-color: #f0f2f5;">
+        <padding>
+            <Insets bottom="28" left="28" right="28" top="28"/>
+        </padding>
+        
+        <!-- Header -->
+        <VBox spacing="8">
+            <Label text="Add Transaction" style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+            <Label text="Select a category to add a new transaction" style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
+        </VBox>
+        
+        <!-- Expense Categories Section -->
+        <VBox spacing="16">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Region prefWidth="18" prefHeight="18" style="-fx-background-color: #ef4444; -fx-background-radius: 4;"/>
+                <Label text="Expenses" style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+            </HBox>
+            <FlowPane fx:id="expenseCategoriesPane" hgap="16" vgap="16">
+                <padding>
+                    <Insets top="8"/>
+                </padding>
+            </FlowPane>
+        </VBox>
+        
+        <!-- Income Categories Section -->
+        <VBox spacing="16">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Region prefWidth="18" prefHeight="18" style="-fx-background-color: #10b981; -fx-background-radius: 4;"/>
+                <Label text="Income" style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+            </HBox>
+            <FlowPane fx:id="incomeCategoriesPane" hgap="16" vgap="16">
+                <padding>
+                    <Insets top="8"/>
+                </padding>
+            </FlowPane>
+        </VBox>
+    </VBox>
+</ScrollPane>
