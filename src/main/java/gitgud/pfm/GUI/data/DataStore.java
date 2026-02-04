@@ -206,4 +206,25 @@ public class DataStore {
     public CategoryService getCategoryService() {
         return categoryService;
     }
+    
+    // ============== Refresh Listeners ==============
+    private final java.util.List<Runnable> walletRefreshListeners = new java.util.ArrayList<>();
+    
+    public void addWalletRefreshListener(Runnable listener) {
+        walletRefreshListeners.add(listener);
+    }
+    
+    public void removeWalletRefreshListener(Runnable listener) {
+        walletRefreshListeners.remove(listener);
+    }
+    
+    public void notifyWalletRefresh() {
+        for (Runnable listener : walletRefreshListeners) {
+            try {
+                listener.run();
+            } catch (Exception e) {
+                System.err.println("Error in wallet refresh listener: " + e.getMessage());
+            }
+        }
+    }
 }

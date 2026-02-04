@@ -456,6 +456,7 @@ public class AccountsController implements Initializable {
                 confirm.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
                         dataStore.deleteWallet(wallet.getId());
+                        dataStore.notifyWalletRefresh();
                         refresh();
                     }
                 });
@@ -466,6 +467,7 @@ public class AccountsController implements Initializable {
 
         dialog.showAndWait().ifPresent(updatedWallet -> {
             dataStore.updateWallet(updatedWallet);
+            dataStore.notifyWalletRefresh();
             refresh();
         });
     }
@@ -570,6 +572,7 @@ public class AccountsController implements Initializable {
 
         dialog.showAndWait().ifPresent(wallet -> {
             dataStore.addWallet(wallet);
+            dataStore.notifyWalletRefresh();
             refresh();
         });
     }

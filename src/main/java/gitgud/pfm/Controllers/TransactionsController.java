@@ -205,6 +205,22 @@ public class TransactionsController implements Initializable {
         categoryBox.getItems().addAll("food", "transport", "shopping", "bills", "entertainment", "income", "other");
         categoryBox.setValue(tx.getCategoryId() != null ? tx.getCategoryId() : "other");
 
+        // Wallet selector
+        ComboBox<String> walletBox = new ComboBox<>();
+        java.util.Map<String, String> walletIdMap = new java.util.HashMap<>();
+        for (var wallet : dataStore.getWallets()) {
+            String displayName = wallet.getName() + " ($" + String.format("%.2f", wallet.getBalance()) + ")";
+            walletBox.getItems().add(displayName);
+            walletIdMap.put(displayName, wallet.getId());
+        }
+        // Select current wallet
+        for (var entry : walletIdMap.entrySet()) {
+            if (entry.getValue().equals(tx.getWalletId())) {
+                walletBox.setValue(entry.getKey());
+                break;
+            }
+        }
+
         grid.add(new Label("Name:"), 0, 0);
         grid.add(nameField, 1, 0);
         grid.add(new Label("Amount:"), 0, 1);
@@ -213,6 +229,8 @@ public class TransactionsController implements Initializable {
         grid.add(typeBox, 1, 2);
         grid.add(new Label("Category:"), 0, 3);
         grid.add(categoryBox, 1, 3);
+        grid.add(new Label("Account:"), 0, 4);
+        grid.add(walletBox, 1, 4);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -220,15 +238,43 @@ public class TransactionsController implements Initializable {
         Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
         deleteButton.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626;");
 
+        // Store original values for balance adjustment
+        final String originalWalletId = tx.getWalletId();
+        final double originalAmount = tx.getAmount();
+        final boolean originalWasIncome = tx.getIncome() > 0;
+
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButtonType) {
                 try {
-                    double amount = Double.parseDouble(amountField.getText());
-                    double income = typeBox.getValue().equals("Income") ? amount : 0;
+                    double newAmount = Double.parseDouble(amountField.getText());
+                    boolean newIsIncome = typeBox.getValue().equals("Income");
+                    String newWalletId = walletIdMap.get(walletBox.getValue());
+                    
+                    // Revert old transaction from old wallet
+                    if (originalWalletId != null) {
+                        var oldWallet = dataStore.getWalletById(originalWalletId);
+                        if (oldWallet != null) {
+                            double revertAmount = originalWasIncome ? -originalAmount : originalAmount;
+                            oldWallet.setBalance(oldWallet.getBalance() + revertAmount);
+                            dataStore.updateWallet(oldWallet);
+                        }
+                    }
+                    
+                    // Apply new transaction to new wallet
+                    if (newWalletId != null) {
+                        var newWallet = dataStore.getWalletById(newWalletId);
+                        if (newWallet != null) {
+                            double applyAmount = newIsIncome ? newAmount : -newAmount;
+                            newWallet.setBalance(newWallet.getBalance() + applyAmount);
+                            dataStore.updateWallet(newWallet);
+                        }
+                    }
+                    
                     tx.setName(nameField.getText());
-                    tx.setAmount(amount);
-                    tx.setIncome(income);
+                    tx.setAmount(newAmount);
+                    tx.setIncome(newIsIncome ? 1.0 : 0.0);
                     tx.setCategoryId(categoryBox.getValue());
+                    tx.setWalletId(newWalletId);
                     return tx;
                 } catch (NumberFormatException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -243,7 +289,17 @@ public class TransactionsController implements Initializable {
                 confirm.setContentText("This action cannot be undone.");
                 confirm.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
+                        // Revert transaction from wallet before deleting
+                        if (originalWalletId != null) {
+                            var wallet = dataStore.getWalletById(originalWalletId);
+                            if (wallet != null) {
+                                double revertAmount = originalWasIncome ? -originalAmount : originalAmount;
+                                wallet.setBalance(wallet.getBalance() + revertAmount);
+                                dataStore.updateWallet(wallet);
+                            }
+                        }
                         dataStore.deleteTransaction(tx.getId());
+                        dataStore.notifyWalletRefresh();
                         refresh();
                     }
                 });
@@ -254,6 +310,7 @@ public class TransactionsController implements Initializable {
 
         dialog.showAndWait().ifPresent(updatedTx -> {
             dataStore.updateTransaction(updatedTx);
+            dataStore.notifyWalletRefresh();
             refresh();
         });
     }

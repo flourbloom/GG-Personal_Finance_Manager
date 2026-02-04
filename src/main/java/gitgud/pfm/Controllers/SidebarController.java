@@ -38,6 +38,9 @@ public class SidebarController implements Initializable {
         activeItem = dashboardNavItem;
         dataStore = DataStore.getInstance();
         
+        // Register for wallet refresh notifications
+        dataStore.addWalletRefreshListener(this::refreshWallets);
+        
         // Setup click handlers
         setupNavItem(dashboardNavItem, "Dashboard");
         setupNavItem(transactionsNavItem, "Transactions");
