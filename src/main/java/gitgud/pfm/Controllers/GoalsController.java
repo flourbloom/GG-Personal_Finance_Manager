@@ -702,15 +702,24 @@ public class GoalsController implements Initializable {
     }
 
     // === STYLED DIALOG METHODS ===
+    // ⚠️ WARNING: DO NOT MODIFY THIS DIALOG CODE WITHOUT TESTING ⚠️
+    // The dialog sizing (setPrefWidth/setPrefHeight) is CRITICAL for proper rendering.
+    // Removing or changing these values will cause the dialog to appear broken/glitchy.
 
     private void showContributeDialog(Goal goal) {
         Dialog<Double> dialog = new Dialog<>();
         dialog.setTitle("💰 Contribute to Goal");
         
+        // CRITICAL: Set dialog size to prevent glitchy/broken appearance
+        dialog.getDialogPane().setPrefWidth(420);
+        dialog.getDialogPane().setPrefHeight(380);
+        dialog.getDialogPane().setMinWidth(420);
+        dialog.getDialogPane().setMinHeight(380);
+        
         // Custom header
         VBox headerBox = new VBox(8);
-        headerBox.setPadding(new Insets(20, 20, 10, 20));
-        headerBox.setStyle("-fx-background-color: linear-gradient(to right, #3b82f6, #2563eb); -fx-background-radius: 10 10 0 0;");
+        headerBox.setPadding(new Insets(16, 20, 12, 20));
+        headerBox.setStyle("-fx-background-color: linear-gradient(to right, #3b82f6, #2563eb); -fx-background-radius: 8 8 0 0;");
         
         Label headerTitle = new Label("Add Money to Your Goal");
         headerTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: white;");

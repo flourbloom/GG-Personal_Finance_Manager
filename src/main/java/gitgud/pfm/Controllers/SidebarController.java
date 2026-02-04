@@ -48,39 +48,53 @@ public class SidebarController implements Initializable {
         setupWalletSelector();
     }
     
+    // ⚠️ WARNING: DO NOT MODIFY WALLET SELECTOR STYLING WITHOUT TESTING ⚠️
+    // The cell factory styling uses dark background (#1e293b) to match sidebar theme.
+    // The dropdown popup background is styled via setStyle on cells.
     private void setupWalletSelector() {
         if (walletSelector != null) {
-            // Custom cell factory for dropdown items - show name and balance
-            walletSelector.setCellFactory(lv -> new javafx.scene.control.ListCell<Wallet>() {
-                @Override
-                protected void updateItem(Wallet wallet, boolean empty) {
-                    super.updateItem(wallet, empty);
-                    if (empty || wallet == null) {
-                        setText(null);
-                        setGraphic(null);
-                        setStyle("");
-                    } else {
-                        javafx.scene.layout.HBox container = new javafx.scene.layout.HBox(8);
-                        container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                        
-                        javafx.scene.control.Label nameLabel = new javafx.scene.control.Label(wallet.getName());
-                        nameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 600;");
-                        
-                        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
-                        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-                        
-                        javafx.scene.control.Label balanceLabel = new javafx.scene.control.Label(String.format("$%.2f", wallet.getBalance()));
-                        balanceLabel.setStyle("-fx-text-fill: #10b981; -fx-font-size: 12px; -fx-font-weight: 700;");
-                        
-                        container.getChildren().addAll(nameLabel, spacer, balanceLabel);
-                        setGraphic(container);
-                        setText(null);
-                        setStyle("-fx-background-color: transparent; -fx-padding: 10 12;");
+            // Custom cell factory for dropdown items - show name and balance with DARK THEME
+            walletSelector.setCellFactory(lv -> {
+                javafx.scene.control.ListCell<Wallet> cell = new javafx.scene.control.ListCell<Wallet>() {
+                    @Override
+                    protected void updateItem(Wallet wallet, boolean empty) {
+                        super.updateItem(wallet, empty);
+                        if (empty || wallet == null) {
+                            setText(null);
+                            setGraphic(null);
+                        } else {
+                            javafx.scene.layout.HBox container = new javafx.scene.layout.HBox(10);
+                            container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                            container.setPrefWidth(180);
+                            
+                            // Wallet name on the LEFT
+                            javafx.scene.control.Label nameLabel = new javafx.scene.control.Label(wallet.getName());
+                            nameLabel.setStyle("-fx-text-fill: #e2e8f0; -fx-font-size: 13px; -fx-font-weight: 600;");
+                            nameLabel.setMinWidth(80);
+                            
+                            javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                            javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+                            
+                            // Balance on the RIGHT in green
+                            javafx.scene.control.Label balanceLabel = new javafx.scene.control.Label(String.format("$%.2f", wallet.getBalance()));
+                            String balanceColor = wallet.getBalance() >= 0 ? "#10b981" : "#ef4444";
+                            balanceLabel.setStyle("-fx-text-fill: " + balanceColor + "; -fx-font-size: 12px; -fx-font-weight: 700;");
+                            
+                            container.getChildren().addAll(nameLabel, spacer, balanceLabel);
+                            setGraphic(container);
+                            setText(null);
+                        }
+                        // Dark background for dropdown items
+                        setStyle("-fx-background-color: #1e293b; -fx-padding: 10 14;");
                     }
-                }
+                };
+                // Hover effect
+                cell.setOnMouseEntered(e -> cell.setStyle("-fx-background-color: #334155; -fx-padding: 10 14;"));
+                cell.setOnMouseExited(e -> cell.setStyle("-fx-background-color: #1e293b; -fx-padding: 10 14;"));
+                return cell;
             });
             
-            // Custom button cell for selected item display
+            // Custom button cell for selected item display (what shows when dropdown is closed)
             walletSelector.setButtonCell(new javafx.scene.control.ListCell<Wallet>() {
                 @Override
                 protected void updateItem(Wallet wallet, boolean empty) {
@@ -89,8 +103,8 @@ public class SidebarController implements Initializable {
                         setText(null);
                         setGraphic(null);
                     } else {
-                        setText("💳  " + wallet.getName());
-                        setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 600;");
+                        setText(wallet.getName());
+                        setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 600; -fx-background-color: transparent;");
                     }
                 }
             });
