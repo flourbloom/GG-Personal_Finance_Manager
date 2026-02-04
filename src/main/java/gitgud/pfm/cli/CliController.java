@@ -619,14 +619,9 @@ public class CliController {
             String input = scanner.nextLine().trim();
             try {
                 amount = Double.parseDouble(input);
-                
-                if (amount <= 0) {
-                    System.out.println("Amount must be positive.");
-                    continue;
-                }
-                
+
                 // Check if wallet has enough balance
-                if (selectedWallet.getBalance() < amount) {
+                if (selectedWallet.getBalance() - amount < 0) {
                     System.out.println("❌ Insufficient wallet balance. Available: $" + 
                             String.format("%,.2f", selectedWallet.getBalance()));
                     continue;
@@ -1041,27 +1036,58 @@ public class CliController {
 
     private void handleUpdateGoal(AccountDataLoader.DataHolder accountData) {
         System.out.println("=== Update Goal ===");
-        handleViewGoals(accountData);
-        System.out.print("Enter Goal name to update: ");
-        String gname = scanner.nextLine().trim();
 
-        Goal found = null;
-        String id = null;
-        for (Goal g : accountData.getGoals()) {
-            if (g.getName() != null && g.getName().equals(gname)) {
-                found = g;
-                id = g.getId();
-                break;
-            }
-        }
-
-        if (found == null) {
-            System.out.println("Goal not found.");
+        // Show numbered goals so user can select by number
+        List<Goal> goals = accountData.getGoals();
+        if (goals.isEmpty()) {
+            System.out.println("No goals found. Please create a goal first (Option 11).");
             return;
         }
 
-        System.out.println("\n⚠️  Note: 'balance' is READ-ONLY (computed from allocated transactions)");
-        System.out.println("Fields you can edit: name, target, deadline, priority, createat");
+        System.out.println("Available Goals:");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.printf("%-3s %-10s %-25s %12s %12s %6s %8s %-12s %-20s\n",
+            "#", "ID", "Name", "Target", "Current", "TxCnt", "Priority", "Deadline", "Created At");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        for (int i = 0; i < goals.size(); i++) {
+            Goal g = goals.get(i);
+            int txCount = g.getTxCount();
+            String nameDisplay = g.getName() != null && g.getName().length() > 25 ? g.getName().substring(0, 22) + "..." : g.getName();
+            System.out.printf("%-3d %-10s %-25s $%,10.2f $%,10.2f %6d %8.1f %-12s %-20s\n",
+                i + 1,
+                g.getId(),
+                nameDisplay,
+                g.getTarget(),
+                g.getBalance(),
+                txCount,
+                g.getPriority(),
+                g.getDeadline(),
+                g.getCreateTime());
+        }
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+
+        Goal found = null;
+        while (found == null) {
+            System.out.print("Select goal number to update (or 0 to cancel): ");
+            String sel = scanner.nextLine().trim();
+            try {
+                int num = Integer.parseInt(sel);
+                if (num == 0) {
+                    System.out.println("Cancelled.");
+                    return;
+                }
+                if (num >= 1 && num <= goals.size()) {
+                    found = goals.get(num - 1);
+                } else {
+                    System.out.println("Invalid number. Try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+
+        System.out.println("\nSelected: " + found.getName());
+        System.out.println("Fields you can edit: name, target, balance, deadline, priority");
         System.out.print("Enter field to update: ");
         String field = scanner.nextLine().trim().toLowerCase();
 
@@ -1082,20 +1108,11 @@ public class CliController {
                     updates.put("target", tar);
                     break;
                 case "balance":
-                    System.out.println("\n❌ ERROR: Balance is READ-ONLY and computed from transactions.");
-                    System.out.println("To update balance:");
-                    System.out.println("  1. Add new transactions and allocate them to this goal (Option 3)");
-                    System.out.println("  2. Edit existing transactions to link/unlink them (Option 4)");
-                    System.out.println("\nCurrent balance: $" + String.format("%,.2f", found.getBalance()));
-                    // Count allocated transactions
-                    int txCount = 0;
-                    for (Transaction tx : accountData.getTransactions()) {
-                        if (tx.getGoalId() != null && tx.getGoalId().equals(found.getId())) {
-                            txCount++;
-                        }
-                    }
-                    System.out.println("Transactions allocated: " + txCount);
-                    return;
+                    System.out.print("Enter new balance amount: ");
+                    double newBal = Double.parseDouble(scanner.nextLine().trim());
+                    found.setBalance(newBal);
+                    updates.put("balance", newBal);
+                    break;
                 case "deadline":
                     System.out.print("Enter new deadline (YYYY-MM-DD): ");
                     String deadline = scanner.nextLine().trim();
@@ -1108,12 +1125,7 @@ public class CliController {
                     found.setPriority(pr);
                     updates.put("priority", pr);
                     break;
-                case "createat":
-                    System.out.print("Enter new creation time (YYYY-MM-DD): ");
-                    String createTime = scanner.nextLine().trim();
-                    found.setCreateTime(createTime);
-                    updates.put("createAt", createTime);
-                    break;
+                
                 default:
                     System.out.println("Unknown field.");
                     return;
