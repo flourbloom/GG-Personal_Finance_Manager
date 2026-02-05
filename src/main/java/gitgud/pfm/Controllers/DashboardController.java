@@ -30,7 +30,6 @@ public class DashboardController implements Initializable {
     @FXML private ProgressBar goalProgress;
     @FXML private Label goalHintLabel;
     @FXML private VBox priorityGoalsList;
-    @FXML private ComboBox<String> periodSelect;
     @FXML private LineChart<Number, Number> spendingChart;
     @FXML private VBox transactionsList;
     @FXML private Hyperlink viewAllTransactions;
@@ -63,11 +62,6 @@ public class DashboardController implements Initializable {
         loadPriorityGoals();
         loadSpendingChart();
         loadRecentTransactions();
-        
-        // Period selector listener
-        if (periodSelect != null) {
-            periodSelect.setOnAction(e -> loadSpendingChart());
-        }
         
         // Setup navigation for View All links
         if (viewAllGoals != null) {
