@@ -373,19 +373,23 @@ public class DashboardController implements Initializable {
             }
         }
         
-        // Create series for this month
+        // Create series for this month with cumulative spending
         XYChart.Series<Number, Number> thisMonthSeries = new XYChart.Series<>();
         thisMonthSeries.setName("This Month");
+        double cumulativeThisMonth = 0.0;
         for (int day = 1; day <= daysInCurrentMonth; day++) {
-            thisMonthSeries.getData().add(new XYChart.Data<>(day, thisMonthExpenses.get(day)));
+            cumulativeThisMonth += thisMonthExpenses.get(day);
+            thisMonthSeries.getData().add(new XYChart.Data<>(day, cumulativeThisMonth));
         }
         
-        // Create series for last month
+        // Create series for last month with cumulative spending
         XYChart.Series<Number, Number> lastMonthSeries = new XYChart.Series<>();
         lastMonthSeries.setName("Last Month");
+        double cumulativeLastMonth = 0.0;
         int maxDays = Math.min(daysInLastMonth, daysInCurrentMonth);
         for (int day = 1; day <= maxDays; day++) {
-            lastMonthSeries.getData().add(new XYChart.Data<>(day, lastMonthExpenses.get(day)));
+            cumulativeLastMonth += lastMonthExpenses.get(day);
+            lastMonthSeries.getData().add(new XYChart.Data<>(day, cumulativeLastMonth));
         }
 
         spendingChart.getData().add(thisMonthSeries);

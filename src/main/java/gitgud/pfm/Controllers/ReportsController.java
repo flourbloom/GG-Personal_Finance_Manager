@@ -277,7 +277,6 @@ public class ReportsController implements Initializable {
         List<String> categoryIds = new ArrayList<>(categoryTotals.keySet());
         
         for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
-            String categoryId = entry.getKey();
             double amount = entry.getValue();
             double percentage = total > 0 ? (amount / total) * 100 : 0;
             
