@@ -9,27 +9,34 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Screen;
 import javafx.geometry.Rectangle2D;
-import gitgud.pfm.Controllers.DashboardController;
 import gitgud.pfm.Controllers.SidebarController;
+import gitgud.pfm.infrastructure.ApplicationContext;
+import gitgud.pfm.infrastructure.ServiceLocator;
+import gitgud.pfm.services.navigation.NavigationService;
 
 import java.io.IOException;
 
 /**
  * JavaFX App - Personal Finance Manager
  * Modern GUI with sidebar navigation (FXML-based)
+ * REFACTORED: Uses dependency injection and NavigationService
  */
 public class App extends Application {
 
     private BorderPane root;
     private SidebarController sidebarController;
+    private NavigationService navigationService;
 
     @Override
     public void start(Stage primaryStage) {
+        // Initialize application context and dependency injection
+        ApplicationContext.initialize();
+        
         root = new BorderPane();
         
-        // Set up navigation callbacks for DashboardController
-        DashboardController.setOnNavigateToGoals(this::showGoals);
-        DashboardController.setOnNavigateToTransactions(this::showTransactions);
+        // Get NavigationService from ServiceLocator
+        navigationService = ServiceLocator.get(NavigationService.class);
+        navigationService.setNavigationHandler(this::navigateToView);
         
         // Load sidebar from FXML
         try {
@@ -37,13 +44,13 @@ public class App extends Application {
             VBox sidebar = sidebarLoader.load();
             sidebarController = sidebarLoader.getController();
             
-            // Set navigation actions
-            sidebarController.setOnDashboardClick(this::showDashboard);
-            sidebarController.setOnTransactionsClick(this::showTransactions);
-            sidebarController.setOnReportsClick(this::showReports);
-            sidebarController.setOnGoalsClick(this::showGoals);
-            sidebarController.setOnAccountsClick(this::showAccounts);
-            sidebarController.setOnBudgetClick(this::showBudget);
+            // Set navigation actions using NavigationService
+            sidebarController.setOnDashboardClick(() -> navigationService.navigateTo("dashboard"));
+            sidebarController.setOnTransactionsClick(() -> navigationService.navigateTo("transactions"));
+            sidebarController.setOnReportsClick(() -> navigationService.navigateTo("reports"));
+            sidebarController.setOnGoalsClick(() -> navigationService.navigateTo("goals"));
+            sidebarController.setOnAccountsClick(() -> navigationService.navigateTo("accounts"));
+            sidebarController.setOnBudgetClick(() -> navigationService.navigateTo("budget"));
             
             root.setLeft(sidebar);
         } catch (IOException e) {
@@ -52,7 +59,7 @@ public class App extends Application {
         }
         
         // Show dashboard by default
-        showDashboard();
+        navigationService.navigateTo("dashboard");
         
         // Create scene with custom stylesheet
         Scene scene = new Scene(root, 1400, 900);
@@ -82,6 +89,20 @@ public class App extends Application {
         primaryStage.show();
     }
     
+    /**
+     * Handle navigation - called by NavigationService
+     */
+    private void navigateToView(Node view) {
+        if (view != null) {
+            root.setCenter(view);
+        }
+    }
+    
+    /**
+     * Legacy FXML loader (kept for backward compatibility)
+     * NOTE: Use NavigationService.navigateTo() for new code
+     */
+    @Deprecated
     private Node loadFXML(String fxmlFile) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/gitgud/pfm/" + fxmlFile));
@@ -93,6 +114,11 @@ public class App extends Application {
         }
     }
     
+    /**
+     * Legacy navigation methods (kept for backward compatibility)
+     * NOTE: Use NavigationService for new code
+     */
+    @Deprecated
     public void showDashboard() {
         Node view = loadFXML("dashboard.fxml");
         if (view != null) {
