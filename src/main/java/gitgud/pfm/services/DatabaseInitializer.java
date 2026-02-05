@@ -18,7 +18,8 @@ import java.sql.Statement;
  * Tables created:
  * - Budget: Financial budget tracking with category limits
  * - Goal: Savings/financial goals with deadlines
- * - Wallets: Account/wallet management (renamed from Accounts conceptually)
+ * - Wallets: Wallet management (formerly Accounts)
+ * - Account: serves a new purpose referring to the instance of the user program-wide
  * - transaction_records: Individual transaction records
  * 
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -38,9 +39,9 @@ public class DatabaseInitializer {
         }
 
         try (Statement statement = connection.createStatement()) {
-            // Create Account table (must be first for foreign key references)
+            // Create Wallet table (must be first for foreign key references)
             if (!tableExists(connection, "Wallet")) {
-                String createAccountSQL = """
+                String createWalletSQL = """
                     CREATE TABLE "Wallet" (
                         "id"  TEXT NOT NULL,
                         "name"  TEXT,
@@ -49,7 +50,7 @@ public class DatabaseInitializer {
                         PRIMARY KEY("id")
                     )
                     """;
-                statement.execute(createAccountSQL);
+                statement.execute(createWalletSQL);
                 System.out.println("✓ Created table: Wallet");
             }
 

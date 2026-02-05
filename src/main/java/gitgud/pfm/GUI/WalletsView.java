@@ -9,14 +9,14 @@ import javafx.scene.layout.*;
 
 import java.util.List;
 
-public class AccountsView extends ScrollPane {
+public class WalletsView extends ScrollPane {
 
     private final DataStore dataStore;
     private final VBox mainContent;
-    private VBox accountsList;
+    private VBox walletsList;
     private HBox summarySection;
 
-    public AccountsView() {
+    public WalletsView() {
         dataStore = DataStore.getInstance();
 
         mainContent = new VBox(24);
@@ -25,32 +25,32 @@ public class AccountsView extends ScrollPane {
 
         HBox header = createHeader();
         summarySection = createSummaryCards();
-        VBox accountsCard = createAccountsCard();
+        VBox walletsCard = createWalletsCard();
 
-        mainContent.getChildren().addAll(header, summarySection, accountsCard);
+        mainContent.getChildren().addAll(header, summarySection, walletsCard);
 
         setContent(mainContent);
         setFitToWidth(true);
         setStyle("-fx-background-color: #f0f2f5; -fx-background: #f0f2f5;");
 
-        loadAccounts();
+        loadWallets();
     }
 
     private HBox createHeader() {
         HBox header = new HBox(16);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label("Accounts");
+        Label title = new Label("Wallets");
         title.setStyle("-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1e293b;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addButton = new Button("Add Account");
+        Button addButton = new Button("Add Wallet");
         addButton.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; " +
                 "-fx-font-size: 14px; -fx-font-weight: 600; -fx-padding: 12 24; " +
                 "-fx-background-radius: 8; -fx-cursor: hand;");
-        addButton.setOnAction(e -> showAddAccountDialog());
+        addButton.setOnAction(e -> showAddWalletDialog());
 
         header.getChildren().addAll(title, spacer, addButton);
         return header;
@@ -100,31 +100,31 @@ public class AccountsView extends ScrollPane {
         return card;
     }
 
-    private VBox createAccountsCard() {
+    private VBox createWalletsCard() {
         VBox card = new VBox(16);
         card.setStyle("-fx-background-color: white; -fx-background-radius: 16; " +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);");
         card.setPadding(new Insets(24));
 
-        Label cardTitle = new Label("All Accounts");
+        Label cardTitle = new Label("All Wallets");
         cardTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
 
-        accountsList = new VBox(12);
+        walletsList = new VBox(12);
 
-        card.getChildren().addAll(cardTitle, accountsList);
+        card.getChildren().addAll(cardTitle, walletsList);
         return card;
     }
 
-    private void loadAccounts() {
-        accountsList.getChildren().clear();
+    private void loadWallets() {
+        walletsList.getChildren().clear();
         List<Wallet> wallets = dataStore.getWallets();
         for (Wallet wallet : wallets) {
-            HBox accountCard = createAccountCard(wallet);
-            accountsList.getChildren().add(accountCard);
+            HBox walletCard = createWalletCard(wallet);
+            walletsList.getChildren().add(walletCard);
         }
     }
 
-    private HBox createAccountCard(Wallet wallet) {
+    private HBox createWalletCard(Wallet wallet) {
         HBox card = new HBox(12);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(16));
@@ -158,7 +158,7 @@ public class AccountsView extends ScrollPane {
         return card;
     }
 
-    private void showAddAccountDialog() {
+    private void showAddWalletDialog() {
         Dialog<Wallet> dialog = new Dialog<>();
         dialog.setTitle("Add New Wallet");
         dialog.setHeaderText("Enter wallet details");
@@ -213,7 +213,7 @@ public class AccountsView extends ScrollPane {
     }
 
     private void refreshView() {
-        loadAccounts();
+        loadWallets();
         mainContent.getChildren().set(1, createSummaryCards());
     }
 }

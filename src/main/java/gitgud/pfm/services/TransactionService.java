@@ -100,15 +100,15 @@ public class TransactionService implements CRUDInterface<Transaction> {
     }
     
     /**
-     * Read all transactions by account ID
+     * Read all transactions by wallet ID
      * Explicit fields: id, categoryId, amount, name, income, walletId, createTime
      */
-    public List<Transaction> readByAccount(String accountID) {
+    public List<Transaction> readByWallet(String walletID) {
         String sql = "SELECT id, categoryId, amount, name, income, walletId, createTime " +
                  "FROM transaction_records WHERE walletId = ? ORDER BY createTime DESC";
         List<Transaction> transactions = new ArrayList<>();
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, accountID);
+            pstmt.setString(1, walletID);
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -124,7 +124,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error reading transactions by account: " + e.getMessage());
+            System.err.println("Error reading transactions by wallet: " + e.getMessage());
         }
         return transactions;
     }

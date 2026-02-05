@@ -11,7 +11,7 @@ public class Budget extends FinancialEntity {
     private String startDate;
     private String endDate;
     private PeriodType periodType; // WEEKLY, MONTHLY, YEARLY, CUSTOM
-    private String walletId; // Optional: link budget to specific wallet/account
+    private String walletId; // Optional: link budget to specific wallet
     private String categoryId; // Optional: link budget to specific category
 
     // No-arg constructor required for reflection-based mapping (do not auto-persist)
@@ -26,7 +26,7 @@ public class Budget extends FinancialEntity {
         this.startDate = startDate;
         this.endDate = endDate;
         this.periodType = PeriodType.CUSTOM;
-        this.walletId = null; // Account-wide by default
+        this.walletId = null; // Wallet-wide by default
         this.categoryId = null;
     }
     
@@ -71,7 +71,7 @@ public class Budget extends FinancialEntity {
     public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
     
     /**
-     * Check if this budget is account-wide (not linked to specific wallet)
+     * Check if this budget is user account-wide (not linked to specific wallet)
      */
     public boolean isAccountWide() {
         return walletId == null || walletId.isEmpty();

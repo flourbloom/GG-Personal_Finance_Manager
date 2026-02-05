@@ -13,7 +13,7 @@ import java.util.List;
  * 3. Track spent amount vs. budget limit for each period
  * 4. Calculate remaining budget
  * 5. Data persisted in SQLite
- * 6. Support multiple budgets across different accounts
+ * 6. Support multiple budgets across different wallets
  */
 public class BudgetServiceDemo {
     

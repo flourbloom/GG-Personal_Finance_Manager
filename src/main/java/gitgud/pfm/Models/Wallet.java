@@ -2,9 +2,6 @@ package gitgud.pfm.Models;
 
 import gitgud.pfm.utils.IdGenerator;
 
-// TODO This is the renamed version of account
-// So in the future commits, this should replace account related code
-
 public class Wallet extends FinancialEntity {
     private String Color;
 

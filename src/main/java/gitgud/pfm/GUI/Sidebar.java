@@ -27,13 +27,14 @@ public class Sidebar extends VBox {
         navMenu.setPadding(new Insets(20, 12, 20, 12));
         VBox.setVgrow(navMenu, Priority.ALWAYS);
         
+        // TODO Where in the world is budget???
         NavItem dashboard = new NavItem("Dashboard", "📋", "#3b82f6", () -> app.showDashboard());
         NavItem transactions = new NavItem("Transactions", "⇄", "#a855f7", () -> app.showTransactions());
         NavItem reports = new NavItem("Reports", "📈", "#10b981", () -> app.showReports());
         NavItem goals = new NavItem("Goals", "🚩", "#ef4444", () -> app.showGoals());
-        NavItem accounts = new NavItem("Accounts", "👛", "#f59e0b", () -> app.showAccounts());
+        NavItem wallets = new NavItem("Wallets", "👛", "#f59e0b", () -> app.showWallets());
         
-        navMenu.getChildren().addAll(dashboard, transactions, reports, goals, accounts);
+        navMenu.getChildren().addAll(dashboard, transactions, reports, goals, wallets);
         activeItem = dashboard;
         dashboard.setActive(true);
         

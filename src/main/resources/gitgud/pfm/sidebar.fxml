@@ -70,14 +70,14 @@
             <Label text="Goals" style="-fx-text-fill: #94a3b8; -fx-font-size: 15px;"/>
         </HBox>
         
-        <!-- Accounts Nav Item -->
-        <HBox fx:id="accountsNavItem" spacing="14" alignment="CENTER_LEFT" styleClass="nav-item"
+        <!-- Wallet Nav Item -->
+        <HBox fx:id="walletsNavItem" spacing="14" alignment="CENTER_LEFT" styleClass="nav-item"
               style="-fx-background-radius: 10; -fx-cursor: hand;">
             <padding>
                 <Insets top="14" right="16" bottom="14" left="16"/>
             </padding>
             <Label text="👛" style="-fx-font-size: 18px; -fx-text-fill: #f59e0b;"/>
-            <Label text="Accounts" style="-fx-text-fill: #94a3b8; -fx-font-size: 15px;"/>
+            <Label text="Wallets" style="-fx-text-fill: #94a3b8; -fx-font-size: 15px;"/>
         </HBox>
         
         <!-- Budget Nav Item -->

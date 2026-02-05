@@ -125,7 +125,7 @@ public class DataStore {
         }
     }
     
-    // ============== Wallet/Account Methods ==============
+    // ============== Wallet Methods ==============
     public List<Wallet> getWallets() {
         try {
             return walletService.readAll();

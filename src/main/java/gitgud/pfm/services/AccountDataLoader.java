@@ -67,12 +67,12 @@ public class AccountDataLoader {
             data.transactions = new java.util.ArrayList<>();
         }
 
-        // Wallet: read Wallet by primary key 'AccountID'
+        // Wallet: read Wallet by primary key 'WalletID'
         try {
             WalletService walletService = new WalletService();
             data.wallets = walletService.readAll();
         } catch (Exception e) {
-            System.err.println("Warning: failed to read Wallet with AccountID:" + e.getMessage());
+            System.err.println("Warning: failed to read Wallet with WalletID:" + e.getMessage());
             data.setWallets(null);
         }
 

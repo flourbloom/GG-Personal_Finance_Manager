@@ -144,7 +144,7 @@ public class CliController {
     // "handle" prefix refers to dealing with user input rather than logic
 
     /**
-     * Handle Account Summary - show all accounts with balances and total
+     * Handle Account Summary - show all wallets with balances and total
      */
     private void handleAccountSummary() {
         System.out.println("=== Account Summary ===");
@@ -152,9 +152,9 @@ public class CliController {
         List<Wallet> wallets = walletService.readAll();
 
         if (wallets.isEmpty()) {
-            System.out.println("No accounts found.");
+            System.out.println("No wallets found.");
         } else {
-            System.out.println("\nAccounts:");
+            System.out.println("\nWallets:");
             System.out.println("-".repeat(50));
             System.out.printf("%-20s %15s %-10s%n", "Name", "Balance", "Color");
             System.out.println("-".repeat(50));
@@ -401,20 +401,20 @@ public class CliController {
         income = (chosenType == Category.Type.EXPENSE) ? 0 : 1;
         System.out.println("Income set to " + income + " (" + (income == 0 ? "expense" : "income") + ").");
 
-        // Pick account by number
+        // Pick wallet by number
         List<Wallet> wallets = walletService.readAll();
         if (wallets.isEmpty()) {
             System.out.println("No wallets found. Cannot create transaction.");
             return;
         }
-        System.out.println("Pick an account:");
+        System.out.println("Pick a wallet:");
         for (int i = 0; i < wallets.size(); i++) {
             System.out.printf("  %d. %s (Balance: $%.2f)\n", i + 1, wallets.get(i).getName(),
                     wallets.get(i).getBalance());
         }
         String walletId = null;
         while (walletId == null) {
-            System.out.print("Enter the number of the account: ");
+            System.out.print("Enter the number of the wallet: ");
             String input = scanner.nextLine().trim();
             try {
                 int num = Integer.parseInt(input);
@@ -798,34 +798,6 @@ public class CliController {
                 startDate,
                 endDate,
                 truncate(categoriesStr, 25));
-        }
-    }
-
-    /**
-     * Handle View Goals menu option
-     * private String id;
-     * private String name;
-     * private double target;
-     * private double current;
-     * private String deadline;
-     * private double priority;
-     * private String createTime;
-     */
-    private void handleViewGoals(AccountDataLoader.DataHolder accountData) {
-        System.out.println("=== View Goals ===");
-        System.out.printf("%-15s %12s %12s %-10s %8s %-15s%n", "Name", "Target", "Current", "Deadline", "Priority", "Created");
-        System.out.println("-".repeat(80));
-        for (Goal g : accountData.getGoals()) {
-            String deadline = g.getDeadline() != null ? g.getDeadline().substring(0, Math.min(10, g.getDeadline().length())) : "";
-            String created = g.getCreateTime() != null ? g.getCreateTime().substring(0, Math.min(10, g.getCreateTime().length())) : "";
-            
-            System.out.printf("%-15s $%,10.2f $%,10.2f %-10s %8.1f %-15s%n",
-                    truncate(g.getName(), 15),
-                    g.getTarget(),
-                    g.getBalance(),
-                    deadline,
-                    g.getPriority(),
-                    created);
         }
     }
 

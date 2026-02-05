@@ -21,7 +21,7 @@ public class SidebarController implements Initializable {
     @FXML private HBox transactionsNavItem;
     @FXML private HBox reportsNavItem;
     @FXML private HBox goalsNavItem;
-    @FXML private HBox accountsNavItem;
+    @FXML private HBox walletsNavItem;
     @FXML private HBox budgetNavItem;
     @FXML private ComboBox<Wallet> walletSelector;
     @FXML private Label walletBalanceLabel;
@@ -31,7 +31,7 @@ public class SidebarController implements Initializable {
     private Runnable onTransactionsClick;
     private Runnable onReportsClick;
     private Runnable onGoalsClick;
-    private Runnable onAccountsClick;
+    private Runnable onWalletsClick;
     private Runnable onBudgetClick;
     private DataStore dataStore;
 
@@ -48,7 +48,7 @@ public class SidebarController implements Initializable {
         setupNavItem(transactionsNavItem, "Transactions");
         setupNavItem(reportsNavItem, "Reports");
         setupNavItem(goalsNavItem, "Goals");
-        setupNavItem(accountsNavItem, "Accounts");
+        setupNavItem(walletsNavItem, "Wallets");
         if (budgetNavItem != null) {
             setupNavItem(budgetNavItem, "Budget");
         }
@@ -197,8 +197,8 @@ public class SidebarController implements Initializable {
                 case "Goals":
                     if (onGoalsClick != null) onGoalsClick.run();
                     break;
-                case "Accounts":
-                    if (onAccountsClick != null) onAccountsClick.run();
+                case "Wallets":
+                    if (onWalletsClick != null) onWalletsClick.run();
                     break;
                 case "Budget":
                     if (onBudgetClick != null) onBudgetClick.run();
@@ -213,7 +213,7 @@ public class SidebarController implements Initializable {
         resetNavItem(transactionsNavItem);
         resetNavItem(reportsNavItem);
         resetNavItem(goalsNavItem);
-        resetNavItem(accountsNavItem);
+        resetNavItem(walletsNavItem);
         if (budgetNavItem != null) {
             resetNavItem(budgetNavItem);
         }
@@ -233,8 +233,8 @@ public class SidebarController implements Initializable {
             case "Goals":
                 item = goalsNavItem;
                 break;
-            case "Accounts":
-                item = accountsNavItem;
+            case "Wallets":
+                item = walletsNavItem;
                 break;
             case "Budget":
                 item = budgetNavItem;
@@ -273,8 +273,8 @@ public class SidebarController implements Initializable {
         this.onGoalsClick = action;
     }
 
-    public void setOnAccountsClick(Runnable action) {
-        this.onAccountsClick = action;
+    public void setOnWalletsClick(Runnable action) {
+        this.onWalletsClick = action;
     }
 
     public void setOnBudgetClick(Runnable action) {
