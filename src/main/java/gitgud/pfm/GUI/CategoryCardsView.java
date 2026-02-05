@@ -6,10 +6,8 @@ import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Wallet;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -116,9 +114,6 @@ public class CategoryCardsView extends ScrollPane {
         card.setPadding(new Insets(20));
         card.setPrefWidth(140);
         card.setPrefHeight(120);
-        
-        // Calculate lighter background color
-        String bgColor = info.color + "20"; // 20% opacity version
         
         card.setStyle(
             "-fx-background-color: white; " +

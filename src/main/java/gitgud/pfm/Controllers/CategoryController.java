@@ -6,7 +6,6 @@ import javafx.scene.control.Button;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import gitgud.pfm.App;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.services.CategoryService;
 import javafx.collections.FXCollections;

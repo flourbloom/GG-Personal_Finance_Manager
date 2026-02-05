@@ -300,7 +300,6 @@ public class CliController {
             System.out.println("-".repeat(85));
 
             for (Goal goal : goals) {
-                int txCount = goal.getTxCount();
                 double progress = goal.getProgress();
                 String deadline = goal.getDeadline() != null ? goal.getDeadline().substring(0, Math.min(10, goal.getDeadline().length())) : "";
                 
@@ -812,11 +811,9 @@ public class CliController {
         String name = scanner.nextLine().trim();
 
         Transaction found = null;
-        String id = null;
         for (Transaction t : accountData.getTransactions()) {
             if (t.getName() != null && t.getName().equals(name)) {
                 found = t;
-                id = t.getId();
                 break;
             }
         }
@@ -905,7 +902,6 @@ public class CliController {
                         System.out.println("\nAvailable Goals (or enter 'null' to unlink):");
                         for (int i = 0; i < goals.size(); i++) {
                             Goal g = goals.get(i);
-                            double progress = g.getTarget() > 0 ? (g.getBalance() / g.getTarget()) * 100 : 0;
                             System.out.printf("  %d. %s (Balance: $%.2f / Target: $%.2f)\n",
                                     i + 1, g.getName(), g.getBalance(), g.getTarget());
                         }
@@ -967,11 +963,9 @@ public class CliController {
         String bname = scanner.nextLine().trim();
 
         Budget found = null;
-        String id = null;
         for (Budget b : accountData.getBudgets()) {
             if (b.getName() != null && b.getName().equals(bname)) {
                 found = b;
-                id = b.getId();
                 break;
             }
         }
@@ -1369,18 +1363,6 @@ public class CliController {
         accountData.setGoals(fresh.getGoals());
         accountData.setTransactions(fresh.getTransactions());
         accountData.setWallets(fresh.getWallets());
-    }
-
-    /**
-     * Persistence placeholders - replace with real DB persistence implementation
-     * later.
-     */
-    private void persistUpdate(Map<String, Object> config) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("persistUpdate not implemented");
-    }
-
-    private void persistDelete(Map<String, Object> config) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("persistDelete not implemented");
     }
 
     /**
