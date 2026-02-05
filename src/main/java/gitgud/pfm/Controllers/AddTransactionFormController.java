@@ -76,6 +76,10 @@ public class AddTransactionFormController implements Initializable {
         this.formRoot = root;
     }
     
+    public void setDialogStage(Stage stage) {
+        this.dialogStage = stage;
+    }
+    
     public void setCategory(String categoryName, CategoryInfo categoryInfo, Category.Type type) {
         this.selectedCategoryName = categoryName;
         this.selectedCategoryType = type;
