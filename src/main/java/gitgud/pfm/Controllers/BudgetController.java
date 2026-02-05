@@ -133,7 +133,12 @@ public class BudgetController implements Initializable {
 
     private void updateSummary() {
         List<Budget> budgets = dataStore.getBudgets();
-        double totalExpenses = dataStore.getTotalExpenses();
+        
+        // Calculate expenses for current month (This Month)
+        LocalDate[] currentMonthRange = getDateRangeFromSelector("This Month");
+        String startDate = currentMonthRange[0].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String endDate = currentMonthRange[1].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
         
         double totalBudget = budgets.stream().mapToDouble(Budget::getLimitAmount).sum();
         double remaining = Math.max(0, totalBudget - totalExpenses);
@@ -146,7 +151,15 @@ public class BudgetController implements Initializable {
 
     private void updateMonthlyOverview() {
         List<Budget> budgets = dataStore.getBudgets();
-        double totalExpenses = dataStore.getTotalExpenses();
+        
+        // Get selected time period
+        String selectedPeriod = monthSelector != null ? monthSelector.getValue() : "This Month";
+        LocalDate[] dateRange = getDateRangeFromSelector(selectedPeriod);
+        String startDate = dateRange[0].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String endDate = dateRange[1].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        
+        // Calculate expenses for selected period
+        double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
         
         // Find the monthly budget limit
         double monthlyLimit = 0;
@@ -222,13 +235,13 @@ public class BudgetController implements Initializable {
         double spent;
         
         if (!budgetCategories.isEmpty()) {
-            // Sum spending across all categories in this budget
+            // Sum spending across all categories in this budget within the budget's date range
             spent = budgetCategories.stream()
-                .mapToDouble(cat -> calculateCategorySpending(cat.getId()))
+                .mapToDouble(cat -> calculateCategorySpending(cat.getId(), budget.getStartDate(), budget.getEndDate()))
                 .sum();
         } else {
-            // No specific categories - use total expenses
-            spent = totalExpenses;
+            // No specific categories - calculate total expenses within budget's date range
+            spent = calculateTotalExpensesInDateRange(budget.getStartDate(), budget.getEndDate());
         }
         
         double percent = budget.getLimitAmount() > 0 ? 
@@ -322,15 +335,48 @@ public class BudgetController implements Initializable {
     }
 
     /**
-     * Calculate total spending for a specific category
+     * Calculate total spending for a specific category within a date range
      */
-    private double calculateCategorySpending(String categoryId) {
+    private double calculateCategorySpending(String categoryId, String startDate, String endDate) {
         List<Transaction> transactions = dataStore.getTransactions();
         return transactions.stream()
             .filter(t -> t.getIncome() <= 0) // Only expenses (income = 0 means expense)
             .filter(t -> categoryId.equals(t.getCategoryId()))
+            .filter(t -> isTransactionInDateRange(t, startDate, endDate))
             .mapToDouble(Transaction::getAmount)
             .sum();
+    }
+    
+    /**
+     * Check if a transaction falls within the specified date range
+     */
+    private boolean isTransactionInDateRange(Transaction transaction, String startDate, String endDate) {
+        if (transaction.getCreateTime() == null || transaction.getCreateTime().isEmpty()) {
+            return false;
+        }
+        if (startDate == null && endDate == null) {
+            return true; // No date filtering
+        }
+        try {
+            // Transaction createTime format: "yyyy-MM-dd HH:mm:ss"
+            // Extract just the date part or parse as LocalDateTime
+            LocalDate transactionDate;
+            String createTime = transaction.getCreateTime();
+            if (createTime.contains(" ")) {
+                // Has time component - parse as datetime then get date
+                transactionDate = java.time.LocalDateTime.parse(createTime, 
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+            } else {
+                // Just a date
+                transactionDate = LocalDate.parse(createTime);
+            }
+            
+            LocalDate start = startDate != null ? LocalDate.parse(startDate) : LocalDate.MIN;
+            LocalDate end = endDate != null ? LocalDate.parse(endDate) : LocalDate.MAX;
+            return !transactionDate.isBefore(start) && !transactionDate.isAfter(end);
+        } catch (Exception e) {
+            return false; // Invalid date format
+        }
     }
 
     private VBox createEmptyState() {
@@ -722,6 +768,44 @@ public class BudgetController implements Initializable {
         });
     }
 
+    /**
+     * Calculate total expenses within a date range
+     */
+    private double calculateTotalExpensesInDateRange(String startDate, String endDate) {
+        List<Transaction> transactions = dataStore.getTransactions();
+        return transactions.stream()
+            .filter(t -> t.getIncome() <= 0) // Only expenses
+            .filter(t -> isTransactionInDateRange(t, startDate, endDate))
+            .mapToDouble(Transaction::getAmount)
+            .sum();
+    }
+    
+    /**
+     * Get date range based on month selector value
+     */
+    private LocalDate[] getDateRangeFromSelector(String selector) {
+        LocalDate now = LocalDate.now();
+        LocalDate start, end;
+        
+        switch (selector) {
+            case "Last Month":
+                start = now.minusMonths(1).withDayOfMonth(1);
+                end = now.minusMonths(1).withDayOfMonth(now.minusMonths(1).lengthOfMonth());
+                break;
+            case "Last 3 Months":
+                start = now.minusMonths(3).withDayOfMonth(1);
+                end = now.withDayOfMonth(now.lengthOfMonth());
+                break;
+            case "This Month":
+            default:
+                start = now.withDayOfMonth(1);
+                end = now.withDayOfMonth(now.lengthOfMonth());
+                break;
+        }
+        
+        return new LocalDate[]{start, end};
+    }
+    
     public void refresh() {
         javafx.application.Platform.runLater(() -> {
             updateSummary();
