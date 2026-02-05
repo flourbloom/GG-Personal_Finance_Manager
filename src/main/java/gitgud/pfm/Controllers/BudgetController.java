@@ -5,6 +5,7 @@ import gitgud.pfm.Models.Budget;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.services.CategoryService;
+import gitgud.pfm.services.BudgetService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -16,6 +17,7 @@ import javafx.scene.layout.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,7 @@ public class BudgetController implements Initializable {
 
     private DataStore dataStore;
     private CategoryService categoryService;
+    private BudgetService budgetService;
     private Map<String, String> categoryIdToNameMap;
     private Map<String, String> categoryNameToIdMap;
 
@@ -47,6 +50,7 @@ public class BudgetController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         dataStore = DataStore.getInstance();
         categoryService = new CategoryService();
+        budgetService = new BudgetService();
         categoryIdToNameMap = new HashMap<>();
         categoryNameToIdMap = new HashMap<>();
         
@@ -213,11 +217,17 @@ public class BudgetController implements Initializable {
         item.setAlignment(Pos.CENTER_LEFT);
         item.setPadding(new Insets(16));
         
-        // Calculate spending: category-specific or total
+        // Calculate spending: check for multiple categories from junction table
+        List<Category> budgetCategories = budgetService.getCategoriesForBudget(budget.getId());
         double spent;
-        if (budget.isCategoryBudget() && budget.getCategoryId() != null) {
-            spent = calculateCategorySpending(budget.getCategoryId());
+        
+        if (!budgetCategories.isEmpty()) {
+            // Sum spending across all categories in this budget
+            spent = budgetCategories.stream()
+                .mapToDouble(cat -> calculateCategorySpending(cat.getId()))
+                .sum();
         } else {
+            // No specific categories - use total expenses
             spent = totalExpenses;
         }
         
@@ -255,12 +265,21 @@ public class BudgetController implements Initializable {
         typeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b; -fx-background-color: #f1f5f9; " +
                           "-fx-padding: 2 8; -fx-background-radius: 4;");
         
-        // Show category if it's a category budget
-        if (budget.isCategoryBudget() && categoryIdToNameMap.containsKey(budget.getCategoryId())) {
-            Label categoryLabel = new Label(categoryIdToNameMap.get(budget.getCategoryId()));
-            categoryLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #3b82f6; -fx-background-color: #eff6ff; " +
-                              "-fx-padding: 2 8; -fx-background-radius: 4;");
-            meta.getChildren().add(categoryLabel);
+        // Show categories for this budget
+        if (!budgetCategories.isEmpty()) {
+            if (budgetCategories.size() == 1) {
+                // Show single category name
+                Label categoryLabel = new Label(budgetCategories.get(0).getName());
+                categoryLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #3b82f6; -fx-background-color: #eff6ff; " +
+                                  "-fx-padding: 2 8; -fx-background-radius: 4;");
+                meta.getChildren().add(categoryLabel);
+            } else {
+                // Show count of categories
+                Label categoryLabel = new Label(budgetCategories.size() + " categories");
+                categoryLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #8b5cf6; -fx-background-color: #f3e8ff; " +
+                                  "-fx-padding: 2 8; -fx-background-radius: 4;");
+                meta.getChildren().add(categoryLabel);
+            }
         }
 
         Label dateLabel = new Label(budget.getStartDate() != null ? 
@@ -361,16 +380,94 @@ public class BudgetController implements Initializable {
         typeCombo.getItems().addAll("MONTHLY", "WEEKLY", "YEARLY", "CUSTOM");
         typeCombo.setValue("MONTHLY");
 
-        // Category selection for category-specific budgets
-        ComboBox<String> categoryCombo = new ComboBox<>();
-        categoryCombo.setPrefWidth(250);
-        categoryCombo.getItems().add("All Categories (General Budget)");
+        // Category selection with button-based UI (multiple selection)
+        final List<String> selectedCategoryIds = new ArrayList<>();
+        final Map<String, String> categoryIdToName = new HashMap<>();
+        
+        VBox categoryContainer = new VBox(8);
+        categoryContainer.setPadding(new Insets(8));
+        categoryContainer.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-border-radius: 8;");
+        
+        // Header with selected category label
+        Label selectedCategoryLabel = new Label("All Categories (General Budget)");
+        selectedCategoryLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
+        
+        // Create scrollable category buttons
+        ScrollPane categoryScroll = new ScrollPane();
+        categoryScroll.setFitToWidth(true);
+        categoryScroll.setPrefHeight(180);
+        categoryScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        
+        FlowPane categoryButtons = new FlowPane();
+        categoryButtons.setHgap(8);
+        categoryButtons.setVgap(8);
+        categoryButtons.setPadding(new Insets(8));
+        
+        // Add "All Categories" button
+        Button allCategoriesBtn = new Button("All Categories");
+        allCategoriesBtn.setUserData("selected");
+        styleCategoryButton(allCategoriesBtn, true);
+        allCategoriesBtn.setOnAction(e -> {
+            selectedCategoryIds.clear();
+            selectedCategoryLabel.setText("All Categories (General Budget)");
+            // Deselect all other buttons
+            for (javafx.scene.Node node : categoryButtons.getChildren()) {
+                if (node instanceof Button btn) {
+                    boolean isSelected = btn == allCategoriesBtn;
+                    btn.setUserData(isSelected ? "selected" : "unselected");
+                    styleCategoryButton(btn, isSelected);
+                }
+            }
+        });
+        categoryButtons.getChildren().add(allCategoriesBtn);
+        
+        // Add category buttons for expense categories
         for (Category cat : categoryService.getDefaultCategories()) {
-            if (cat.getType() == Category.Type.EXPENSE) { // Only show expense categories
-                categoryCombo.getItems().add(cat.getName());
+            if (cat.getType() == Category.Type.EXPENSE) {
+                categoryIdToName.put(cat.getId(), cat.getName());
+                Button categoryBtn = new Button(cat.getName());
+                categoryBtn.setUserData("unselected");
+                styleCategoryButton(categoryBtn, false);
+                categoryBtn.setOnAction(e -> {
+                    // Deselect "All Categories"
+                    allCategoriesBtn.setUserData("unselected");
+                    styleCategoryButton(allCategoriesBtn, false);
+                    
+                    // Toggle this category
+                    boolean wasSelected = "selected".equals(categoryBtn.getUserData());
+                    if (wasSelected) {
+                        selectedCategoryIds.remove(cat.getId());
+                        categoryBtn.setUserData("unselected");
+                        styleCategoryButton(categoryBtn, false);
+                    } else {
+                        selectedCategoryIds.add(cat.getId());
+                        categoryBtn.setUserData("selected");
+                        styleCategoryButton(categoryBtn, true);
+                    }
+                    
+                    // Update label
+                    if (selectedCategoryIds.isEmpty()) {
+                        selectedCategoryLabel.setText("All Categories (General Budget)");
+                        allCategoriesBtn.setUserData("selected");
+                        styleCategoryButton(allCategoriesBtn, true);
+                    } else {
+                        String labelText = selectedCategoryIds.size() == 1 
+                            ? categoryIdToName.get(selectedCategoryIds.get(0))
+                            : selectedCategoryIds.size() + " categories selected";
+                        selectedCategoryLabel.setText(labelText);
+                    }
+                });
+                categoryButtons.getChildren().add(categoryBtn);
             }
         }
-        categoryCombo.setValue("All Categories (General Budget)");
+        
+        categoryScroll.setContent(categoryButtons);
+        categoryContainer.getChildren().addAll(
+            new Label("Selected:"),
+            selectedCategoryLabel,
+            new Label("Choose Category:"),
+            categoryScroll
+        );
 
         DatePicker startDatePicker = new DatePicker(LocalDate.now().withDayOfMonth(1));
         DatePicker endDatePicker = new DatePicker(LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()));
@@ -380,7 +477,7 @@ public class BudgetController implements Initializable {
         grid.add(new Label("Limit Amount:"), 0, 1);
         grid.add(limitField, 1, 1);
         grid.add(new Label("Category:"), 0, 2);
-        grid.add(categoryCombo, 1, 2);
+        grid.add(categoryContainer, 1, 2);
         grid.add(new Label("Period Type:"), 0, 3);
         grid.add(typeCombo, 1, 3);
         grid.add(new Label("Start Date:"), 0, 4);
@@ -389,7 +486,8 @@ public class BudgetController implements Initializable {
         grid.add(endDatePicker, 1, 5);
 
         dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().setPrefWidth(500);
+        dialog.getDialogPane().setPrefWidth(550);
+        dialog.getDialogPane().setPrefHeight(600);
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == createButtonType) {
@@ -400,14 +498,10 @@ public class BudgetController implements Initializable {
                     String endDate = endDatePicker.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     Budget.PeriodType periodType = Budget.PeriodType.valueOf(typeCombo.getValue());
                     
-                    // Get selected category ID
-                    String categoryId = null;
-                    String selectedCategory = categoryCombo.getValue();
-                    if (selectedCategory != null && !selectedCategory.equals("All Categories (General Budget)")) {
-                        categoryId = categoryNameToIdMap.get(selectedCategory);
-                    }
+                    // Create budget without categoryId (will use junction table)
+                    Budget budget = new Budget(name, limit, 0, startDate, endDate, periodType, null, null);
                     
-                    return new Budget(name, limit, 0, startDate, endDate, periodType, null, categoryId);
+                    return budget;
                 } catch (NumberFormatException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setContentText("Invalid amount!");
@@ -419,7 +513,9 @@ public class BudgetController implements Initializable {
         });
 
         dialog.showAndWait().ifPresent(budget -> {
-            dataStore.addBudget(budget);
+            // Add budget with selected categories
+            List<String> categoryIds = selectedCategoryIds.isEmpty() ? null : new ArrayList<>(selectedCategoryIds);
+            dataStore.addBudgetWithCategories(budget, categoryIds);
             dataStore.notifyBudgetRefresh();
             refresh();
         });
@@ -446,21 +542,103 @@ public class BudgetController implements Initializable {
         typeCombo.getItems().addAll("MONTHLY", "WEEKLY", "YEARLY", "CUSTOM");
         typeCombo.setValue(budget.getPeriodType().toString());
 
-        // Category selection for category-specific budgets
-        ComboBox<String> categoryCombo = new ComboBox<>();
-        categoryCombo.setPrefWidth(250);
-        categoryCombo.getItems().add("All Categories (General Budget)");
+        // Load existing categories for this budget
+        List<Category> existingCategories = budgetService.getCategoriesForBudget(budget.getId());
+        final List<String> selectedCategoryIds = new ArrayList<>();
+        for (Category cat : existingCategories) {
+            selectedCategoryIds.add(cat.getId());
+        }
+        final Map<String, String> categoryIdToName = new HashMap<>();
+        
+        VBox categoryContainer = new VBox(8);
+        categoryContainer.setPadding(new Insets(8));
+        categoryContainer.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-border-radius: 8;");
+        
+        // Header with selected category label
+        String initialLabelText = selectedCategoryIds.isEmpty() ? "All Categories (General Budget)" :
+            (selectedCategoryIds.size() == 1 ? categoryIdToNameMap.get(selectedCategoryIds.get(0)) :
+            selectedCategoryIds.size() + " categories selected");
+        Label selectedCategoryLabel = new Label(initialLabelText);
+        selectedCategoryLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
+        
+        // Create scrollable category buttons
+        ScrollPane categoryScroll = new ScrollPane();
+        categoryScroll.setFitToWidth(true);
+        categoryScroll.setPrefHeight(180);
+        categoryScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        
+        FlowPane categoryButtons = new FlowPane();
+        categoryButtons.setHgap(8);
+        categoryButtons.setVgap(8);
+        categoryButtons.setPadding(new Insets(8));
+        
+        // Add "All Categories" button
+        Button allCategoriesBtn = new Button("All Categories");
+        boolean allCatSelected = selectedCategoryIds.isEmpty();
+        allCategoriesBtn.setUserData(allCatSelected ? "selected" : "unselected");
+        styleCategoryButton(allCategoriesBtn, allCatSelected);
+        allCategoriesBtn.setOnAction(e -> {
+            selectedCategoryIds.clear();
+            selectedCategoryLabel.setText("All Categories (General Budget)");
+            // Deselect all other buttons
+            for (javafx.scene.Node node : categoryButtons.getChildren()) {
+                if (node instanceof Button btn) {
+                    boolean isSelected = btn == allCategoriesBtn;
+                    btn.setUserData(isSelected ? "selected" : "unselected");
+                    styleCategoryButton(btn, isSelected);
+                }
+            }
+        });
+        categoryButtons.getChildren().add(allCategoriesBtn);
+        
+        // Add category buttons for expense categories
         for (Category cat : categoryService.getDefaultCategories()) {
-            if (cat.getType() == Category.Type.EXPENSE) { // Only show expense categories
-                categoryCombo.getItems().add(cat.getName());
+            if (cat.getType() == Category.Type.EXPENSE) {
+                categoryIdToName.put(cat.getId(), cat.getName());
+                Button categoryBtn = new Button(cat.getName());
+                boolean isSelected = selectedCategoryIds.contains(cat.getId());
+                categoryBtn.setUserData(isSelected ? "selected" : "unselected");
+                styleCategoryButton(categoryBtn, isSelected);
+                categoryBtn.setOnAction(e -> {
+                    // Deselect "All Categories"
+                    allCategoriesBtn.setUserData("unselected");
+                    styleCategoryButton(allCategoriesBtn, false);
+                    
+                    // Toggle this category
+                    boolean wasSelected = "selected".equals(categoryBtn.getUserData());
+                    if (wasSelected) {
+                        selectedCategoryIds.remove(cat.getId());
+                        categoryBtn.setUserData("unselected");
+                        styleCategoryButton(categoryBtn, false);
+                    } else {
+                        selectedCategoryIds.add(cat.getId());
+                        categoryBtn.setUserData("selected");
+                        styleCategoryButton(categoryBtn, true);
+                    }
+                    
+                    // Update label
+                    if (selectedCategoryIds.isEmpty()) {
+                        selectedCategoryLabel.setText("All Categories (General Budget)");
+                        allCategoriesBtn.setUserData("selected");
+                        styleCategoryButton(allCategoriesBtn, true);
+                    } else {
+                        String labelText = selectedCategoryIds.size() == 1 
+                            ? categoryIdToName.get(selectedCategoryIds.get(0))
+                            : selectedCategoryIds.size() + " categories selected";
+                        selectedCategoryLabel.setText(labelText);
+                    }
+                });
+                categoryButtons.getChildren().add(categoryBtn);
             }
         }
-        // Set current category
-        if (budget.getCategoryId() != null && categoryIdToNameMap.containsKey(budget.getCategoryId())) {
-            categoryCombo.setValue(categoryIdToNameMap.get(budget.getCategoryId()));
-        } else {
-            categoryCombo.setValue("All Categories (General Budget)");
-        }
+        
+        categoryScroll.setContent(categoryButtons);
+        categoryContainer.getChildren().addAll(
+            new Label("Selected:"),
+            selectedCategoryLabel,
+            new Label("Choose Categories:"),
+            categoryScroll
+        );
 
         DatePicker startDatePicker = new DatePicker();
         DatePicker endDatePicker = new DatePicker();
@@ -481,7 +659,7 @@ public class BudgetController implements Initializable {
         grid.add(new Label("Limit Amount:"), 0, 1);
         grid.add(limitField, 1, 1);
         grid.add(new Label("Category:"), 0, 2);
-        grid.add(categoryCombo, 1, 2);
+        grid.add(categoryContainer, 1, 2);
         grid.add(new Label("Period Type:"), 0, 3);
         grid.add(typeCombo, 1, 3);
         grid.add(new Label("Start Date:"), 0, 4);
@@ -490,7 +668,8 @@ public class BudgetController implements Initializable {
         grid.add(endDatePicker, 1, 5);
 
         dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().setPrefWidth(500);
+        dialog.getDialogPane().setPrefWidth(550);
+        dialog.getDialogPane().setPrefHeight(600);
 
         // Style the delete button
         Button deleteButton = (Button) dialog.getDialogPane().lookupButton(deleteButtonType);
@@ -503,14 +682,6 @@ public class BudgetController implements Initializable {
                     budget.setName(nameField.getText());
                     budget.setLimitAmount(limit);
                     budget.setPeriodType(Budget.PeriodType.valueOf(typeCombo.getValue()));
-                    
-                    // Update category
-                    String selectedCategory = categoryCombo.getValue();
-                    if (selectedCategory != null && !selectedCategory.equals("All Categories (General Budget)")) {
-                        budget.setCategoryId(categoryNameToIdMap.get(selectedCategory));
-                    } else {
-                        budget.setCategoryId(null);
-                    }
                     
                     if (startDatePicker.getValue() != null) {
                         budget.setStartDate(startDatePicker.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
@@ -543,7 +714,9 @@ public class BudgetController implements Initializable {
         });
 
         dialog.showAndWait().ifPresent(updatedBudget -> {
-            dataStore.updateBudget(updatedBudget);
+            // Update budget with selected categories
+            List<String> categoryIds = selectedCategoryIds.isEmpty() ? null : new ArrayList<>(selectedCategoryIds);
+            dataStore.updateBudgetWithCategories(updatedBudget, categoryIds);
             dataStore.notifyBudgetRefresh();
             refresh();
         });
@@ -555,5 +728,75 @@ public class BudgetController implements Initializable {
             updateMonthlyOverview();
             loadBudgets();
         });
+    }
+    
+    private void styleCategoryButton(Button button, boolean isSelected) {
+        if (isSelected) {
+            button.setStyle(
+                "-fx-background-color: linear-gradient(to right, #3b82f6, #2563eb);" +
+                "-fx-text-fill: white;" +
+                "-fx-background-radius: 8;" +
+                "-fx-padding: 8 16;" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: 600;" +
+                "-fx-cursor: hand;" +
+                "-fx-border-color: #1d4ed8;" +
+                "-fx-border-width: 2;" +
+                "-fx-border-radius: 8;"
+            );
+            // Remove hover handlers for selected buttons
+            button.setOnMouseEntered(null);
+            button.setOnMouseExited(null);
+        } else {
+            button.setStyle(
+                "-fx-background-color: white;" +
+                "-fx-text-fill: #475569;" +
+                "-fx-background-radius: 8;" +
+                "-fx-padding: 8 16;" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: 500;" +
+                "-fx-cursor: hand;" +
+                "-fx-border-color: #cbd5e1;" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 8;"
+            );
+            
+            // Add hover effect only for unselected buttons
+            button.setOnMouseEntered(e -> {
+                // Check userData to ensure button is still unselected
+                if ("unselected".equals(button.getUserData())) {
+                    button.setStyle(
+                        "-fx-background-color: #f1f5f9;" +
+                        "-fx-text-fill: #1e293b;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8 16;" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-font-weight: 500;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #94a3b8;" +
+                        "-fx-border-width: 1;" +
+                        "-fx-border-radius: 8;"
+                    );
+                }
+            });
+            
+            button.setOnMouseExited(e -> {
+                // Check userData to ensure button is still unselected
+                if ("unselected".equals(button.getUserData())) {
+                    button.setStyle(
+                        "-fx-background-color: white;" +
+                        "-fx-text-fill: #475569;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8 16;" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-font-weight: 500;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: #cbd5e1;" +
+                        "-fx-border-width: 1;" +
+                        "-fx-border-radius: 8;"
+                    );
+                }
+            });
+        }
     }
 }

@@ -181,16 +181,62 @@ public class DataStore {
     public void addBudget(Budget budget) {
         try {
             budgetService.create(budget);
+            // If budget has a category, create the Budget_Category relationship
+            if (budget.getCategoryId() != null) {
+                budgetService.addCategoryToBudget(budget.getId(), budget.getCategoryId());
+            }
         } catch (Exception e) {
             System.err.println("Error adding budget: " + e.getMessage());
         }
     }
     
+    public void addBudgetWithCategories(Budget budget, List<String> categoryIds) {
+        try {
+            budgetService.create(budget);
+            // Create Budget_Category relationships for each category
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                for (String categoryId : categoryIds) {
+                    budgetService.addCategoryToBudget(budget.getId(), categoryId);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error adding budget with categories: " + e.getMessage());
+        }
+    }
+    
     public void updateBudget(Budget budget) {
         try {
+            // First, remove all existing category relationships for this budget
+            budgetService.removeAllCategoriesFromBudget(budget.getId());
+            
+            // Update the budget itself
             budgetService.update(budget);
+            
+            // If budget has a category, create the new Budget_Category relationship
+            if (budget.getCategoryId() != null) {
+                budgetService.addCategoryToBudget(budget.getId(), budget.getCategoryId());
+            }
         } catch (Exception e) {
             System.err.println("Error updating budget: " + e.getMessage());
+        }
+    }
+    
+    public void updateBudgetWithCategories(Budget budget, List<String> categoryIds) {
+        try {
+            // First, remove all existing category relationships for this budget
+            budgetService.removeAllCategoriesFromBudget(budget.getId());
+            
+            // Update the budget itself
+            budgetService.update(budget);
+            
+            // Create new Budget_Category relationships for each category
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                for (String categoryId : categoryIds) {
+                    budgetService.addCategoryToBudget(budget.getId(), categoryId);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating budget with categories: " + e.getMessage());
         }
     }
     
