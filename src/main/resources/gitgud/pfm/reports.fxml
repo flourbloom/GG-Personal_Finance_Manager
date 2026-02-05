@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
-<?import javafx.scene.chart.BarChart?>
-<?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.collections.FXCollections?>
@@ -38,8 +34,6 @@
                         </FXCollections>
                     </items>
                 </ComboBox>
-                <Button fx:id="exportButton" text="Export Report"
-                        style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: 600; -fx-padding: 10 20; -fx-background-radius: 6;"/>
             </HBox>
             
             <!-- Summary Cards Row -->
@@ -125,16 +119,15 @@
                 </HBox>
             </VBox>
             
-            <!-- Spending Chart Card -->
-        <VBox fx:id="incomeExpenseChartContainer" spacing="8"
+            <!-- Monthly Income vs Expenses Bar Chart -->
+            <VBox fx:id="incomeExpenseChartContainer" spacing="16"
                   style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
-            <padding>
-                <Insets top="24" right="24" bottom="24" left="24"/>
-            </padding>
-            <Label text="Daily Spending/Income" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
-            <!-- Chart will be dynamically created -->
-        </VBox>
-            
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
+                <!-- Bar chart will be dynamically created -->
+            </VBox>
+
 
         </VBox>
     </ScrollPane>

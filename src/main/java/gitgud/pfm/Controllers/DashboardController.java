@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Budget;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
@@ -30,14 +30,13 @@ public class DashboardController implements Initializable {
     @FXML private ProgressBar goalProgress;
     @FXML private Label goalHintLabel;
     @FXML private VBox priorityGoalsList;
-    @FXML private ComboBox<String> periodSelect;
     @FXML private LineChart<Number, Number> spendingChart;
     @FXML private VBox transactionsList;
     @FXML private Hyperlink viewAllTransactions;
     @FXML private Hyperlink viewAllGoals;
     @FXML private NumberAxis xAxis;
 
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     private static Runnable onNavigateToGoals;
     private static Runnable onNavigateToTransactions;
 
@@ -51,7 +50,7 @@ public class DashboardController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         
         // Register for goal and budget refresh notifications
         dataStore.addGoalRefreshListener(this::refreshPriorityGoals);
@@ -63,11 +62,6 @@ public class DashboardController implements Initializable {
         loadPriorityGoals();
         loadSpendingChart();
         loadRecentTransactions();
-        
-        // Period selector listener
-        if (periodSelect != null) {
-            periodSelect.setOnAction(e -> loadSpendingChart());
-        }
         
         // Setup navigation for View All links
         if (viewAllGoals != null) {
@@ -373,19 +367,23 @@ public class DashboardController implements Initializable {
             }
         }
         
-        // Create series for this month
+        // Create series for this month with cumulative spending
         XYChart.Series<Number, Number> thisMonthSeries = new XYChart.Series<>();
         thisMonthSeries.setName("This Month");
+        double cumulativeThisMonth = 0.0;
         for (int day = 1; day <= daysInCurrentMonth; day++) {
-            thisMonthSeries.getData().add(new XYChart.Data<>(day, thisMonthExpenses.get(day)));
+            cumulativeThisMonth += thisMonthExpenses.get(day);
+            thisMonthSeries.getData().add(new XYChart.Data<>(day, cumulativeThisMonth));
         }
         
-        // Create series for last month
+        // Create series for last month with cumulative spending
         XYChart.Series<Number, Number> lastMonthSeries = new XYChart.Series<>();
         lastMonthSeries.setName("Last Month");
+        double cumulativeLastMonth = 0.0;
         int maxDays = Math.min(daysInLastMonth, daysInCurrentMonth);
         for (int day = 1; day <= maxDays; day++) {
-            lastMonthSeries.getData().add(new XYChart.Data<>(day, lastMonthExpenses.get(day)));
+            cumulativeLastMonth += lastMonthExpenses.get(day);
+            lastMonthSeries.getData().add(new XYChart.Data<>(day, cumulativeLastMonth));
         }
 
         spendingChart.getData().add(thisMonthSeries);

@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
@@ -33,7 +33,7 @@ public class AddTransactionFormController implements Initializable {
     @FXML private Button saveButton;
     
     private Stage dialogStage;
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     private BorderPane formRoot;
     
     private String selectedCategoryId;
@@ -48,7 +48,7 @@ public class AddTransactionFormController implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         datePicker.setValue(LocalDate.now());
         
         // Store reference to the form root

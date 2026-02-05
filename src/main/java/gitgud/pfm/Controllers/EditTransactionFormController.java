@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Wallet;
@@ -31,7 +31,7 @@ public class EditTransactionFormController implements Initializable {
     @FXML private Button saveButton;
     
     private Stage dialogStage;
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     private Transaction transaction;
     private BorderPane formRoot;
     private Runnable onSaveCallback;
@@ -86,7 +86,7 @@ public class EditTransactionFormController implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         
         // Validate amount field input
         amountField.textProperty().addListener((obs, oldVal, newVal) -> {

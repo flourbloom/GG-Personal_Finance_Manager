@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Transaction;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -15,8 +15,10 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -26,7 +28,6 @@ public class ReportsController implements Initializable {
     @FXML private StackPane rootPane;
     @FXML private VBox mainContent;
     @FXML private ComboBox<String> reportPeriodCombo;
-    @FXML private Button exportButton;
     @FXML private Label totalIncomeLabel;
     @FXML private Label totalExpensesLabel;
     @FXML private Label netSavingsLabel;
@@ -35,14 +36,12 @@ public class ReportsController implements Initializable {
     @FXML private Label expenseChangeLabel;
     @FXML private Label savingsChangeLabel;
     @FXML private Label rateChangeLabel;
-    @FXML private VBox incomeExpenseChartContainer;
     @FXML private VBox expensePieChartContainer;
     @FXML private VBox categoryBreakdownList;
+    @FXML private VBox incomeExpenseChartContainer;
 
-    private DataStore dataStore;
-    private boolean showingIncome = false;
+    private AccountDataLoader dataStore;
     private boolean showPercentage = false;
-    private LineChart<Number, Number> dailyChart;
     private PieChart expensePieChart;
     
     private static final Map<String, String> CATEGORY_NAMES = new LinkedHashMap<>();
@@ -89,15 +88,11 @@ public class ReportsController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         dataStore.addWalletRefreshListener(this::refresh);
         
         if (reportPeriodCombo != null) {
             reportPeriodCombo.setOnAction(e -> loadReportData());
-        }
-        
-        if (exportButton != null) {
-            exportButton.setOnAction(e -> exportReport());
         }
         
         loadReportData();
@@ -105,14 +100,25 @@ public class ReportsController implements Initializable {
 
     private void loadReportData() {
         updateSummaryCards();
-        loadIncomeExpenseChart();
+        
         loadExpensePieChart();
         loadCategoryBreakdown();
+        loadIncomeExpenseChart();
     }
 
     private void updateSummaryCards() {
-        double totalIncome = dataStore.getTotalIncome();
-        double totalExpenses = dataStore.getTotalExpenses();
+        List<Transaction> filteredTransactions = getFilteredTransactions();
+        
+        double totalIncome = filteredTransactions.stream()
+                .filter(tx -> tx.getIncome() > 0)
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+        
+        double totalExpenses = filteredTransactions.stream()
+                .filter(tx -> tx.getIncome() <= 0)
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+        
         double netSavings = totalIncome - totalExpenses;
         double savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
 
@@ -121,78 +127,70 @@ public class ReportsController implements Initializable {
         netSavingsLabel.setText(String.format("$%.2f", netSavings));
         savingsRateLabel.setText(String.format("%.1f%%", savingsRate));
 
-        incomeChangeLabel.setText("+0% from last period");
-        expenseChangeLabel.setText("+0% from last period");
-        savingsChangeLabel.setText("+0% from last period");
-        rateChangeLabel.setText("+0% from last period");
+        // Get selected period for label
+        String selectedPeriod = reportPeriodCombo != null ? reportPeriodCombo.getValue() : "This Month";
+        incomeChangeLabel.setText(selectedPeriod);
+        expenseChangeLabel.setText(selectedPeriod);
+        savingsChangeLabel.setText(selectedPeriod);
+        rateChangeLabel.setText(selectedPeriod);
+    }
+    
+    private List<Transaction> getFilteredTransactions() {
+        List<Transaction> allTransactions = dataStore.getTransactions();
+        String selectedPeriod = reportPeriodCombo != null ? reportPeriodCombo.getValue() : "This Month";
+        
+        LocalDate now = LocalDate.now();
+        LocalDate startDate;
+        
+        switch (selectedPeriod) {
+            case "This Week":
+                startDate = now.with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1);
+                break;
+            case "This Month":
+                startDate = now.withDayOfMonth(1);
+                break;
+            case "Last 3 Months":
+                startDate = now.minusMonths(3).withDayOfMonth(1);
+                break;
+            case "Last 6 Months":
+                startDate = now.minusMonths(6).withDayOfMonth(1);
+                break;
+            case "This Year":
+                startDate = now.withDayOfYear(1);
+                break;
+            default:
+                startDate = now.withDayOfMonth(1);
+        }
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        return allTransactions.stream()
+                .filter(tx -> {
+                    try {
+                        String createTime = tx.getCreateTime();
+                        if (createTime == null) return false;
+                        
+                        LocalDate txDate;
+                        try {
+                            txDate = LocalDateTime.parse(createTime, formatter).toLocalDate();
+                        } catch (Exception e) {
+                            try {
+                                txDate = LocalDate.parse(createTime, dateOnlyFormatter);
+                            } catch (Exception e2) {
+                                return false;
+                            }
+                        }
+                        
+                        return !txDate.isBefore(startDate) && !txDate.isAfter(now);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
-    private void loadIncomeExpenseChart() {
-        incomeExpenseChartContainer.getChildren().clear();
-        
-        HBox toggleBox = new HBox(8);
-        toggleBox.setAlignment(Pos.CENTER_LEFT);
-        
-        ToggleGroup chartToggle = new ToggleGroup();
-        
-        ToggleButton expenseBtn = new ToggleButton("Expenses");
-        expenseBtn.setToggleGroup(chartToggle);
-        expenseBtn.setSelected(!showingIncome);
-        expenseBtn.setStyle(getToggleStyle(!showingIncome));
-        
-        ToggleButton incomeBtn = new ToggleButton("Income");
-        incomeBtn.setToggleGroup(chartToggle);
-        incomeBtn.setSelected(showingIncome);
-        incomeBtn.setStyle(getToggleStyle(showingIncome));
-        
-        expenseBtn.setOnAction(e -> {
-            showingIncome = false;
-            expenseBtn.setStyle(getToggleStyle(true));
-            incomeBtn.setStyle(getToggleStyle(false));
-            updateDailyChart();
-        });
-        
-        incomeBtn.setOnAction(e -> {
-            showingIncome = true;
-            incomeBtn.setStyle(getToggleStyle(true));
-            expenseBtn.setStyle(getToggleStyle(false));
-            updateDailyChart();
-        });
-        
-        toggleBox.getChildren().addAll(expenseBtn, incomeBtn);
-        
-        NumberAxis xAxis = new NumberAxis(1, 31, 1);
-        xAxis.setLabel("Day of Month");
-        xAxis.setMinorTickVisible(false);
-        xAxis.setTickLabelFormatter(new javafx.util.StringConverter<Number>() {
-            @Override
-            public String toString(Number object) {
-                return String.valueOf(object.intValue());
-            }
-            @Override
-            public Number fromString(String string) {
-                return Integer.parseInt(string);
-            }
-        });
-        
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Amount ($)");
-        yAxis.setMinorTickVisible(false);
-        
-        dailyChart = new LineChart<>(xAxis, yAxis);
-        dailyChart.setPrefHeight(280);
-        dailyChart.setLegendVisible(true);
-        dailyChart.setAnimated(false);
-        dailyChart.setCreateSymbols(true);
-        dailyChart.setHorizontalGridLinesVisible(true);
-        dailyChart.setVerticalGridLinesVisible(true);
-        dailyChart.setStyle("-fx-background-color: transparent;");
-        
-        updateDailyChart();
-        
-        incomeExpenseChartContainer.getChildren().addAll(toggleBox, dailyChart);
-        VBox.setMargin(toggleBox, new Insets(0, 0, 16, 0));
-    }
+
     
     private String getToggleStyle(boolean selected) {
         if (selected) {
@@ -201,79 +199,7 @@ public class ReportsController implements Initializable {
         return "-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-background-radius: 6; -fx-padding: 8 16; -fx-font-size: 13px;";
     }
     
-    private void updateDailyChart() {
-        dailyChart.getData().clear();
-        
-        List<Transaction> transactions = dataStore.getTransactions();
-        YearMonth currentMonth = YearMonth.now();
-        YearMonth lastMonth = currentMonth.minusMonths(1);
-        int daysInCurrentMonth = currentMonth.lengthOfMonth();
-        int daysInLastMonth = lastMonth.lengthOfMonth();
-        
-        NumberAxis xAxis = (NumberAxis) dailyChart.getXAxis();
-        xAxis.setUpperBound(daysInCurrentMonth);
-        
-        Map<Integer, Double> thisMonthData = new TreeMap<>();
-        Map<Integer, Double> lastMonthData = new TreeMap<>();
-        
-        for (int day = 1; day <= daysInCurrentMonth; day++) {
-            thisMonthData.put(day, 0.0);
-        }
-        for (int day = 1; day <= daysInLastMonth; day++) {
-            lastMonthData.put(day, 0.0);
-        }
-        
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        
-        for (Transaction tx : transactions) {
-            boolean isIncome = tx.getIncome() > 0;
-            if (isIncome != showingIncome) continue;
-            
-            try {
-                String createTime = tx.getCreateTime();
-                LocalDate txDate;
-                
-                try {
-                    txDate = LocalDate.parse(createTime, formatter);
-                } catch (Exception e) {
-                    try {
-                        txDate = LocalDate.parse(createTime, dateOnlyFormatter);
-                    } catch (Exception e2) {
-                        continue;
-                    }
-                }
-                
-                int dayOfMonth = txDate.getDayOfMonth();
-                YearMonth txMonth = YearMonth.from(txDate);
-                
-                if (txMonth.equals(currentMonth)) {
-                    thisMonthData.merge(dayOfMonth, tx.getAmount(), Double::sum);
-                } else if (txMonth.equals(lastMonth)) {
-                    lastMonthData.merge(dayOfMonth, tx.getAmount(), Double::sum);
-                }
-            } catch (Exception e) {
-                // Skip
-            }
-        }
-        
-        XYChart.Series<Number, Number> thisMonthSeries = new XYChart.Series<>();
-        thisMonthSeries.setName("This Month");
-        for (Map.Entry<Integer, Double> entry : thisMonthData.entrySet()) {
-            thisMonthSeries.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
-        }
-        
-        XYChart.Series<Number, Number> lastMonthSeries = new XYChart.Series<>();
-        lastMonthSeries.setName("Last Month");
-        int maxDays = Math.min(daysInLastMonth, daysInCurrentMonth);
-        for (int day = 1; day <= maxDays; day++) {
-            lastMonthSeries.getData().add(new XYChart.Data<>(day, lastMonthData.get(day)));
-        }
-        
-        @SuppressWarnings("unchecked")
-        XYChart.Series<Number,Number>[] series = new XYChart.Series[]{thisMonthSeries, lastMonthSeries};
-        dailyChart.getData().addAll(series);
-    }
+
 
     private void loadExpensePieChart() {
         expensePieChartContainer.getChildren().clear();
@@ -333,7 +259,7 @@ public class ReportsController implements Initializable {
         // Income category IDs to exclude from spending breakdown
         java.util.Set<String> incomeCategories = java.util.Set.of("10", "11");
         
-        List<Transaction> transactions = dataStore.getTransactions();
+        List<Transaction> transactions = getFilteredTransactions();
         // Use LinkedHashMap to preserve insertion order
         Map<String, Double> categoryTotals = new LinkedHashMap<>();
         transactions.stream()
@@ -354,8 +280,6 @@ public class ReportsController implements Initializable {
         List<String> categoryIds = new ArrayList<>(categoryTotals.keySet());
         
         for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
-            String categoryId = entry.getKey();
-            String name = CATEGORY_NAMES.getOrDefault(categoryId, categoryId);
             double amount = entry.getValue();
             double percentage = total > 0 ? (amount / total) * 100 : 0;
             
@@ -398,7 +322,7 @@ public class ReportsController implements Initializable {
         // Income category IDs to exclude from spending breakdown
         java.util.Set<String> incomeCategories = java.util.Set.of("10", "11");
 
-        List<Transaction> transactions = dataStore.getTransactions();
+        List<Transaction> transactions = getFilteredTransactions();
         // Use LinkedHashMap to preserve insertion order
         Map<String, Double> categoryTotals = new LinkedHashMap<>();
         transactions.stream()
@@ -571,12 +495,144 @@ public class ReportsController implements Initializable {
         popup.showAndWait();
     }
 
-    private void exportReport() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Export Report");
-        alert.setHeaderText("Export Feature");
-        alert.setContentText("Report export functionality coming soon!");
-        alert.show();
+    private void loadIncomeExpenseChart() {
+        if (incomeExpenseChartContainer == null) return;
+        incomeExpenseChartContainer.getChildren().clear();
+        
+        // Create category axis for months
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Month");
+        xAxis.setTickLabelFill(javafx.scene.paint.Color.web("#1e293b"));
+        xAxis.setTickLabelFont(javafx.scene.text.Font.font(12));
+        xAxis.setAnimated(false);
+        
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Amount ($)");
+        yAxis.setTickLabelFill(javafx.scene.paint.Color.web("#1e293b"));
+        yAxis.setTickLabelFont(javafx.scene.text.Font.font(12));
+        yAxis.setAutoRanging(true);
+        yAxis.setAnimated(false);
+        
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Income and Expenses");
+        barChart.setPrefHeight(400);
+        barChart.setMinHeight(400);
+        barChart.setLegendVisible(true);
+        barChart.setLegendSide(javafx.geometry.Side.BOTTOM);
+        barChart.setCategoryGap(30);
+        barChart.setBarGap(3);
+        barChart.setAnimated(false);
+        barChart.setStyle("-fx-font-size: 12px;");
+        
+        XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
+        incomeSeries.setName("Income");
+        
+        XYChart.Series<String, Number> expenseSeries = new XYChart.Series<>();
+        expenseSeries.setName("Expenses");
+        
+        // Get all transactions
+        List<Transaction> allTransactions = dataStore.getTransactions();
+        
+        // Determine how many months to show based on selected period
+        String selectedPeriod = reportPeriodCombo != null ? reportPeriodCombo.getValue() : "This Month";
+        int monthsToShow;
+        switch (selectedPeriod) {
+            case "This Week":
+            case "This Month":
+                monthsToShow = 6; // Show last 6 months for context
+                break;
+            case "Last 3 Months":
+                monthsToShow = 3;
+                break;
+            case "Last 6 Months":
+                monthsToShow = 6;
+                break;
+            case "This Year":
+                monthsToShow = 12;
+                break;
+            default:
+                monthsToShow = 6;
+        }
+        
+        // Create maps for monthly totals
+        Map<YearMonth, Double> monthlyIncome = new LinkedHashMap<>();
+        Map<YearMonth, Double> monthlyExpenses = new LinkedHashMap<>();
+        
+        // Initialize months
+        YearMonth currentMonth = YearMonth.now();
+        List<String> monthLabels = new ArrayList<>();
+        for (int i = monthsToShow - 1; i >= 0; i--) {
+            YearMonth month = currentMonth.minusMonths(i);
+            monthlyIncome.put(month, 0.0);
+            monthlyExpenses.put(month, 0.0);
+            monthLabels.add(month.format(DateTimeFormatter.ofPattern("MMM yyyy")));
+        }
+        
+        // Set categories on x-axis
+        xAxis.setCategories(javafx.collections.FXCollections.observableArrayList(monthLabels));
+        
+        // Parse transactions and aggregate by month
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        for (Transaction tx : allTransactions) {
+            try {
+                String createTime = tx.getCreateTime();
+                if (createTime == null) continue;
+                
+                LocalDate txDate;
+                try {
+                    txDate = LocalDateTime.parse(createTime, formatter).toLocalDate();
+                } catch (Exception e) {
+                    try {
+                        txDate = LocalDate.parse(createTime, dateOnlyFormatter);
+                    } catch (Exception e2) {
+                        continue;
+                    }
+                }
+                
+                YearMonth txMonth = YearMonth.from(txDate);
+                
+                if (monthlyIncome.containsKey(txMonth)) {
+                    if (tx.getIncome() > 0) {
+                        monthlyIncome.merge(txMonth, tx.getAmount(), Double::sum);
+                    } else {
+                        monthlyExpenses.merge(txMonth, tx.getAmount(), Double::sum);
+                    }
+                }
+            } catch (Exception e) {
+                // Skip transactions with invalid dates
+            }
+        }
+        
+        // Add data to series using consistent month labels
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy");
+        for (YearMonth month : monthlyIncome.keySet()) {
+            String monthLabel = month.format(monthFormatter);
+            incomeSeries.getData().add(new XYChart.Data<>(monthLabel, monthlyIncome.get(month)));
+            // Show expenses as negative for visual distinction
+            expenseSeries.getData().add(new XYChart.Data<>(monthLabel, -monthlyExpenses.get(month)));
+        }
+        
+        barChart.getData().addAll(incomeSeries, expenseSeries);
+        
+        // Style the bars after rendering
+        javafx.application.Platform.runLater(() -> {
+            // Style income bars (green)
+            for (XYChart.Data<String, Number> data : incomeSeries.getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-bar-fill: #166534;");
+                }
+            }
+            // Style expense bars (red)
+            for (XYChart.Data<String, Number> data : expenseSeries.getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-bar-fill: #ef4444;");
+                }
+            }
+        });
+        
+        incomeExpenseChartContainer.getChildren().add(barChart);
     }
 
     public void refresh() {

@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Wallet;
@@ -32,11 +32,11 @@ public class GoalsController implements Initializable {
     @FXML private ComboBox<String> sortGoalsCombo;
     @FXML private VBox goalsList;
 
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         
         // Style the add goal button with hover effects
         styleAddGoalButton();

@@ -73,6 +73,21 @@
 
 .chart-legend {
     -fx-background-color: transparent;
+    -fx-padding: 10px;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #1e293b;
+}
+
+.chart-legend-item-symbol {
+    -fx-background-radius: 4px;
+}
+
+.chart-title {
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
 }
 
 .default-color0.chart-series-line {
@@ -94,11 +109,33 @@
     -fx-background-color: #94a3b8, white;
 }
 
+/* Bar Chart Styling */
+.default-color0.chart-bar {
+    -fx-bar-fill: #166534;
+}
+
+.default-color1.chart-bar {
+    -fx-bar-fill: #ef4444;
+}
+
 .axis {
     -fx-font-size: 12px;
-    -fx-text-fill: #64748b;
+    -fx-tick-label-fill: #1e293b;
 }
 
 .axis-label {
-    -fx-text-fill: #64748b;
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 13px;
+}
+
+.axis-tick-mark {
+    -fx-stroke: #94a3b8;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke: #e2e8f0;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: #e2e8f0;
 }
