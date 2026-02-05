@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.*;
@@ -37,6 +38,7 @@ public class ReportsController implements Initializable {
     @FXML private Label rateChangeLabel;
     @FXML private VBox expensePieChartContainer;
     @FXML private VBox categoryBreakdownList;
+    @FXML private VBox incomeExpenseChartContainer;
 
     private DataStore dataStore;
     private boolean showPercentage = false;
@@ -101,6 +103,7 @@ public class ReportsController implements Initializable {
         
         loadExpensePieChart();
         loadCategoryBreakdown();
+        loadIncomeExpenseChart();
     }
 
     private void updateSummaryCards() {
@@ -490,6 +493,146 @@ public class ReportsController implements Initializable {
         Scene scene = new Scene(content, 500, 550);
         popup.setScene(scene);
         popup.showAndWait();
+    }
+
+    private void loadIncomeExpenseChart() {
+        if (incomeExpenseChartContainer == null) return;
+        incomeExpenseChartContainer.getChildren().clear();
+        
+        // Create category axis for months
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Month");
+        xAxis.setTickLabelFill(javafx.scene.paint.Color.web("#1e293b"));
+        xAxis.setTickLabelFont(javafx.scene.text.Font.font(12));
+        xAxis.setAnimated(false);
+        
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Amount ($)");
+        yAxis.setTickLabelFill(javafx.scene.paint.Color.web("#1e293b"));
+        yAxis.setTickLabelFont(javafx.scene.text.Font.font(12));
+        yAxis.setAutoRanging(true);
+        yAxis.setAnimated(false);
+        
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Income and Expenses");
+        barChart.setPrefHeight(400);
+        barChart.setMinHeight(400);
+        barChart.setLegendVisible(true);
+        barChart.setLegendSide(javafx.geometry.Side.BOTTOM);
+        barChart.setCategoryGap(30);
+        barChart.setBarGap(3);
+        barChart.setAnimated(false);
+        barChart.setStyle("-fx-font-size: 12px;");
+        
+        XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
+        incomeSeries.setName("Income");
+        
+        XYChart.Series<String, Number> expenseSeries = new XYChart.Series<>();
+        expenseSeries.setName("Expenses");
+        
+        // Get all transactions
+        List<Transaction> allTransactions = dataStore.getTransactions();
+        
+        // Determine how many months to show based on selected period
+        String selectedPeriod = reportPeriodCombo != null ? reportPeriodCombo.getValue() : "This Month";
+        int monthsToShow;
+        switch (selectedPeriod) {
+            case "This Week":
+            case "This Month":
+                monthsToShow = 6; // Show last 6 months for context
+                break;
+            case "Last 3 Months":
+                monthsToShow = 3;
+                break;
+            case "Last 6 Months":
+                monthsToShow = 6;
+                break;
+            case "This Year":
+                monthsToShow = 12;
+                break;
+            default:
+                monthsToShow = 6;
+        }
+        
+        // Create maps for monthly totals
+        Map<YearMonth, Double> monthlyIncome = new LinkedHashMap<>();
+        Map<YearMonth, Double> monthlyExpenses = new LinkedHashMap<>();
+        
+        // Initialize months
+        YearMonth currentMonth = YearMonth.now();
+        List<String> monthLabels = new ArrayList<>();
+        for (int i = monthsToShow - 1; i >= 0; i--) {
+            YearMonth month = currentMonth.minusMonths(i);
+            monthlyIncome.put(month, 0.0);
+            monthlyExpenses.put(month, 0.0);
+            monthLabels.add(month.format(DateTimeFormatter.ofPattern("MMM yyyy")));
+        }
+        
+        // Set categories on x-axis
+        xAxis.setCategories(javafx.collections.FXCollections.observableArrayList(monthLabels));
+        
+        // Parse transactions and aggregate by month
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        for (Transaction tx : allTransactions) {
+            try {
+                String createTime = tx.getCreateTime();
+                if (createTime == null) continue;
+                
+                LocalDate txDate;
+                try {
+                    txDate = LocalDateTime.parse(createTime, formatter).toLocalDate();
+                } catch (Exception e) {
+                    try {
+                        txDate = LocalDate.parse(createTime, dateOnlyFormatter);
+                    } catch (Exception e2) {
+                        continue;
+                    }
+                }
+                
+                YearMonth txMonth = YearMonth.from(txDate);
+                
+                if (monthlyIncome.containsKey(txMonth)) {
+                    if (tx.getIncome() > 0) {
+                        monthlyIncome.merge(txMonth, tx.getAmount(), Double::sum);
+                    } else {
+                        monthlyExpenses.merge(txMonth, tx.getAmount(), Double::sum);
+                    }
+                }
+            } catch (Exception e) {
+                // Skip transactions with invalid dates
+            }
+        }
+        
+        // Add data to series using consistent month labels
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy");
+        for (YearMonth month : monthlyIncome.keySet()) {
+            String monthLabel = month.format(monthFormatter);
+            incomeSeries.getData().add(new XYChart.Data<>(monthLabel, monthlyIncome.get(month)));
+            // Show expenses as negative for visual distinction
+            expenseSeries.getData().add(new XYChart.Data<>(monthLabel, -monthlyExpenses.get(month)));
+        }
+        
+        barChart.getData().addAll(incomeSeries, expenseSeries);
+        
+        // Style the bars after rendering
+        javafx.application.Platform.runLater(() -> {
+            // Style income bars (green)
+            for (XYChart.Data<String, Number> data : incomeSeries.getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-bar-fill: #166534;");
+                }
+            }
+            // Style expense bars (red)
+            for (XYChart.Data<String, Number> data : expenseSeries.getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-bar-fill: #ef4444;");
+                }
+            }
+        });
+        
+        incomeExpenseChartContainer.getChildren().add(barChart);
     }
 
     public void refresh() {

@@ -118,6 +118,15 @@
                     </VBox>
                 </HBox>
             </VBox>
+            
+            <!-- Monthly Income vs Expenses Bar Chart -->
+            <VBox fx:id="incomeExpenseChartContainer" spacing="16"
+                  style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
+                <!-- Bar chart will be dynamically created -->
+            </VBox>
 
 
         </VBox>
