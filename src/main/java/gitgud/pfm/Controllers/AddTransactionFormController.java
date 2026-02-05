@@ -8,12 +8,8 @@ import gitgud.pfm.Models.Wallet;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -37,7 +33,6 @@ public class AddTransactionFormController implements Initializable {
     @FXML private Button saveButton;
     
     private Stage dialogStage;
-    private AddTransactionCategoryController categoryController;
     private DataStore dataStore;
     private BorderPane formRoot;
     
@@ -77,16 +72,8 @@ public class AddTransactionFormController implements Initializable {
         backButton.setOnAction(e -> showCategorySelection());
     }
     
-    public void setDialogStage(Stage stage) {
-        this.dialogStage = stage;
-    }
-    
     public void setFormRoot(BorderPane root) {
         this.formRoot = root;
-    }
-    
-    public void setCategoryController(AddTransactionCategoryController controller) {
-        this.categoryController = controller;
     }
     
     public void setCategory(String categoryName, CategoryInfo categoryInfo, Category.Type type) {
@@ -275,7 +262,6 @@ public class AddTransactionFormController implements Initializable {
             BorderPane root = loader.load();
             
             AddTransactionCategoryController controller = loader.getController();
-            controller.setDialogStage(dialogStage);
             controller.setFormController(this);
             
             dialogStage.getScene().setRoot(root);

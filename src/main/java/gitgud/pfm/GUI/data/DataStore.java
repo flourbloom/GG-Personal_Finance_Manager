@@ -5,12 +5,8 @@ import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Wallet;
 import gitgud.pfm.Models.Budget;
 import gitgud.pfm.services.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * GUI DataStore - Bridges GUI layer with actual database services

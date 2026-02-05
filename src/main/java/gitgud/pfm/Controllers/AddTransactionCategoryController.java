@@ -3,7 +3,6 @@ package gitgud.pfm.Controllers;
 import gitgud.pfm.GUI.data.DataStore;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Goal;
-import gitgud.pfm.Models.Wallet;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -11,7 +10,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.net.URL;
@@ -24,7 +22,6 @@ public class AddTransactionCategoryController implements Initializable {
     @FXML private VBox goalsSection;
     @FXML private FlowPane goalsCategoriesPane;
     
-    private Stage dialogStage;
     private AddTransactionFormController formController;
     private DataStore dataStore;
     
@@ -47,10 +44,6 @@ public class AddTransactionCategoryController implements Initializable {
         
         INCOME_CATEGORIES.put("Salary", new CategoryInfo("10", "#10b981", "💰"));
         INCOME_CATEGORIES.put("Investment", new CategoryInfo("11", "#6366f1", "📈"));
-    }
-    
-    public void setDialogStage(Stage stage) {
-        this.dialogStage = stage;
     }
     
     public void setFormController(AddTransactionFormController controller) {

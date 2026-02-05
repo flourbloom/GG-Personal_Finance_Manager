@@ -3,7 +3,6 @@ package gitgud.pfm.GUI;
 import gitgud.pfm.GUI.data.DataStore;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
-import gitgud.pfm.Models.Wallet;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.LineChart;
@@ -12,9 +11,6 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -276,7 +272,9 @@ public class DashboardView extends ScrollPane {
         lastMonth.getData().add(new XYChart.Data<>(3, 340));
         lastMonth.getData().add(new XYChart.Data<>(4, 400));
         
-        lineChart.getData().addAll(thisMonth, lastMonth);
+        @SuppressWarnings("unchecked")
+        XYChart.Series<Number,Number>[] series = new XYChart.Series[]{thisMonth, lastMonth};
+        lineChart.getData().addAll(series);
         
         card.getChildren().addAll(header, lineChart);
         return card;
@@ -400,22 +398,8 @@ public class DashboardView extends ScrollPane {
         return pane;
     }
     
-    private String formatTime(LocalDateTime time) {
-        LocalDateTime now = LocalDateTime.now();
-        long hoursDiff = ChronoUnit.HOURS.between(time, now);
-        
-        if (hoursDiff < 24 && time.toLocalDate().equals(now.toLocalDate())) {
-            return "Today, " + time.format(DateTimeFormatter.ofPattern("h:mm a"));
-        } else if (hoursDiff < 48 && time.toLocalDate().equals(now.toLocalDate().minusDays(1))) {
-            return "Yesterday, " + time.format(DateTimeFormatter.ofPattern("h:mm a"));
-        } else {
-            return time.format(DateTimeFormatter.ofPattern("MMM d, yyyy"));
-        }
-    }
-    
     private void updateBudgetGoal() {
         double budgetLimit = 3000.0;
-        LocalDateTime now = LocalDateTime.now();
         
         double totalSpent = dataStore.getTotalExpenses();
         

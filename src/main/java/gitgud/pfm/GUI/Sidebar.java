@@ -8,12 +8,9 @@ import javafx.scene.layout.*;
 
 public class Sidebar extends VBox {
     
-    private App app;
     private VBox navMenu;
-    private NavItem activeItem;
     
     public Sidebar(App app) {
-        this.app = app;
         
         setPrefWidth(240);
         setStyle("-fx-background-color: #1e293b;");
@@ -35,7 +32,6 @@ public class Sidebar extends VBox {
         NavItem wallets = new NavItem("Wallets", "👛", "#f59e0b", () -> app.showWallets());
         
         navMenu.getChildren().addAll(dashboard, transactions, reports, goals, wallets);
-        activeItem = dashboard;
         dashboard.setActive(true);
         
         // Profile section
@@ -99,23 +95,16 @@ public class Sidebar extends VBox {
             if (node instanceof NavItem) {
                 NavItem item = (NavItem) node;
                 item.setActive(item.getText().equals(itemName));
-                if (item.getText().equals(itemName)) {
-                    activeItem = item;
-                }
             }
         }
     }
     
     private class NavItem extends HBox {
         private String text;
-        private String icon;
-        private String iconColor;
         private boolean active = false;
         
         public NavItem(String text, String icon, String iconColor, Runnable action) {
             this.text = text;
-            this.icon = icon;
-            this.iconColor = iconColor;
             setAlignment(Pos.CENTER_LEFT);
             setSpacing(14);
             setPadding(new Insets(14, 16, 14, 16));
@@ -148,7 +137,6 @@ public class Sidebar extends VBox {
         
         public void setActive(boolean active) {
             this.active = active;
-            Label iconLabel = (Label)getChildren().get(0);
             Label textLabel = (Label)getChildren().get(1);
             if (active) {
                 setStyle("-fx-background-color: #3b82f6; -fx-background-radius: 10; -fx-cursor: hand;");

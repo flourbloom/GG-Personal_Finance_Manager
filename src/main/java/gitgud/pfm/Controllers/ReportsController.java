@@ -272,7 +272,9 @@ public class ReportsController implements Initializable {
             lastMonthSeries.getData().add(new XYChart.Data<>(day, lastMonthData.get(day)));
         }
         
-        dailyChart.getData().addAll(thisMonthSeries, lastMonthSeries);
+        @SuppressWarnings("unchecked")
+        XYChart.Series<Number,Number>[] series = new XYChart.Series[]{thisMonthSeries, lastMonthSeries};
+        dailyChart.getData().addAll(series);
     }
 
     private void loadExpensePieChart() {

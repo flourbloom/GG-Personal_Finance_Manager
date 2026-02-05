@@ -1,6 +1,5 @@
 package gitgud.pfm.GUI;
 
-import gitgud.pfm.GUI.data.DataStore;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -8,10 +7,7 @@ import javafx.scene.layout.*;
 
 public class ReportsView extends StackPane {
     
-    private DataStore dataStore;
-    
     public ReportsView() {
-        dataStore = DataStore.getInstance();
         
         VBox mainContent = new VBox(24);
         mainContent.setPadding(new Insets(28));
