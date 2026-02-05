@@ -20,6 +20,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import gitgud.pfm.utils.DateFormatUtil;
+
 public class GoalsController implements Initializable {
 
     @FXML private ScrollPane rootPane;
@@ -416,28 +418,34 @@ public class GoalsController implements Initializable {
             color = "#94a3b8";
         } else {
             try {
-                LocalDate deadlineDate = LocalDate.parse(deadline);
-                LocalDate now = LocalDate.now();
-                long daysRemaining = ChronoUnit.DAYS.between(now, deadlineDate);
-                
-                if (daysRemaining < 0) {
-                    displayText = "Overdue by " + Math.abs(daysRemaining) + " days";
-                    color = "#ef4444";
-                } else if (daysRemaining == 0) {
-                    displayText = "Due today!";
-                    color = "#f59e0b";
-                } else if (daysRemaining <= 7) {
-                    displayText = daysRemaining + " days left";
-                    color = "#f59e0b";
-                } else if (daysRemaining <= 30) {
-                    displayText = daysRemaining + " days left";
+                LocalDate deadlineDate = DateFormatUtil.parseIsoDate(deadline);
+                if (deadlineDate == null) {
+                    // Fallback - display as-is with UK format conversion
+                    displayText = DateFormatUtil.isoToUkDate(deadline);
                     color = "#3b82f6";
                 } else {
-                    displayText = daysRemaining + " days left";
-                    color = "#22c55e";
+                    LocalDate now = LocalDate.now();
+                    long daysRemaining = ChronoUnit.DAYS.between(now, deadlineDate);
+                    
+                    if (daysRemaining < 0) {
+                        displayText = "Overdue by " + Math.abs(daysRemaining) + " days";
+                        color = "#ef4444";
+                    } else if (daysRemaining == 0) {
+                        displayText = "Due today!";
+                        color = "#f59e0b";
+                    } else if (daysRemaining <= 7) {
+                        displayText = daysRemaining + " days left";
+                        color = "#f59e0b";
+                    } else if (daysRemaining <= 30) {
+                        displayText = daysRemaining + " days left";
+                        color = "#3b82f6";
+                    } else {
+                        displayText = daysRemaining + " days left";
+                        color = "#22c55e";
+                    }
                 }
             } catch (Exception e) {
-                displayText = deadline;
+                displayText = DateFormatUtil.isoToUkDate(deadline);
                 color = "#3b82f6";
             }
         }
@@ -705,18 +713,18 @@ public class GoalsController implements Initializable {
             // At this point expect format 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'
             // Try parsing full datetime first
             try {
-                java.time.LocalDateTime dt = java.time.LocalDateTime.parse(normalized, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                java.time.LocalDateTime dt = java.time.LocalDateTime.parse(normalized, DateFormatUtil.ISO_DATETIME_FORMAT);
+                return DateFormatUtil.formatToIso(dt);
             } catch (Exception ignored) {
                 // Fallback: try ISO parser (handles variants)
                 try {
                     java.time.LocalDateTime dt = java.time.LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_DATE_TIME);
-                    return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    return DateFormatUtil.formatToIso(dt);
                 } catch (Exception ignored2) {
                     // If it's just a date (no time), parse as LocalDate
                     try {
                         LocalDate d = LocalDate.parse(normalized.split(" ")[0]);
-                        return d.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+                        return DateFormatUtil.formatToIso(d) + " 00:00:00";
                     } catch (Exception ex) {
                         // Last resort: return the normalized string without fractions
                         return normalized;
@@ -928,8 +936,7 @@ public class GoalsController implements Initializable {
                     }
                     
                     // Create transaction record
-                    String createTime = java.time.LocalDateTime.now()
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    String createTime = DateFormatUtil.formatToIso(java.time.LocalDateTime.now());
                     
                     Transaction transaction = new Transaction(
                         AddTransactionCategoryController.GOALS_CATEGORY_INFO.id,
@@ -1016,14 +1023,15 @@ public class GoalsController implements Initializable {
         
         // Calendar date picker for deadline
         DatePicker deadlinePicker = new DatePicker();
+        DateFormatUtil.configureDatePickerUkFormat(deadlinePicker);
         if (goal.getDeadline() != null && !goal.getDeadline().isEmpty()) {
             try {
-                deadlinePicker.setValue(LocalDate.parse(goal.getDeadline()));
+                deadlinePicker.setValue(DateFormatUtil.parseIsoDate(goal.getDeadline()));
             } catch (Exception e) {
                 // If parsing fails, leave it empty
             }
         }
-        deadlinePicker.setPromptText("Select deadline");
+        deadlinePicker.setPromptText(DateFormatUtil.UK_DATE_PROMPT);
         deadlinePicker.setStyle(
             "-fx-font-size: 14px;" +
             "-fx-background-radius: 8;"
@@ -1077,7 +1085,7 @@ public class GoalsController implements Initializable {
                     goal.setTarget(target);
                     goal.setBalance(current);
                     goal.setDeadline(deadlinePicker.getValue() != null ? 
-                        deadlinePicker.getValue().toString() : null);
+                        DateFormatUtil.formatToIso(deadlinePicker.getValue()) : null);
                     goal.setPriority(prioritySpinner.getValue());
                     return goal;
                 } catch (NumberFormatException e) {
@@ -1149,7 +1157,8 @@ public class GoalsController implements Initializable {
         
         // Calendar date picker
         DatePicker deadlinePicker = new DatePicker();
-        deadlinePicker.setPromptText("Select a target date (optional)");
+        DateFormatUtil.configureDatePickerUkFormat(deadlinePicker);
+        deadlinePicker.setPromptText(DateFormatUtil.UK_DATE_PROMPT);
         deadlinePicker.setStyle(
             "-fx-font-size: 14px;" +
             "-fx-background-radius: 8;"
@@ -1218,7 +1227,7 @@ public class GoalsController implements Initializable {
                     }
                     
                     String deadline = deadlinePicker.getValue() != null ? 
-                        deadlinePicker.getValue().toString() : null;
+                        DateFormatUtil.formatToIso(deadlinePicker.getValue()) : null;
                     
                     return new Goal(
                         nameField.getText().trim(), 

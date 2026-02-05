@@ -21,6 +21,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import gitgud.pfm.utils.DateFormatUtil;
+
 public class DashboardController implements Initializable {
 
     @FXML private ScrollPane rootPane;
@@ -166,7 +168,8 @@ public class DashboardController implements Initializable {
         Label dot = new Label("•");
         dot.setStyle("-fx-text-fill: #64748b;");
 
-        String deadlineStr = goal.getDeadline() != null ? goal.getDeadline() : "No deadline";
+        String deadlineStr = goal.getDeadline() != null ? 
+            DateFormatUtil.isoToUkDate(goal.getDeadline()) : "No deadline";
         Label deadline = new Label(deadlineStr);
         deadline.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
@@ -225,8 +228,9 @@ public class DashboardController implements Initializable {
         TextField currentField = new TextField(String.valueOf(goal.getBalance()));
         currentField.setPromptText("Current saved");
 
-        TextField deadlineField = new TextField(goal.getDeadline() != null ? goal.getDeadline() : "");
-        deadlineField.setPromptText("Deadline (YYYY-MM-DD)");
+        TextField deadlineField = new TextField(goal.getDeadline() != null ? 
+            DateFormatUtil.isoToUkDate(goal.getDeadline()) : "");
+        deadlineField.setPromptText(DateFormatUtil.UK_DATE_PROMPT);
 
         Spinner<Integer> prioritySpinner = new Spinner<>(1, 10, (int) goal.getPriority());
 
@@ -255,7 +259,9 @@ public class DashboardController implements Initializable {
                     goal.setName(nameField.getText());
                     goal.setTarget(target);
                     goal.setBalance(current);
-                    goal.setDeadline(deadlineField.getText().isEmpty() ? null : deadlineField.getText());
+                    // Convert UK format to ISO for storage
+                    String deadlineText = deadlineField.getText().trim();
+                    goal.setDeadline(deadlineText.isEmpty() ? null : DateFormatUtil.ukToIsoDate(deadlineText));
                     goal.setPriority(prioritySpinner.getValue());
                     return goal;
                 } catch (NumberFormatException e) {
@@ -333,8 +339,8 @@ public class DashboardController implements Initializable {
         }
         
         // Parse transactions and aggregate by day
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateFormatUtil.ISO_DATETIME_FORMAT;
+        DateTimeFormatter dateOnlyFormatter = DateFormatUtil.ISO_DATE_FORMAT;
         
         for (Transaction tx : allTransactions) {
             if (tx.getIncome() > 0) continue; // Skip income transactions
@@ -419,7 +425,7 @@ public class DashboardController implements Initializable {
         Label titleLabel = new Label(tx.getName());
         titleLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: #1e293b;");
 
-        Label timeLabel = new Label(tx.getCreateTime());
+        Label timeLabel = new Label(DateFormatUtil.isoToUkDateTime(tx.getCreateTime()));
         timeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
         details.getChildren().addAll(titleLabel, timeLabel);

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import gitgud.pfm.utils.DateFormatUtil;
+
 public class BudgetController implements Initializable {
 
     @FXML private ScrollPane rootPane;
@@ -136,8 +138,8 @@ public class BudgetController implements Initializable {
         
         // Calculate expenses for current month (This Month)
         LocalDate[] currentMonthRange = getDateRangeFromSelector("This Month");
-        String startDate = currentMonthRange[0].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String endDate = currentMonthRange[1].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String startDate = DateFormatUtil.formatToIso(currentMonthRange[0]);
+        String endDate = DateFormatUtil.formatToIso(currentMonthRange[1]);
         double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
         
         double totalBudget = budgets.stream().mapToDouble(Budget::getLimitAmount).sum();
@@ -155,8 +157,8 @@ public class BudgetController implements Initializable {
         // Get selected time period
         String selectedPeriod = monthSelector != null ? monthSelector.getValue() : "This Month";
         LocalDate[] dateRange = getDateRangeFromSelector(selectedPeriod);
-        String startDate = dateRange[0].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String endDate = dateRange[1].format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String startDate = DateFormatUtil.formatToIso(dateRange[0]);
+        String endDate = DateFormatUtil.formatToIso(dateRange[1]);
         
         // Calculate expenses for selected period
         double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
@@ -295,8 +297,10 @@ public class BudgetController implements Initializable {
             }
         }
 
-        Label dateLabel = new Label(budget.getStartDate() != null ? 
-            "From: " + budget.getStartDate() : "No date set");
+        String displayStartDate = budget.getStartDate() != null ? 
+            DateFormatUtil.isoToUkDate(budget.getStartDate()) : null;
+        Label dateLabel = new Label(displayStartDate != null ? 
+            "From: " + displayStartDate : "No date set");
         dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
         meta.getChildren().addAll(typeLabel, dateLabel);
@@ -365,7 +369,7 @@ public class BudgetController implements Initializable {
             if (createTime.contains(" ")) {
                 // Has time component - parse as datetime then get date
                 transactionDate = java.time.LocalDateTime.parse(createTime, 
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                    DateFormatUtil.ISO_DATETIME_FORMAT).toLocalDate();
             } else {
                 // Just a date
                 transactionDate = LocalDate.parse(createTime);
@@ -517,6 +521,10 @@ public class BudgetController implements Initializable {
 
         DatePicker startDatePicker = new DatePicker(LocalDate.now().withDayOfMonth(1));
         DatePicker endDatePicker = new DatePicker(LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()));
+        
+        // Configure DatePickers for UK format
+        DateFormatUtil.configureDatePickerUkFormat(startDatePicker);
+        DateFormatUtil.configureDatePickerUkFormat(endDatePicker);
 
         grid.add(new Label("Budget Name:"), 0, 0);
         grid.add(nameField, 1, 0);
@@ -540,8 +548,8 @@ public class BudgetController implements Initializable {
                 try {
                     double limit = Double.parseDouble(limitField.getText());
                     String name = nameField.getText().isEmpty() ? "Monthly Budget" : nameField.getText();
-                    String startDate = startDatePicker.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    String endDate = endDatePicker.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    String startDate = DateFormatUtil.formatToIso(startDatePicker.getValue());
+                    String endDate = DateFormatUtil.formatToIso(endDatePicker.getValue());
                     Budget.PeriodType periodType = Budget.PeriodType.valueOf(typeCombo.getValue());
                     
                     // Create budget without categoryId (will use junction table)
@@ -689,12 +697,16 @@ public class BudgetController implements Initializable {
         DatePicker startDatePicker = new DatePicker();
         DatePicker endDatePicker = new DatePicker();
         
+        // Configure DatePickers for UK format
+        DateFormatUtil.configureDatePickerUkFormat(startDatePicker);
+        DateFormatUtil.configureDatePickerUkFormat(endDatePicker);
+        
         try {
             if (budget.getStartDate() != null) {
-                startDatePicker.setValue(LocalDate.parse(budget.getStartDate()));
+                startDatePicker.setValue(DateFormatUtil.parseIsoDate(budget.getStartDate()));
             }
             if (budget.getEndDate() != null) {
-                endDatePicker.setValue(LocalDate.parse(budget.getEndDate()));
+                endDatePicker.setValue(DateFormatUtil.parseIsoDate(budget.getEndDate()));
             }
         } catch (Exception e) {
             // Use defaults if parsing fails
@@ -730,10 +742,10 @@ public class BudgetController implements Initializable {
                     budget.setPeriodType(Budget.PeriodType.valueOf(typeCombo.getValue()));
                     
                     if (startDatePicker.getValue() != null) {
-                        budget.setStartDate(startDatePicker.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                        budget.setStartDate(DateFormatUtil.formatToIso(startDatePicker.getValue()));
                     }
                     if (endDatePicker.getValue() != null) {
-                        budget.setEndDate(endDatePicker.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                        budget.setEndDate(DateFormatUtil.formatToIso(endDatePicker.getValue()));
                     }
                     return budget;
                 } catch (NumberFormatException e) {
