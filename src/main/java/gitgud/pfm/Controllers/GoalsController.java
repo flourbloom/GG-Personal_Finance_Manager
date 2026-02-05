@@ -2,22 +2,26 @@ package gitgud.pfm.Controllers;
 
 import gitgud.pfm.GUI.data.DataStore;
 import gitgud.pfm.Models.Goal;
+import gitgud.pfm.Models.Transaction;
+import gitgud.pfm.Models.Wallet;
 import javafx.animation.*;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GoalsController implements Initializable {
@@ -693,10 +697,36 @@ public class GoalsController implements Initializable {
     private String formatDate(String dateTime) {
         if (dateTime == null || dateTime.isEmpty()) return "N/A";
         try {
-            // Try to parse and format the date
-            String datePart = dateTime.split(" ")[0];
-            LocalDate date = LocalDate.parse(datePart);
-            return date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
+            // Normalize separators: convert 'T' to space
+            String normalized = dateTime.replace('T', ' ');
+
+            // Remove fractional seconds if present (part after a dot)
+            int dotIdx = normalized.indexOf('.');
+            if (dotIdx > 0) {
+                normalized = normalized.substring(0, dotIdx);
+            }
+
+            // At this point expect format 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'
+            // Try parsing full datetime first
+            try {
+                java.time.LocalDateTime dt = java.time.LocalDateTime.parse(normalized, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            } catch (Exception ignored) {
+                // Fallback: try ISO parser (handles variants)
+                try {
+                    java.time.LocalDateTime dt = java.time.LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_DATE_TIME);
+                    return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                } catch (Exception ignored2) {
+                    // If it's just a date (no time), parse as LocalDate
+                    try {
+                        LocalDate d = LocalDate.parse(normalized.split(" ")[0]);
+                        return d.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+                    } catch (Exception ex) {
+                        // Last resort: return the normalized string without fractions
+                        return normalized;
+                    }
+                }
+            }
         } catch (Exception e) {
             return dateTime;
         }
@@ -712,15 +742,15 @@ public class GoalsController implements Initializable {
         dialog.setTitle("💰 Contribute to Goal");
         
         // CRITICAL: Set dialog size to prevent glitchy/broken appearance
-        dialog.getDialogPane().setPrefWidth(420);
-        dialog.getDialogPane().setPrefHeight(380);
-        dialog.getDialogPane().setMinWidth(420);
-        dialog.getDialogPane().setMinHeight(380);
+        dialog.getDialogPane().setPrefWidth(450);
+        dialog.getDialogPane().setPrefHeight(520);
+        dialog.getDialogPane().setMinWidth(450);
+        dialog.getDialogPane().setMinHeight(520);
         
         // Custom header
         VBox headerBox = new VBox(8);
         headerBox.setPadding(new Insets(16, 20, 12, 20));
-        headerBox.setStyle("-fx-background-color: linear-gradient(to right, #3b82f6, #2563eb); -fx-background-radius: 8 8 0 0;");
+        headerBox.setStyle("-fx-background-color: linear-gradient(to right, #8b5cf6, #7c3aed); -fx-background-radius: 8 8 0 0;");
         
         Label headerTitle = new Label("Add Money to Your Goal");
         headerTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: white;");
@@ -731,7 +761,7 @@ public class GoalsController implements Initializable {
         headerBox.getChildren().addAll(headerTitle, headerSubtitle);
         dialog.getDialogPane().setHeader(headerBox);
 
-        ButtonType addButtonType = new ButtonType("Add Funds", ButtonBar.ButtonData.OK_DONE);
+        ButtonType addButtonType = new ButtonType("Contribute", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
         VBox content = new VBox(16);
@@ -755,7 +785,7 @@ public class GoalsController implements Initializable {
         double progress = goal.getTarget() > 0 ? goal.getBalance() / goal.getTarget() : 0;
         ProgressBar progressBar = new ProgressBar(Math.min(1.0, progress));
         progressBar.setPrefWidth(Double.MAX_VALUE);
-        progressBar.setStyle("-fx-accent: #3b82f6;");
+        progressBar.setStyle("-fx-accent: #8b5cf6;");
         
         Label remaining = new Label(String.format("Remaining: $%.2f", 
             Math.max(0, goal.getTarget() - goal.getBalance())));
@@ -763,9 +793,38 @@ public class GoalsController implements Initializable {
         
         progressCard.getChildren().addAll(currentProgress, progressBar, remaining);
 
+        // Wallet selection section
+        VBox walletBox = new VBox(8);
+        Label walletLabel = new Label("Select Wallet");
+        walletLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
+        
+        ComboBox<String> walletCombo = new ComboBox<>();
+        walletCombo.setMaxWidth(Double.MAX_VALUE);
+        walletCombo.setStyle(
+            "-fx-font-size: 14px;" +
+            "-fx-padding: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-border-color: #e2e8f0;" +
+            "-fx-border-radius: 8;"
+        );
+        
+        // Load wallets
+        Map<String, String> walletIdMap = new HashMap<>();
+        List<Wallet> wallets = dataStore.getWallets();
+        for (Wallet wallet : wallets) {
+            String displayName = wallet.getName() + " ($" + String.format("%.2f", wallet.getBalance()) + ")";
+            walletCombo.getItems().add(displayName);
+            walletIdMap.put(displayName, wallet.getId());
+        }
+        if (!wallets.isEmpty()) {
+            walletCombo.getSelectionModel().selectFirst();
+        }
+        
+        walletBox.getChildren().addAll(walletLabel, walletCombo);
+
         // Amount input
         VBox amountBox = new VBox(8);
-        Label amountLabel = new Label("Amount to Add");
+        Label amountLabel = new Label("Amount to Contribute");
         amountLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
         
         TextField amountField = new TextField();
@@ -785,7 +844,7 @@ public class GoalsController implements Initializable {
             Button quickBtn = new Button(amt);
             quickBtn.setStyle(
                 "-fx-background-color: #f1f5f9;" +
-                "-fx-text-fill: #3b82f6;" +
+                "-fx-text-fill: #8b5cf6;" +
                 "-fx-background-radius: 6;" +
                 "-fx-padding: 8 16;" +
                 "-fx-font-size: 12px;" +
@@ -793,7 +852,7 @@ public class GoalsController implements Initializable {
                 "-fx-cursor: hand;"
             );
             quickBtn.setOnMouseEntered(e -> quickBtn.setStyle(
-                "-fx-background-color: #3b82f6;" +
+                "-fx-background-color: #8b5cf6;" +
                 "-fx-text-fill: white;" +
                 "-fx-background-radius: 6;" +
                 "-fx-padding: 8 16;" +
@@ -803,7 +862,7 @@ public class GoalsController implements Initializable {
             ));
             quickBtn.setOnMouseExited(e -> quickBtn.setStyle(
                 "-fx-background-color: #f1f5f9;" +
-                "-fx-text-fill: #3b82f6;" +
+                "-fx-text-fill: #8b5cf6;" +
                 "-fx-background-radius: 6;" +
                 "-fx-padding: 8 16;" +
                 "-fx-font-size: 12px;" +
@@ -816,13 +875,13 @@ public class GoalsController implements Initializable {
         
         amountBox.getChildren().addAll(amountLabel, amountField, quickAmounts);
 
-        content.getChildren().addAll(progressCard, amountBox);
+        content.getChildren().addAll(progressCard, walletBox, amountBox);
         dialog.getDialogPane().setContent(content);
 
         // Style buttons
         Button addBtn = (Button) dialog.getDialogPane().lookupButton(addButtonType);
         addBtn.setStyle(
-            "-fx-background-color: #3b82f6;" +
+            "-fx-background-color: #8b5cf6;" +
             "-fx-text-fill: white;" +
             "-fx-background-radius: 8;" +
             "-fx-padding: 10 20;" +
@@ -835,7 +894,68 @@ public class GoalsController implements Initializable {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
                 try {
-                    return Double.parseDouble(amountField.getText());
+                    double amount = Double.parseDouble(amountField.getText());
+                    if (amount <= 0) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Invalid Amount");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Amount must be greater than 0!");
+                        styleAlert(alert);
+                        alert.show();
+                        return null;
+                    }
+                    
+                    String selectedWallet = walletCombo.getValue();
+                    if (selectedWallet == null || selectedWallet.isEmpty()) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("No Wallet Selected");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Please select a wallet!");
+                        styleAlert(alert);
+                        alert.show();
+                        return null;
+                    }
+                    
+                    String walletId = walletIdMap.get(selectedWallet);
+                    Wallet wallet = dataStore.getWalletById(walletId);
+                    
+                    if (wallet != null && wallet.getBalance() < amount) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Insufficient Balance");
+                        alert.setHeaderText(null);
+                        alert.setContentText(String.format(
+                            "Wallet '%s' only has $%.2f available.", 
+                            wallet.getName(), wallet.getBalance()));
+                        styleAlert(alert);
+                        alert.show();
+                        return null;
+                    }
+                    
+                    // Create transaction record
+                    String createTime = java.time.LocalDateTime.now()
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    
+                    Transaction transaction = new Transaction(
+                        AddTransactionCategoryController.GOALS_CATEGORY_INFO.id,
+                        amount,
+                        "Contribution to " + goal.getName(),
+                        0.0, // Expense
+                        walletId,
+                        createTime
+                    );
+                    transaction.setGoalId(goal.getId());
+                    
+                    // Update wallet balance
+                    if (wallet != null) {
+                        wallet.setBalance(wallet.getBalance() - amount);
+                        dataStore.updateWallet(wallet);
+                        dataStore.notifyWalletRefresh();
+                    }
+                    
+                    // Add transaction
+                    dataStore.addTransaction(transaction);
+                    
+                    return amount;
                 } catch (NumberFormatException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Invalid Amount");
@@ -858,7 +978,7 @@ public class GoalsController implements Initializable {
             Alert success = new Alert(Alert.AlertType.INFORMATION);
             success.setTitle("Success!");
             success.setHeaderText(null);
-            success.setContentText(String.format("Added $%.2f to %s!\n\nNew balance: $%.2f / $%.2f", 
+            success.setContentText(String.format("Contributed $%.2f to %s!\n\nNew balance: $%.2f / $%.2f", 
                 amount, goal.getName(), goal.getBalance(), goal.getTarget()));
             styleAlert(success);
             success.show();

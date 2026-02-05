@@ -2,17 +2,17 @@ package gitgud.pfm.Controllers;
 
 import gitgud.pfm.GUI.data.DataStore;
 import gitgud.pfm.Models.Category;
+import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.Models.Wallet;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -46,6 +46,10 @@ public class AddTransactionFormController implements Initializable {
     private String selectedCategoryColor;
     private Category.Type selectedCategoryType;
     private Map<String, String> walletIdMap = new HashMap<>();
+    
+    // Goal contribution mode
+    private boolean isGoalContribution = false;
+    private Goal selectedGoal = null;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -90,6 +94,8 @@ public class AddTransactionFormController implements Initializable {
         this.selectedCategoryType = type;
         this.selectedCategoryId = categoryInfo.id;
         this.selectedCategoryColor = categoryInfo.color;
+        this.isGoalContribution = false;
+        this.selectedGoal = null;
         String icon = categoryInfo.icon;
         
         // Update UI
@@ -109,6 +115,37 @@ public class AddTransactionFormController implements Initializable {
         );
         
         // Switch to the form view
+        showFormView();
+    }
+    
+    public void setGoalContribution(Goal goal, CategoryInfo categoryInfo) {
+        this.selectedGoal = goal;
+        this.isGoalContribution = true;
+        this.selectedCategoryId = categoryInfo.id;
+        this.selectedCategoryName = "Goals";
+        this.selectedCategoryColor = categoryInfo.color;
+        this.selectedCategoryType = Category.Type.EXPENSE;
+        
+        // Update UI for goal contribution
+        categoryNameLabel.setText("Goal: " + goal.getName());
+        categoryTypeLabel.setText(String.format("Target: $%.2f | Current: $%.2f", goal.getTarget(), goal.getBalance()));
+        categoryTypeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + selectedCategoryColor + "; -fx-font-weight: 500;");
+        iconLabel.setText(categoryInfo.icon);
+        iconCircle.setStyle("-fx-background-color: " + selectedCategoryColor + "20; -fx-background-radius: 24;");
+        saveButton.setText("Contribute");
+        saveButton.setStyle(
+            "-fx-background-color: " + selectedCategoryColor + "; " +
+            "-fx-text-fill: white; " +
+            "-fx-background-radius: 10; " +
+            "-fx-padding: 12 24; " +
+            "-fx-font-size: 14px; " +
+            "-fx-font-weight: 600; " +
+            "-fx-cursor: hand;"
+        );
+        
+        // Set default description
+        descriptionField.setText("Contribution to " + goal.getName());
+        
         showFormView();
     }
     
@@ -168,13 +205,16 @@ public class AddTransactionFormController implements Initializable {
         String walletId = walletIdMap.get(selectedWallet);
         String description = descriptionField.getText().trim();
         if (description.isEmpty()) {
-            description = selectedCategoryName;
+            description = isGoalContribution && selectedGoal != null ? 
+                "Contribution to " + selectedGoal.getName() : selectedCategoryName;
         }
         
         String createTime = date.atTime(java.time.LocalTime.now())
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         
-        double incomeValue = selectedCategoryType == Category.Type.INCOME ? 1.0 : 0.0;
+        // For goal contributions, it's always an expense (money going out of wallet into goal)
+        double incomeValue = isGoalContribution ? 0.0 : (selectedCategoryType == Category.Type.INCOME ? 1.0 : 0.0);
+        
         Transaction transaction = new Transaction(
             selectedCategoryId,
             amount,
@@ -184,13 +224,31 @@ public class AddTransactionFormController implements Initializable {
             createTime
         );
         
+        // Set goal ID if this is a goal contribution
+        if (isGoalContribution && selectedGoal != null) {
+            transaction.setGoalId(selectedGoal.getId());
+        }
+        
         // Update wallet balance
         Wallet wallet = dataStore.getWalletById(walletId);
         if (wallet != null) {
-            double newBalance = wallet.getBalance() + (selectedCategoryType == Category.Type.INCOME ? amount : -amount);
+            double newBalance;
+            if (isGoalContribution) {
+                // Goal contribution - deduct from wallet
+                newBalance = wallet.getBalance() - amount;
+            } else {
+                newBalance = wallet.getBalance() + (selectedCategoryType == Category.Type.INCOME ? amount : -amount);
+            }
             wallet.setBalance(newBalance);
             dataStore.updateWallet(wallet);
-            dataStore.notifyWalletRefresh(); // Notify sidebar to update wallet display
+            dataStore.notifyWalletRefresh();
+        }
+        
+        // Update goal balance if this is a contribution
+        if (isGoalContribution && selectedGoal != null) {
+            selectedGoal.setBalance(selectedGoal.getBalance() + amount);
+            dataStore.updateGoal(selectedGoal);
+            dataStore.notifyGoalRefresh();
         }
         
         dataStore.addTransaction(transaction);
@@ -198,7 +256,14 @@ public class AddTransactionFormController implements Initializable {
         Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
         successAlert.setTitle("Success");
         successAlert.setHeaderText(null);
-        successAlert.setContentText("Transaction added successfully!");
+        if (isGoalContribution && selectedGoal != null) {
+            successAlert.setContentText(String.format(
+                "Contributed $%.2f to %s!\n\nNew goal balance: $%.2f / $%.2f",
+                amount, selectedGoal.getName(), selectedGoal.getBalance(), selectedGoal.getTarget()
+            ));
+        } else {
+            successAlert.setContentText("Transaction added successfully!");
+        }
         successAlert.showAndWait();
         
         dialogStage.close();
