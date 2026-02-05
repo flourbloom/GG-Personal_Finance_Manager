@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Transaction;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -40,7 +40,7 @@ public class ReportsController implements Initializable {
     @FXML private VBox categoryBreakdownList;
     @FXML private VBox incomeExpenseChartContainer;
 
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     private boolean showPercentage = false;
     private PieChart expensePieChart;
     
@@ -88,7 +88,7 @@ public class ReportsController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         dataStore.addWalletRefreshListener(this::refresh);
         
         if (reportPeriodCombo != null) {

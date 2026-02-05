@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Transaction;
 import gitgud.pfm.services.CategoryService;
@@ -39,7 +39,7 @@ public class TransactionsController implements Initializable {
     @FXML private Button nextPageButton;
     @FXML private Label pageInfoLabel;
 
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     private CategoryService categoryService;
     private Map<String, String> categoryIdToNameMap;
     private int currentPage = 1;
@@ -48,7 +48,7 @@ public class TransactionsController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         categoryService = new CategoryService();
         
         // Build category ID to name mapping

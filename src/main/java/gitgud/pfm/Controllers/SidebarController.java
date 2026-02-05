@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Wallet;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -33,12 +33,12 @@ public class SidebarController implements Initializable {
     private Runnable onGoalsClick;
     private Runnable onWalletsClick;
     private Runnable onBudgetClick;
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         activeItem = dashboardNavItem;
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         
         // Register for wallet refresh notifications
         dataStore.addWalletRefreshListener(this::refreshWallets);

@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Goal;
 import javafx.animation.ScaleTransition;
@@ -23,7 +23,7 @@ public class AddTransactionCategoryController implements Initializable {
     @FXML private FlowPane goalsCategoriesPane;
     
     private AddTransactionFormController formController;
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     
     // Category definitions
     private static final Map<String, CategoryInfo> EXPENSE_CATEGORIES = new LinkedHashMap<>();
@@ -52,7 +52,7 @@ public class AddTransactionCategoryController implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         loadCategoryCards();
     }
     

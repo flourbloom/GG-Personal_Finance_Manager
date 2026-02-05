@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Budget;
 import gitgud.pfm.Models.Goal;
 import gitgud.pfm.Models.Transaction;
@@ -36,7 +36,7 @@ public class DashboardController implements Initializable {
     @FXML private Hyperlink viewAllGoals;
     @FXML private NumberAxis xAxis;
 
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     private static Runnable onNavigateToGoals;
     private static Runnable onNavigateToTransactions;
 
@@ -50,7 +50,7 @@ public class DashboardController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         
         // Register for goal and budget refresh notifications
         dataStore.addGoalRefreshListener(this::refreshPriorityGoals);

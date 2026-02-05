@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Wallet;
 import javafx.animation.*;
 import javafx.fxml.FXML;
@@ -30,7 +30,7 @@ public class WalletsController implements Initializable {
     @FXML private Label netWorthLabel;
     @FXML private VBox walletsList;
 
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     
     // Predefined color options
     private static final String[] COLOR_OPTIONS = {
@@ -56,7 +56,7 @@ public class WalletsController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         
         styleAddWalletButton();
         addWalletButton.setOnAction(e -> showAddWalletDialog());

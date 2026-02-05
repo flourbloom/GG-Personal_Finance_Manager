@@ -1,6 +1,6 @@
 package gitgud.pfm.Controllers;
 
-import gitgud.pfm.GUI.data.DataStore;
+import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Budget;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Transaction;
@@ -40,7 +40,7 @@ public class BudgetController implements Initializable {
     @FXML private ComboBox<String> filterCombo;
     @FXML private VBox budgetsList;
 
-    private DataStore dataStore;
+    private AccountDataLoader dataStore;
     private CategoryService categoryService;
     private BudgetService budgetService;
     private Map<String, String> categoryIdToNameMap;
@@ -48,7 +48,7 @@ public class BudgetController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataStore = DataStore.getInstance();
+        dataStore = AccountDataLoader.getInstance();
         categoryService = new CategoryService();
         budgetService = new BudgetService();
         categoryIdToNameMap = new HashMap<>();
