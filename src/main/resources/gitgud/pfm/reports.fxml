@@ -101,30 +101,7 @@
                 </VBox>
             </HBox>
             
-            <!-- Charts Row -->
-            <HBox spacing="16">
-                <!-- Income vs Expenses Chart -->
-                <VBox fx:id="incomeExpenseChartContainer" HBox.hgrow="ALWAYS" spacing="8"
-                      style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
-                    <padding>
-                        <Insets top="24" right="24" bottom="24" left="24"/>
-                    </padding>
-                    <Label text="Daily Spending/Income" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
-                    <!-- Chart will be dynamically created -->
-                </VBox>
-                
-                <!-- Expense Breakdown Pie Chart -->
-                <VBox fx:id="expensePieChartContainer" prefWidth="420" spacing="8"
-                      style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
-                    <padding>
-                        <Insets top="24" right="24" bottom="24" left="24"/>
-                    </padding>
-                    <Label text="Expense Breakdown" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
-                    <!-- Pie chart will be dynamically created -->
-                </VBox>
-            </HBox>
-            
-            <!-- Category Breakdown Card -->
+            <!-- Combined Pie Chart and Category Breakdown -->
             <VBox spacing="16"
                   style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
                 <padding>
@@ -132,29 +109,33 @@
                 </padding>
                 <Label text="Spending by Category" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
                 
-                <!-- Category List Container -->
-                <VBox fx:id="categoryBreakdownList" spacing="8">
-                    <!-- Category breakdown items will be dynamically added here -->
-                </VBox>
+                <HBox spacing="24" alignment="CENTER_LEFT">
+                    <!-- Category List Container (scrollable, height-constrained) -->
+                    <ScrollPane fitToWidth="true" prefHeight="300" maxHeight="300" HBox.hgrow="ALWAYS"
+                                style="-fx-background-color: transparent; -fx-background: transparent; -fx-hbar-policy: never; -fx-vbar-policy: as-needed; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;">
+                        <VBox fx:id="categoryBreakdownList" spacing="8">
+                            <!-- Category breakdown items will be dynamically added here -->
+                        </VBox>
+                    </ScrollPane>
+                    
+                    <!-- Pie Chart Container -->
+                    <VBox fx:id="expensePieChartContainer" spacing="8">
+                        <!-- Pie chart will be dynamically created -->
+                    </VBox>
+                </HBox>
             </VBox>
             
-            <!-- Monthly Trends Card -->
-            <VBox spacing="16"
+            <!-- Spending Chart Card -->
+        <VBox fx:id="incomeExpenseChartContainer" spacing="8"
                   style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
-                <padding>
-                    <Insets top="24" right="24" bottom="24" left="24"/>
-                </padding>
-                <Label text="Monthly Spending Trends" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
-                <BarChart fx:id="monthlyTrendsChart" prefHeight="350" legendVisible="false" barGap="4" categoryGap="20" animated="false"
-                          horizontalGridLinesVisible="true" verticalGridLinesVisible="true">
-                    <xAxis>
-                        <CategoryAxis fx:id="trendsXAxis" side="BOTTOM" tickMarkVisible="true" tickLabelsVisible="true" animated="false" label="Month"/>
-                    </xAxis>
-                    <yAxis>
-                        <NumberAxis fx:id="trendsYAxis" side="LEFT" label="Amount ($)" tickMarkVisible="true" tickLabelsVisible="true" minorTickVisible="false" animated="false"/>
-                    </yAxis>
-                </BarChart>
-            </VBox>
+            <padding>
+                <Insets top="24" right="24" bottom="24" left="24"/>
+            </padding>
+            <Label text="Daily Spending/Income" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+            <!-- Chart will be dynamically created -->
+        </VBox>
+            
+
         </VBox>
     </ScrollPane>
 </StackPane>
