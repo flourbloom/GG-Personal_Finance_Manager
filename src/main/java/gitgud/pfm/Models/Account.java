@@ -2,6 +2,9 @@ package gitgud.pfm.Models;
 
 import gitgud.pfm.utils.IdGenerator;
 
+
+// TODO This is the deprecated version of wallet yas queen
+// TODO Delete this in future commits
 public class Account extends FinancialEntity {
     private String color;
 

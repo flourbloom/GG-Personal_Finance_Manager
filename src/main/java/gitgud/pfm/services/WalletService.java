@@ -64,7 +64,7 @@ public class WalletService implements CRUDInterface<Wallet> {
     }
     
     /**
-     * Read all accounts from the database
+     * Read all wallets from the database
      * Explicit fields: walletId, name, balance, color
      */
     public List<Wallet> readAll() {

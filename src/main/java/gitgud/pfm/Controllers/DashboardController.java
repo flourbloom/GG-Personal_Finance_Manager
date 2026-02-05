@@ -297,7 +297,7 @@ public class DashboardController implements Initializable {
     private void loadSpendingChart() {
         spendingChart.getData().clear();
         
-        // Get all transactions (expenses only) from all accounts
+        // Get all transactions (expenses only) from all wallets by the accountholder
         List<Transaction> allTransactions = dataStore.getTransactions();
         
         // Get current month and last month

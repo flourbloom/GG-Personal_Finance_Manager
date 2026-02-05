@@ -15,16 +15,20 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class AccountsController implements Initializable {
+// WalletsController - Manages the Wallets view in the Personal Finance Manager application
+// Wallets are user accounts representing different financial sources
+// All this should be refactored to Wallets later
+// Why not now tho?
+public class WalletsController implements Initializable {
 
     @FXML private ScrollPane rootPane;
     @FXML private VBox mainContent;
-    @FXML private Button addAccountButton;
+    @FXML private Button addWalletButton;
     @FXML private HBox summarySection;
     @FXML private Label totalAssetsLabel;
     @FXML private Label totalLiabilitiesLabel;
     @FXML private Label netWorthLabel;
-    @FXML private VBox accountsList;
+    @FXML private VBox walletsList;
 
     private DataStore dataStore;
     
@@ -54,21 +58,21 @@ public class AccountsController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         dataStore = DataStore.getInstance();
         
-        styleAddAccountButton();
-        addAccountButton.setOnAction(e -> showAddAccountDialog());
+        styleAddWalletButton();
+        addWalletButton.setOnAction(e -> showAddWalletDialog());
         
-        loadAccounts();
+        loadWallets();
         updateSummary();
         
         // Animate summary cards on load
         animateSummaryCards();
     }
     
-    private void styleAddAccountButton() {
-        if (addAccountButton == null) return;
+    private void styleAddWalletButton() {
+        if (addWalletButton == null) return;
         
         // Base style
-        addAccountButton.setStyle(
+        addWalletButton.setStyle(
             "-fx-background-color: linear-gradient(to right, #3b82f6, #2563eb);" +
             "-fx-text-fill: white;" +
             "-fx-background-radius: 12;" +
@@ -80,8 +84,8 @@ public class AccountsController implements Initializable {
         );
         
         // Hover animation
-        addAccountButton.setOnMouseEntered(e -> {
-            addAccountButton.setStyle(
+        addWalletButton.setOnMouseEntered(e -> {
+            addWalletButton.setStyle(
                 "-fx-background-color: linear-gradient(to right, #2563eb, #1d4ed8);" +
                 "-fx-text-fill: white;" +
                 "-fx-background-radius: 12;" +
@@ -92,14 +96,14 @@ public class AccountsController implements Initializable {
                 "-fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.6), 12, 0, 0, 4);"
             );
             
-            ScaleTransition scale = new ScaleTransition(Duration.millis(150), addAccountButton);
+            ScaleTransition scale = new ScaleTransition(Duration.millis(150), addWalletButton);
             scale.setToX(1.05);
             scale.setToY(1.05);
             scale.play();
         });
         
-        addAccountButton.setOnMouseExited(e -> {
-            addAccountButton.setStyle(
+        addWalletButton.setOnMouseExited(e -> {
+            addWalletButton.setStyle(
                 "-fx-background-color: linear-gradient(to right, #3b82f6, #2563eb);" +
                 "-fx-text-fill: white;" +
                 "-fx-background-radius: 12;" +
@@ -110,22 +114,22 @@ public class AccountsController implements Initializable {
                 "-fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.4), 8, 0, 0, 2);"
             );
             
-            ScaleTransition scale = new ScaleTransition(Duration.millis(150), addAccountButton);
+            ScaleTransition scale = new ScaleTransition(Duration.millis(150), addWalletButton);
             scale.setToX(1.0);
             scale.setToY(1.0);
             scale.play();
         });
         
         // Press animation
-        addAccountButton.setOnMousePressed(e -> {
-            ScaleTransition scale = new ScaleTransition(Duration.millis(100), addAccountButton);
+        addWalletButton.setOnMousePressed(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(100), addWalletButton);
             scale.setToX(0.95);
             scale.setToY(0.95);
             scale.play();
         });
         
-        addAccountButton.setOnMouseReleased(e -> {
-            ScaleTransition scale = new ScaleTransition(Duration.millis(100), addAccountButton);
+        addWalletButton.setOnMouseReleased(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(100), addWalletButton);
             scale.setToX(1.05);
             scale.setToY(1.05);
             scale.play();
@@ -239,26 +243,26 @@ public class AccountsController implements Initializable {
         netWorthLabel.setText(String.format("$%.2f", netWorth));
     }
 
-    private void loadAccounts() {
-        accountsList.getChildren().clear();
+    private void loadWallets() {
+        walletsList.getChildren().clear();
         List<Wallet> wallets = dataStore.getWallets();
         
         int index = 0;
         for (Wallet wallet : wallets) {
-            HBox accountCard = createAccountCard(wallet);
-            accountsList.getChildren().add(accountCard);
-            animateCardEntrance(accountCard, index);
+            HBox walletCard = createWalletCard(wallet);
+            walletsList.getChildren().add(walletCard);
+            animateCardEntrance(walletCard, index);
             index++;
         }
 
         if (wallets.isEmpty()) {
-            Label emptyLabel = new Label("No accounts yet. Click 'Add Account' to create one.");
+            Label emptyLabel = new Label("No wallets yet. Click 'Add Wallet' to create one.");
             emptyLabel.setStyle("-fx-text-fill: #64748b; -fx-font-size: 14px;");
-            accountsList.getChildren().add(emptyLabel);
+            walletsList.getChildren().add(emptyLabel);
         }
     }
 
-    private HBox createAccountCard(Wallet wallet) {
+    private HBox createWalletCard(Wallet wallet) {
         String walletColor = wallet.getColor();
         // Validate color is a proper hex color, otherwise default to blue
         if (walletColor == null || !walletColor.startsWith("#") || walletColor.length() != 7) {
@@ -297,7 +301,7 @@ public class AccountsController implements Initializable {
         Label name = new Label(wallet.getName());
         name.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; -fx-text-fill: #1e293b;");
 
-        Label idLabel = new Label("Account");
+        Label idLabel = new Label("Wallet");
         idLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
 
         details.getChildren().addAll(name, idLabel);
@@ -419,8 +423,8 @@ public class AccountsController implements Initializable {
 
     private void showEditWalletDialog(Wallet wallet) {
         Dialog<Wallet> dialog = new Dialog<>();
-        dialog.setTitle("Edit Account");
-        dialog.setHeaderText("Modify account details");
+        dialog.setTitle("Edit Wallet");
+        dialog.setHeaderText("Modify wallet details");
 
         ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
         ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
@@ -432,7 +436,7 @@ public class AccountsController implements Initializable {
         grid.setPadding(new Insets(20));
 
         TextField nameField = new TextField(wallet.getName());
-        nameField.setPromptText("Account name");
+        nameField.setPromptText("Wallet name");
 
         String currentColor = wallet.getColor() != null ? wallet.getColor() : "#3b82f6";
         HBox colorPicker = createColorPicker(currentColor);
@@ -440,7 +444,7 @@ public class AccountsController implements Initializable {
         TextField balanceField = new TextField(String.valueOf(wallet.getBalance()));
         balanceField.setPromptText("0.00");
 
-        grid.add(new Label("Account Name:"), 0, 0);
+        grid.add(new Label("Wallet Name:"), 0, 0);
         grid.add(nameField, 1, 0);
         grid.add(new Label("Color:"), 0, 1);
         grid.add(colorPicker, 1, 1);
@@ -471,8 +475,8 @@ public class AccountsController implements Initializable {
                 }
             } else if (dialogButton == deleteButtonType) {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                confirm.setTitle("Delete Account");
-                confirm.setHeaderText("Are you sure you want to delete this account?");
+                confirm.setTitle("Delete Wallet");
+                confirm.setHeaderText("Are you sure you want to delete this wallet?");
                 confirm.setContentText("This action cannot be undone.");
                 confirm.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
@@ -494,10 +498,10 @@ public class AccountsController implements Initializable {
     }
 
     @FXML
-    private void showAddAccountDialog() {
+    private void showAddWalletDialog() {
         Dialog<Wallet> dialog = new Dialog<>();
-        dialog.setTitle("Add New Account");
-        dialog.setHeaderText("Enter account details");
+        dialog.setTitle("Add New Wallet");
+        dialog.setHeaderText("Enter wallet details");
 
         ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
@@ -508,7 +512,7 @@ public class AccountsController implements Initializable {
         grid.setPadding(new Insets(20));
 
         TextField nameField = new TextField();
-        nameField.setPromptText("Account name");
+        nameField.setPromptText("Wallet name");
 
         String defaultColor = "#3b82f6";
         HBox colorPicker = createColorPicker(defaultColor);
@@ -517,7 +521,7 @@ public class AccountsController implements Initializable {
         balanceField.setPromptText("0.00");
         balanceField.setText("0");
 
-        grid.add(new Label("Account Name:"), 0, 0);
+        grid.add(new Label("Wallet Name:"), 0, 0);
         grid.add(nameField, 1, 0);
         grid.add(new Label("Color:"), 0, 1);
         grid.add(colorPicker, 1, 1);
@@ -559,7 +563,7 @@ public class AccountsController implements Initializable {
             }
             
             if (name.isEmpty()) {
-                errorLabel.setText("Account name is required");
+                errorLabel.setText("Wallet name is required");
                 errorLabel.setVisible(true);
             } else if (balanceText.isEmpty()) {
                 errorLabel.setText("Initial balance is required");
@@ -599,7 +603,7 @@ public class AccountsController implements Initializable {
     }
 
     public void refresh() {
-        loadAccounts();
+        loadWallets();
         updateSummary();
     }
 }

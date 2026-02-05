@@ -42,7 +42,7 @@ public class App extends Application {
             sidebarController.setOnTransactionsClick(this::showTransactions);
             sidebarController.setOnReportsClick(this::showReports);
             sidebarController.setOnGoalsClick(this::showGoals);
-            sidebarController.setOnAccountsClick(this::showAccounts);
+            sidebarController.setOnWalletsClick(this::showWallets);
             sidebarController.setOnBudgetClick(this::showBudget);
             
             root.setLeft(sidebar);
@@ -133,13 +133,13 @@ public class App extends Application {
         }
     }
     
-    public void showAccounts() {
-        Node view = loadFXML("accounts.fxml");
+    public void showWallets() {
+        Node view = loadFXML("wallets.fxml");
         if (view != null) {
             root.setCenter(view);
         }
         if (sidebarController != null) {
-            sidebarController.setActiveItem("Accounts");
+            sidebarController.setActiveItem("Wallets");
         }
     }
     

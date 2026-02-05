@@ -1,8 +1,8 @@
 package gitgud.pfm.Models;
 
 /**
- * Abstract parent class for all financial entities (accounts, budgets, etc.)
- * Governs common features shared across different financial account types.
+ * Abstract parent class for all financial entities (wallets, budgets, etc.)
+ * Governs common features shared across different financial wallet types.
  */
 public abstract class FinancialEntity {
     protected String id;
