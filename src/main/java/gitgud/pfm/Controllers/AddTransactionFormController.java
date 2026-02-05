@@ -15,8 +15,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import gitgud.pfm.utils.DateFormatUtil;
 
 public class AddTransactionFormController implements Initializable {
     
@@ -50,6 +51,9 @@ public class AddTransactionFormController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         dataStore = AccountDataLoader.getInstance();
         datePicker.setValue(LocalDate.now());
+        
+        // Configure DatePicker for UK format
+        DateFormatUtil.configureDatePickerUkFormat(datePicker);
         
         // Store reference to the form root
         if (cancelButton != null && cancelButton.getScene() != null) {
@@ -201,7 +205,7 @@ public class AddTransactionFormController implements Initializable {
         }
         
         String createTime = date.atTime(java.time.LocalTime.now())
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            .format(DateFormatUtil.ISO_DATETIME_FORMAT);
         
         // For goal contributions, it's always an expense (money going out of wallet into goal)
         double incomeValue = isGoalContribution ? 0.0 : (selectedCategoryType == Category.Type.INCOME ? 1.0 : 0.0);

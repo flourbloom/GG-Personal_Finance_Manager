@@ -20,8 +20,9 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.*;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
+import gitgud.pfm.utils.DateFormatUtil;
 
 public class ReportsController implements Initializable {
 
@@ -162,8 +163,8 @@ public class ReportsController implements Initializable {
                 startDate = now.withDayOfMonth(1);
         }
         
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateFormatUtil.ISO_DATETIME_FORMAT;
+        DateTimeFormatter dateOnlyFormatter = DateFormatUtil.ISO_DATE_FORMAT;
         
         return allTransactions.stream()
                 .filter(tx -> {
@@ -448,7 +449,7 @@ public class ReportsController implements Initializable {
                 Label nameLabel = new Label(tx.getName());
                 nameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 500; -fx-text-fill: #1e293b;");
                 
-                Label dateLabel = new Label(tx.getCreateTime());
+                Label dateLabel = new Label(DateFormatUtil.isoToUkDateTime(tx.getCreateTime()));
                 dateLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
                 
                 details.getChildren().addAll(nameLabel, dateLabel);
@@ -495,6 +496,7 @@ public class ReportsController implements Initializable {
         popup.showAndWait();
     }
 
+    @SuppressWarnings("unchecked")
     private void loadIncomeExpenseChart() {
         if (incomeExpenseChartContainer == null) return;
         incomeExpenseChartContainer.getChildren().clear();
@@ -572,8 +574,8 @@ public class ReportsController implements Initializable {
         xAxis.setCategories(javafx.collections.FXCollections.observableArrayList(monthLabels));
         
         // Parse transactions and aggregate by month
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateFormatUtil.ISO_DATETIME_FORMAT;
+        DateTimeFormatter dateOnlyFormatter = DateFormatUtil.ISO_DATE_FORMAT;
         
         for (Transaction tx : allTransactions) {
             try {
@@ -615,7 +617,7 @@ public class ReportsController implements Initializable {
         }
         
         barChart.getData().addAll(incomeSeries, expenseSeries);
-        
+
         // Style the bars after rendering
         javafx.application.Platform.runLater(() -> {
             // Style income bars (green)

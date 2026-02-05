@@ -12,6 +12,7 @@ import gitgud.pfm.Models.Wallet;
 import gitgud.pfm.Models.Budget;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.services.*;
+import gitgud.pfm.utils.DateFormatUtil;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -205,7 +206,7 @@ public class CliController {
                 String type = tx.getIncome() == 1 ? "Income" : "Expense";
                 String categoryName = categoryMap.getOrDefault(tx.getCategoryId(), tx.getCategoryId());
                 String goalDisplay = tx.getGoalId() != null ? truncate(tx.getGoalId(), 12) : "-";
-                String date = tx.getCreateTime() != null ? tx.getCreateTime().substring(0, Math.min(10, tx.getCreateTime().length())) : "";
+                String date = DateFormatUtil.isoToUkDateOnly(tx.getCreateTime());
                 
                 System.out.printf("%-18s %-15s %-12s $%,9.2f %-8s %-12s %-12s%n",
                         truncate(tx.getName(), 18),
@@ -301,7 +302,8 @@ public class CliController {
 
             for (Goal goal : goals) {
                 double progress = goal.getProgress();
-                String deadline = goal.getDeadline() != null ? goal.getDeadline().substring(0, Math.min(10, goal.getDeadline().length())) : "";
+                String deadline = DateFormatUtil.isoToUkDate(goal.getDeadline());
+                if (deadline == null) deadline = "";
                 
                 System.out.printf("%-18s $%,10.2f $%,10.2f %-10s %8.1f %8.1f%%%n",
                     truncate(goal.getName(), 18),
@@ -738,7 +740,7 @@ public class CliController {
         for (Transaction t : accountData.getTransactions()) {
             String categoryName = categoryMap.getOrDefault(t.getCategoryId(), t.getCategoryId());
             String type = t.getIncome() > 0 ? "Income" : "Expense";
-            String date = t.getCreateTime() != null ? t.getCreateTime().substring(0, Math.min(10, t.getCreateTime().length())) : "";
+            String date = DateFormatUtil.isoToUkDateOnly(t.getCreateTime());
             
             System.out.printf("%-20s $%9.2f %-15s %-7s %-12s %-15s%n",
                     truncate(t.getName(), 20),
@@ -1002,14 +1004,18 @@ public class CliController {
                     updates.put("balance", bal);
                     break;
                 case "startdate":
-                    System.out.print("Enter new start date (YYYY-MM-DD): ");
-                    String startDate = scanner.nextLine().trim();
+                    System.out.print("Enter new start date (dd/MM/yyyy): ");
+                    String startDateInput = scanner.nextLine().trim();
+                    // Convert UK format to ISO for storage
+                    String startDate = DateFormatUtil.ukToIsoDate(startDateInput);
                     found.setStartDate(startDate);
                     updates.put("startDate", startDate);
                     break;
                 case "enddate":
-                    System.out.print("Enter new end date (YYYY-MM-DD): ");
-                    String endDate = scanner.nextLine().trim();
+                    System.out.print("Enter new end date (dd/MM/yyyy): ");
+                    String endDateInput = scanner.nextLine().trim();
+                    // Convert UK format to ISO for storage
+                    String endDate = DateFormatUtil.ukToIsoDate(endDateInput);
                     found.setEndDate(endDate);
                     updates.put("endDate", endDate);
                     break;
@@ -1145,8 +1151,10 @@ public class CliController {
                     updates.put("balance", newBal);
                     break;
                 case "deadline":
-                    System.out.print("Enter new deadline (YYYY-MM-DD): ");
-                    String deadline = scanner.nextLine().trim();
+                    System.out.print("Enter new deadline (dd/MM/yyyy): ");
+                    String deadlineInput = scanner.nextLine().trim();
+                    // Convert UK format to ISO for storage
+                    String deadline = DateFormatUtil.ukToIsoDate(deadlineInput);
                     found.setDeadline(deadline);
                     updates.put("deadline", deadline);
                     break;
@@ -1420,14 +1428,20 @@ public class CliController {
         double balance = 0.0;
 
         // Choose whether to set start date to now or custom
-        System.out.print("Enter start date (YYYY-MM-DD leave blank for now): ");
-        String startDate = scanner.nextLine().trim();
-        if (startDate.isEmpty()) {
-            startDate = LocalDateTime.now().toString();
+        System.out.print("Enter start date (dd/MM/yyyy, leave blank for now): ");
+        String startDateInput = scanner.nextLine().trim();
+        String startDate;
+        if (startDateInput.isEmpty()) {
+            startDate = DateFormatUtil.formatToIso(java.time.LocalDate.now());
+        } else {
+            // Convert UK format to ISO for storage
+            startDate = DateFormatUtil.ukToIsoDate(startDateInput);
         }
 
-        System.out.print("Enter end date (YYYY-MM-DD): ");
-        String endDate = scanner.nextLine().trim();
+        System.out.print("Enter end date (dd/MM/yyyy): ");
+        String endDateInput = scanner.nextLine().trim();
+        // Convert UK format to ISO for storage
+        String endDate = DateFormatUtil.ukToIsoDate(endDateInput);
 
         // Display available categories for user to select
         System.out.println("\nAvailable Categories:");
@@ -1485,16 +1499,22 @@ public class CliController {
 
         // REMOVED: Enter current amount - balance is computed from transactions
 
-        System.out.print("Enter deadline (YYYY-MM-DD): ");
-        String deadline = scanner.nextLine().trim();
+        System.out.print("Enter deadline (dd/MM/yyyy): ");
+        String deadlineInput = scanner.nextLine().trim();
+        // Convert UK format to ISO for storage
+        String deadline = DateFormatUtil.ukToIsoDate(deadlineInput);
 
         System.out.print("Enter priority (numeric): ");
         double priority = Double.parseDouble(scanner.nextLine().trim());
 
-        System.out.print("Enter creation time (YYYY-MM-DD or leave blank for now): ");
-        String createAt = scanner.nextLine().trim();
-        if (createAt.isEmpty()) {
-            createAt = LocalDateTime.now().toString();
+        System.out.print("Enter creation time (dd/MM/yyyy or leave blank for now): ");
+        String createAtInput = scanner.nextLine().trim();
+        String createAt;
+        if (createAtInput.isEmpty()) {
+            createAt = DateFormatUtil.formatToIso(LocalDateTime.now());
+        } else {
+            // Convert UK format to ISO for storage
+            createAt = DateFormatUtil.ukToIsoDate(createAtInput);
         }
 
         // Create goal without current amount - balance starts at $0.00 (computed from transactions)

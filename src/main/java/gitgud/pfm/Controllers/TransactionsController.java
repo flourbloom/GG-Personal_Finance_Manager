@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import gitgud.pfm.utils.DateFormatUtil;
+
 public class TransactionsController implements Initializable {
 
     @FXML private BorderPane rootPane;
@@ -57,6 +59,10 @@ public class TransactionsController implements Initializable {
         addTransactionButton.setOnAction(e -> showAddTransactionDialog());
         prevPageButton.setOnAction(e -> previousPage());
         nextPageButton.setOnAction(e -> nextPage());
+        
+        // Configure DatePickers for UK format
+        DateFormatUtil.configureDatePickerUkFormat(fromDatePicker);
+        DateFormatUtil.configureDatePickerUkFormat(toDatePicker);
         
         // Clear filters button
         if (clearFiltersButton != null) {
@@ -201,8 +207,9 @@ public class TransactionsController implements Initializable {
         categoryLabel.setPrefWidth(140);
         categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
-        // Date
-        Label dateLabel = new Label(tx.getCreateTime());
+        // Date - display in UK format
+        String displayDate = DateFormatUtil.isoToUkDateTime(tx.getCreateTime());
+        Label dateLabel = new Label(displayDate);
         dateLabel.setPrefWidth(140);
         dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
