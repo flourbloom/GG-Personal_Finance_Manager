@@ -1419,7 +1419,7 @@ public class CliController {
         // Balance represents current spent amount
         double balance = 0.0;
 
-        // TODO choose whether to set start date to now or custom
+        // Choose whether to set start date to now or custom
         System.out.print("Enter start date (YYYY-MM-DD leave blank for now): ");
         String startDate = scanner.nextLine().trim();
         if (startDate.isEmpty()) {

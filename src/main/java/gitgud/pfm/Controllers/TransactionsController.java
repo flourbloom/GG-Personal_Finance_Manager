@@ -296,6 +296,7 @@ public class TransactionsController implements Initializable {
             BorderPane formRoot = formLoader.load();
             AddTransactionFormController formController = formLoader.getController();
             formController.setFormRoot(formRoot);
+            formController.setDialogStage(popupStage);
             
             // Load the category selection FXML
             FXMLLoader categoryLoader = new FXMLLoader(getClass().getResource("/gitgud/pfm/add-transaction-category.fxml"));

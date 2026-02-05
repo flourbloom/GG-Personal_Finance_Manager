@@ -1,7 +1,7 @@
 module gitgud.pfm {
     requires javafx.controls;
     requires javafx.fxml;
-    requires java.sql;
+    requires transitive java.sql;
     requires transitive javafx.graphics;
     requires org.xerial.sqlitejdbc;
     
@@ -16,4 +16,5 @@ module gitgud.pfm {
     exports gitgud.pfm.Models;
     exports gitgud.pfm.GUI;
     exports gitgud.pfm.GUI.data;
+    exports gitgud.pfm.services;
 }
