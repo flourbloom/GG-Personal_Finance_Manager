@@ -20,7 +20,6 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.*;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 import gitgud.pfm.utils.DateFormatUtil;
@@ -497,6 +496,7 @@ public class ReportsController implements Initializable {
         popup.showAndWait();
     }
 
+    @SuppressWarnings("unchecked")
     private void loadIncomeExpenseChart() {
         if (incomeExpenseChartContainer == null) return;
         incomeExpenseChartContainer.getChildren().clear();
@@ -617,7 +617,7 @@ public class ReportsController implements Initializable {
         }
         
         barChart.getData().addAll(incomeSeries, expenseSeries);
-        
+
         // Style the bars after rendering
         javafx.application.Platform.runLater(() -> {
             // Style income bars (green)
