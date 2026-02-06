@@ -12,6 +12,8 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 
 import java.net.URL;
@@ -32,6 +34,7 @@ public class DashboardController implements Initializable {
     @FXML private ProgressBar goalProgress;
     @FXML private Label goalHintLabel;
     @FXML private VBox priorityGoalsList;
+    @FXML private VBox budgetGoalCard;
     @FXML private LineChart<Number, Number> spendingChart;
     @FXML private VBox transactionsList;
     @FXML private Hyperlink viewAllTransactions;
@@ -80,6 +83,10 @@ public class DashboardController implements Initializable {
                     onNavigateToTransactions.run();
                 }
             });
+        }
+
+        if (budgetGoalCard != null) {
+            budgetGoalCard.setOnMouseClicked(this::handleBudgetCardDoubleClick);
         }
     }
     
@@ -200,6 +207,12 @@ public class DashboardController implements Initializable {
         editBtn.setOnMouseExited(e -> editBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; " +
                 "-fx-font-size: 16px; -fx-text-fill: #64748b; -fx-padding: 4 8;"));
         editBtn.setOnAction(e -> showEditGoalDialog(goal));
+
+        item.setOnMouseClicked(event -> {
+            if (isPrimaryDoubleClick(event)) {
+                showEditGoalDialog(goal);
+            }
+        });
 
         item.getChildren().addAll(info, progressBox, editBtn);
         return item;
@@ -446,6 +459,12 @@ public class DashboardController implements Initializable {
                 "-fx-font-size: 16px; -fx-text-fill: #64748b; -fx-padding: 4 8;"));
         editBtn.setOnAction(e -> showEditTransactionDialog(tx));
 
+        item.setOnMouseClicked(event -> {
+            if (isPrimaryDoubleClick(event)) {
+                showEditTransactionDialog(tx);
+            }
+        });
+
         HBox.setMargin(editBtn, new Insets(0, 0, 0, 12));
 
         item.getChildren().addAll(icon, details, amount, editBtn);
@@ -603,5 +622,84 @@ public class DashboardController implements Initializable {
         loadPriorityGoals();
         loadSpendingChart();
         loadRecentTransactions();
+    }
+
+    private void handleBudgetCardDoubleClick(MouseEvent event) {
+        if (isPrimaryDoubleClick(event)) {
+            showMonthlyBudgetEditDialog();
+        }
+    }
+
+    private boolean isPrimaryDoubleClick(MouseEvent event) {
+        return event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2;
+    }
+
+    private void showMonthlyBudgetEditDialog() {
+        Budget monthlyBudget = findMonthlyBudget();
+
+        Dialog<Double> dialog = new Dialog<>();
+        dialog.setTitle(monthlyBudget != null ? "Edit Monthly Budget" : "Create Monthly Budget");
+        dialog.setHeaderText("Set your monthly budget limit");
+
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        double currentLimit = monthlyBudget != null ? monthlyBudget.getLimitAmount() : getMonthlyBudgetLimit();
+        TextField limitField = new TextField(String.format("%.2f", currentLimit));
+        limitField.setPrefWidth(200);
+
+        grid.add(new Label("Monthly limit ($):"), 0, 0);
+        grid.add(limitField, 1, 0);
+
+        dialog.getDialogPane().setContent(grid);
+
+        Button saveButton = (Button) dialog.getDialogPane().lookupButton(saveButtonType);
+        saveButton.setDisable(!isValidAmount(limitField.getText()));
+        limitField.textProperty().addListener((obs, oldVal, newVal) -> saveButton.setDisable(!isValidAmount(newVal)));
+
+        dialog.setResultConverter(button -> {
+            if (button == saveButtonType) {
+                return Double.parseDouble(limitField.getText().trim());
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(limit -> {
+            if (monthlyBudget != null) {
+                monthlyBudget.setLimitAmount(limit);
+                dataStore.updateBudget(monthlyBudget);
+            } else {
+                YearMonth month = YearMonth.now();
+                Budget newBudget = new Budget("Monthly Budget", limit, 0,
+                        month.atDay(1).toString(), month.atEndOfMonth().toString(),
+                        Budget.PeriodType.MONTHLY, null);
+                dataStore.addBudget(newBudget);
+            }
+            dataStore.notifyBudgetRefresh();
+            updateBudgetGoal();
+        });
+    }
+
+    private Budget findMonthlyBudget() {
+        return dataStore.getBudgets().stream()
+                .filter(b -> b.getPeriodType() == Budget.PeriodType.MONTHLY)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private boolean isValidAmount(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            return Double.parseDouble(value.trim()) > 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }
