@@ -79,36 +79,6 @@
             </VBox>
         </HBox>
         
-        <!-- Monthly Budget Overview Card -->
-        <VBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
-            <padding>
-                <Insets top="24" right="24" bottom="24" left="24"/>
-            </padding>
-            
-            <!-- Header -->
-            <HBox alignment="CENTER_LEFT">
-                <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                    <Region prefWidth="18" prefHeight="18" style="-fx-background-color: #3b82f6; -fx-background-radius: 4;"/>
-                    <Label text="Monthly Budget Overview" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
-                </HBox>
-                <ComboBox fx:id="monthSelector" value="This Month" style="-fx-font-size: 13px;">
-                </ComboBox>
-            </HBox>
-            
-            <!-- Budget Progress -->
-            <VBox spacing="12">
-                <HBox alignment="CENTER_LEFT">
-                    <Label fx:id="budgetSpentLabel" text="0" style="-fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
-                    <Label text=" of " style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
-                    <Label fx:id="budgetLimitLabel" text="0" style="-fx-font-size: 18px; -fx-text-fill: #64748b;"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="budgetPercentLabel" text="0%" style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #f59e0b;"/>
-                </HBox>
-                <ProgressBar fx:id="budgetProgress" progress="0" prefHeight="14" maxWidth="Infinity" style="-fx-accent: #3b82f6;"/>
-                <Label fx:id="budgetHintLabel" text="Set a budget to track your spending" style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
-            </VBox>
-        </VBox>
-        
         <!-- Budgets List Card -->
         <VBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);">
             <padding>

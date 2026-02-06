@@ -92,21 +92,32 @@ public class DashboardController implements Initializable {
     }
 
     private void updateBudgetGoal() {
-        // Get budget limit from monthly budget in database, default to 3000.0
+        // Get budget limit from monthly budget in database
         double budgetLimit = getMonthlyBudgetLimit();
         double totalSpent = dataStore.getTotalExpenses();
         
-        double percent = Math.min(100, (totalSpent / budgetLimit) * 100);
-        double remaining = Math.max(0, budgetLimit - totalSpent);
-        
         totalSpentLabel.setText(String.format("$%.2f", totalSpent));
-        // Update budget limit label dynamically
-        if (budgetLimitLabel != null) {
-            budgetLimitLabel.setText(String.format("$%.0f", budgetLimit));
+        
+        // If no budget is set, show "No budget" message
+        if (budgetLimit == 0) {
+            if (budgetLimitLabel != null) {
+                budgetLimitLabel.setText("No budget set");
+            }
+            goalPercentLabel.setText("—");
+            goalProgress.setProgress(0);
+            goalHintLabel.setText("Create a budget to track your spending");
+        } else {
+            double percent = Math.min(100, (totalSpent / budgetLimit) * 100);
+            double remaining = Math.max(0, budgetLimit - totalSpent);
+            
+            // Update budget limit label dynamically
+            if (budgetLimitLabel != null) {
+                budgetLimitLabel.setText(String.format("$%.0f", budgetLimit));
+            }
+            goalPercentLabel.setText(String.format("%.0f%%", percent));
+            goalProgress.setProgress(percent / 100.0);
+            goalHintLabel.setText(String.format("$%.2f remaining this month", remaining));
         }
-        goalPercentLabel.setText(String.format("%.0f%%", percent));
-        goalProgress.setProgress(percent / 100.0);
-        goalHintLabel.setText(String.format("$%.2f remaining this month", remaining));
     }
     
     private double getMonthlyBudgetLimit() {
@@ -117,11 +128,11 @@ public class DashboardController implements Initializable {
                 return budget.getLimitAmount();
             }
         }
-        // Return first budget limit if exists, otherwise default
+        // Return first budget limit if exists, otherwise return 0
         if (!budgets.isEmpty()) {
             return budgets.get(0).getLimitAmount();
         }
-        return 3000.0; // Default budget limit
+        return 0.0; // No budget set
     }
 
     private void loadPriorityGoals() {
