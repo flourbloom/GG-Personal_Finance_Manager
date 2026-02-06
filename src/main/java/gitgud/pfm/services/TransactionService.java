@@ -169,6 +169,20 @@ public class TransactionService implements CRUDInterface<Transaction> {
     }
     
     /**
+     * Delete all transactions that belong to a specific wallet
+     */
+    public void deleteByWalletId(String walletId) {
+        String sql = "DELETE FROM transaction_records WHERE walletId = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, walletId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting transactions for wallet: " + e.getMessage());
+        }
+    }
+    
+    /**
      * Get total income across all transactions
      */
     public double getTotalIncome() {
@@ -182,7 +196,7 @@ public class TransactionService implements CRUDInterface<Transaction> {
             }
         } catch (SQLException e) {
             System.err.println("Error calculating total income: " + e.getMessage());
-        }
+        } 
         return 0.0;
     }
     

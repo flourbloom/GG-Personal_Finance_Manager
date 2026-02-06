@@ -476,8 +476,21 @@ public class WalletsController implements Initializable {
             } else if (dialogButton == deleteButtonType) {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
                 confirm.setTitle("Delete Wallet");
-                confirm.setHeaderText("Are you sure you want to delete this wallet?");
-                confirm.setContentText("This action cannot be undone.");
+                confirm.setHeaderText("Delete \"" + wallet.getName() + "\"?");
+
+                Label warningLine = new Label("Deleting this wallet will also permanently remove all transactions linked to it.");
+                warningLine.setWrapText(true);
+                warningLine.setStyle("-fx-text-fill: #dc2626; -fx-font-weight: 600; -fx-font-size: 14px;");
+
+                Label reminderLine = new Label("This action cannot be undone.");
+                reminderLine.setWrapText(true);
+                reminderLine.setStyle("-fx-text-fill: #b91c1c; -fx-font-size: 13px;");
+
+                VBox warningBox = new VBox(6, warningLine, reminderLine);
+                warningBox.setPadding(new Insets(5, 0, 0, 0));
+                warningBox.setStyle("-fx-background-color: #fee2e2; -fx-padding: 12; -fx-background-radius: 8; -fx-border-color: #fecaca; -fx-border-radius: 8;");
+                confirm.getDialogPane().setContent(warningBox);
+                confirm.getDialogPane().setPrefWidth(460);
                 confirm.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
                         dataStore.deleteWallet(wallet.getId());

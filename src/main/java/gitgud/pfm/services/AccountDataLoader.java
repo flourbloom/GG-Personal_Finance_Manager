@@ -70,6 +70,7 @@ public class AccountDataLoader {
     }
     
     public void deleteWallet(String walletId) {
+        transactionService.deleteByWalletId(walletId);
         walletService.delete(walletId);
     }
     
