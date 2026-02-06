@@ -3,6 +3,7 @@ package gitgud.pfm.Controllers;
 import gitgud.pfm.services.AccountDataLoader;
 import gitgud.pfm.Models.Category;
 import gitgud.pfm.Models.Transaction;
+import gitgud.pfm.Models.Wallet;
 import gitgud.pfm.services.CategoryService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -46,6 +47,7 @@ public class TransactionsController implements Initializable {
     private AccountDataLoader dataStore;
     private CategoryService categoryService;
     private Map<String, String> categoryIdToNameMap;
+    private Map<String, String> walletIdToNameMap;
     private int currentPage = 1;
     private int itemsPerPage = 20;
     private List<Transaction> filteredTransactions;
@@ -55,8 +57,9 @@ public class TransactionsController implements Initializable {
         dataStore = AccountDataLoader.getInstance();
         categoryService = new CategoryService();
         
-        // Build category ID to name mapping
+        // Build category & wallet mappings
         buildCategoryMap();
+        buildWalletMap();
         
         addTransactionButton.setOnAction(e -> showAddTransactionDialog());
         prevPageButton.setOnAction(e -> previousPage());
@@ -99,9 +102,27 @@ public class TransactionsController implements Initializable {
         }
     }
     
+    private void buildWalletMap() {
+        walletIdToNameMap = new HashMap<>();
+        List<Wallet> wallets = dataStore.getWallets();
+        for (Wallet wallet : wallets) {
+            walletIdToNameMap.put(wallet.getId(), wallet.getName());
+        }
+    }
+
     private String getCategoryNameById(String categoryId) {
         if (categoryId == null) return "Other";
         return categoryIdToNameMap.getOrDefault(categoryId, categoryId);
+    }
+
+    private String getWalletNameById(String walletId) {
+        if (walletId == null || walletId.isEmpty()) {
+            return "—";
+        }
+        if (walletIdToNameMap == null) {
+            buildWalletMap();
+        }
+        return walletIdToNameMap.getOrDefault(walletId, walletId);
     }
 
     private void applyFilters() {
@@ -111,6 +132,7 @@ public class TransactionsController implements Initializable {
 
     private void loadTransactions() {
         transactionsList.getChildren().clear();
+        buildWalletMap(); // refresh wallet names in case wallets changed
         
         List<Transaction> allTransactions = dataStore.getTransactions();
         
@@ -216,7 +238,7 @@ public class TransactionsController implements Initializable {
         dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
         // Wallet
-        Label walletLabel = new Label(tx.getWalletId() != null ? tx.getWalletId() : "—");
+        Label walletLabel = new Label(getWalletNameById(tx.getWalletId()));
         walletLabel.setPrefWidth(140);
         walletLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
