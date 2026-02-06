@@ -11,6 +11,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -240,6 +242,13 @@ public class TransactionsController implements Initializable {
         editBtn.setOnAction(e -> showEditTransactionDialog(tx));
 
         item.getChildren().addAll(nameLabel, categoryLabel, dateLabel, walletLabel, spacer, amountLabel, editBtn);
+
+        item.setOnMouseClicked(event -> {
+            if (isPrimaryDoubleClick(event)) {
+                showEditTransactionDialog(tx);
+            }
+        });
+
         return item;
     }
 
@@ -331,5 +340,9 @@ public class TransactionsController implements Initializable {
     public void refresh() {
         currentPage = 1;
         loadTransactions();
+    }
+
+    private boolean isPrimaryDoubleClick(MouseEvent event) {
+        return event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2;
     }
 }

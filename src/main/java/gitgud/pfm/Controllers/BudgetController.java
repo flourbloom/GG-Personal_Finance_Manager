@@ -12,6 +12,8 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 
 import java.net.URL;
@@ -334,6 +336,13 @@ public class BudgetController implements Initializable {
         editBtn.setOnAction(e -> showEditBudgetDialog(budget));
 
         item.getChildren().addAll(info, progressSection, editBtn);
+
+        item.setOnMouseClicked(event -> {
+            if (isPrimaryDoubleClick(event)) {
+                showEditBudgetDialog(budget);
+            }
+        });
+
         return item;
     }
 
@@ -893,5 +902,9 @@ public class BudgetController implements Initializable {
                 }
             });
         }
+    }
+
+    private boolean isPrimaryDoubleClick(MouseEvent event) {
+        return event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2;
     }
 }

@@ -10,6 +10,8 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.util.Duration;
 
@@ -230,7 +232,13 @@ public class GoalsController implements Initializable {
         HBox footer = createCardFooter(goal, gradientColor);
 
         card.getChildren().addAll(header, progressSection, infoGrid, footer);
-        
+
+        card.setOnMouseClicked(event -> {
+            if (isPrimaryDoubleClick(event)) {
+                showEditGoalDialog(goal);
+            }
+        });
+
         return card;
     }
 
@@ -1357,5 +1365,9 @@ public class GoalsController implements Initializable {
     public void refresh() {
         updateSummary();
         loadGoals();
+    }
+
+    private boolean isPrimaryDoubleClick(MouseEvent event) {
+        return event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2;
     }
 }
