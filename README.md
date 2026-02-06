@@ -9,7 +9,7 @@ Modern JavaFX + CLI application for managing wallets, transactions, budgets, goa
 - Shared service layer backed by SQLite, keeping GUI and CLI in sync.
 
 ## Prerequisites
-- JDK 17 or newer.
+- JDK 21 or newer.
 - Maven 3.9+ with `mvn` on your `PATH`.
 - No external database required; an embedded SQLite file (`GG_Personal_Finance.db`) is created automatically.
 
