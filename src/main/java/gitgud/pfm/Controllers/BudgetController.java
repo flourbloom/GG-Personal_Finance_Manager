@@ -30,16 +30,17 @@ public class BudgetController implements Initializable {
 
     @FXML private ScrollPane rootPane;
     @FXML private Button addBudgetButton;
-    @FXML private Label totalBudgetLabel;
-    @FXML private Label totalSpentLabel;
-    @FXML private Label remainingLabel;
-    @FXML private Label activeBudgetsLabel;
-    @FXML private ComboBox<String> monthSelector;
-    @FXML private Label budgetSpentLabel;
-    @FXML private Label budgetLimitLabel;
-    @FXML private Label budgetPercentLabel;
-    @FXML private ProgressBar budgetProgress;
-    @FXML private Label budgetHintLabel;
+    // Removed UI elements - no longer in FXML
+    // @FXML private Label totalBudgetLabel;
+    // @FXML private Label totalSpentLabel;
+    // @FXML private Label remainingLabel;
+    // @FXML private Label activeBudgetsLabel;
+    // @FXML private ComboBox<String> monthSelector;
+    // @FXML private Label budgetSpentLabel;
+    // @FXML private Label budgetLimitLabel;
+    // @FXML private Label budgetPercentLabel;
+    // @FXML private ProgressBar budgetProgress;
+    // @FXML private Label budgetHintLabel;
     @FXML private ComboBox<String> filterCombo;
     @FXML private VBox budgetsList;
 
@@ -66,14 +67,14 @@ public class BudgetController implements Initializable {
         // Register for budget refresh notifications
         dataStore.addBudgetRefreshListener(this::refresh);
         
-        // Setup month selector
-        if (monthSelector != null) {
-            monthSelector.setItems(FXCollections.observableArrayList(
-                "This Month", "Last Month", "Last 3 Months"
-            ));
-            monthSelector.setValue("This Month");
-            monthSelector.setOnAction(e -> updateMonthlyOverview());
-        }
+        // Month selector removed from UI
+        // if (monthSelector != null) {
+        //     monthSelector.setItems(FXCollections.observableArrayList(
+        //         "This Month", "Last Month", "Last 3 Months"
+        //     ));
+        //     monthSelector.setValue("This Month");
+        //     monthSelector.setOnAction(e -> updateMonthlyOverview());
+        // }
         
         // Setup filter combo
         if (filterCombo != null) {
@@ -90,8 +91,9 @@ public class BudgetController implements Initializable {
             addBudgetButton.setOnAction(e -> showAddBudgetDialog());
         }
         
-        updateSummary();
-        updateMonthlyOverview();
+        // Summary and monthly overview sections removed from UI
+        // updateSummary();
+        // updateMonthlyOverview();
         loadBudgets();
     }
 
@@ -135,71 +137,73 @@ public class BudgetController implements Initializable {
     }
 
     private void updateSummary() {
-        List<Budget> budgets = dataStore.getBudgets();
-        
-        // Calculate expenses for current month (This Month)
-        LocalDate[] currentMonthRange = getDateRangeFromSelector("This Month");
-        String startDate = DateFormatUtil.formatToIso(currentMonthRange[0]);
-        String endDate = DateFormatUtil.formatToIso(currentMonthRange[1]);
-        double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
-        
-        double totalBudget = budgets.stream().mapToDouble(Budget::getLimitAmount).sum();
-        double remaining = Math.max(0, totalBudget - totalExpenses);
-        
-        totalBudgetLabel.setText(String.format("$%.2f", totalBudget));
-        totalSpentLabel.setText(String.format("$%.2f", totalExpenses));
-        remainingLabel.setText(String.format("$%.2f", remaining));
-        activeBudgetsLabel.setText(String.valueOf(budgets.size()));
+        // Summary section removed from UI - method no longer needed
+        // List<Budget> budgets = dataStore.getBudgets();
+        // 
+        // // Calculate expenses for current month (This Month)
+        // LocalDate[] currentMonthRange = getDateRangeFromSelector("This Month");
+        // String startDate = DateFormatUtil.formatToIso(currentMonthRange[0]);
+        // String endDate = DateFormatUtil.formatToIso(currentMonthRange[1]);
+        // double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
+        // 
+        // double totalBudget = budgets.stream().mapToDouble(Budget::getLimitAmount).sum();
+        // double remaining = Math.max(0, totalBudget - totalExpenses);
+        // 
+        // totalBudgetLabel.setText(String.format("$%.2f", totalBudget));
+        // totalSpentLabel.setText(String.format("$%.2f", totalExpenses));
+        // remainingLabel.setText(String.format("$%.2f", remaining));
+        // activeBudgetsLabel.setText(String.valueOf(budgets.size()));
     }
 
     private void updateMonthlyOverview() {
-        List<Budget> budgets = dataStore.getBudgets();
-        
-        // Get selected time period
-        String selectedPeriod = monthSelector != null ? monthSelector.getValue() : "This Month";
-        LocalDate[] dateRange = getDateRangeFromSelector(selectedPeriod);
-        String startDate = DateFormatUtil.formatToIso(dateRange[0]);
-        String endDate = DateFormatUtil.formatToIso(dateRange[1]);
-        
-        // Calculate expenses for selected period
-        double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
-        
-        // Find the monthly budget limit
-        double monthlyLimit = 0;
-        for (Budget budget : budgets) {
-            if (budget.getPeriodType() == Budget.PeriodType.MONTHLY) {
-                monthlyLimit = budget.getLimitAmount();
-                break;
-            }
-        }
-        
-        // If no monthly budget, use total or default
-        if (monthlyLimit == 0 && !budgets.isEmpty()) {
-            monthlyLimit = budgets.get(0).getLimitAmount();
-        }
-        if (monthlyLimit == 0) {
-            monthlyLimit = 3000.0; // Default
-        }
-        
-        double percent = monthlyLimit > 0 ? Math.min(100, (totalExpenses / monthlyLimit) * 100) : 0;
-        double remaining = Math.max(0, monthlyLimit - totalExpenses);
-        
-        budgetSpentLabel.setText(String.format("$%.2f", totalExpenses));
-        budgetLimitLabel.setText(String.format("$%.2f", monthlyLimit));
-        budgetPercentLabel.setText(String.format("%.0f%%", percent));
-        budgetProgress.setProgress(percent / 100.0);
-        
-        // Update hint based on spending
-        if (percent >= 100) {
-            budgetHintLabel.setText("⚠️ Budget exceeded!");
-            budgetHintLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #ef4444;");
-        } else if (percent >= 80) {
-            budgetHintLabel.setText(String.format("⚠️ $%.2f remaining - approaching limit", remaining));
-            budgetHintLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #f59e0b;");
-        } else {
-            budgetHintLabel.setText(String.format("$%.2f remaining this month", remaining));
-            budgetHintLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b;");
-        }
+        // Monthly overview section removed from UI - method no longer needed
+        // List<Budget> budgets = dataStore.getBudgets();
+        // 
+        // // Get selected time period
+        // String selectedPeriod = monthSelector != null ? monthSelector.getValue() : "This Month";
+        // LocalDate[] dateRange = getDateRangeFromSelector(selectedPeriod);
+        // String startDate = DateFormatUtil.formatToIso(dateRange[0]);
+        // String endDate = DateFormatUtil.formatToIso(dateRange[1]);
+        // 
+        // // Calculate expenses for selected period
+        // double totalExpenses = calculateTotalExpensesInDateRange(startDate, endDate);
+        // 
+        // // Find the monthly budget limit
+        // double monthlyLimit = 0;
+        // for (Budget budget : budgets) {
+        //     if (budget.getPeriodType() == Budget.PeriodType.MONTHLY) {
+        //         monthlyLimit = budget.getLimitAmount();
+        //         break;
+        //     }
+        // }
+        // 
+        // // If no monthly budget, use total or default
+        // if (monthlyLimit == 0 && !budgets.isEmpty()) {
+        //     monthlyLimit = budgets.get(0).getLimitAmount();
+        // }
+        // if (monthlyLimit == 0) {
+        //     monthlyLimit = 3000.0; // Default
+        // }
+        // 
+        // double percent = monthlyLimit > 0 ? Math.min(100, (totalExpenses / monthlyLimit) * 100) : 0;
+        // double remaining = Math.max(0, monthlyLimit - totalExpenses);
+        // 
+        // budgetSpentLabel.setText(String.format("$%.2f", totalExpenses));
+        // budgetLimitLabel.setText(String.format("$%.2f", monthlyLimit));
+        // budgetPercentLabel.setText(String.format("%.0f%%", percent));
+        // budgetProgress.setProgress(percent / 100.0);
+        // 
+        // // Update hint based on spending
+        // if (percent >= 100) {
+        //     budgetHintLabel.setText("⚠️ Budget exceeded!");
+        //     budgetHintLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #ef4444;");
+        // } else if (percent >= 80) {
+        //     budgetHintLabel.setText(String.format("⚠️ $%.2f remaining - approaching limit", remaining));
+        //     budgetHintLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #f59e0b;");
+        // } else {
+        //     budgetHintLabel.setText(String.format("$%.2f remaining this month", remaining));
+        //     budgetHintLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b;");
+        // }
     }
 
     private void loadBudgets() {
@@ -828,8 +832,8 @@ public class BudgetController implements Initializable {
     
     public void refresh() {
         javafx.application.Platform.runLater(() -> {
-            updateSummary();
-            updateMonthlyOverview();
+            // updateSummary();  // Summary section removed from UI
+            // updateMonthlyOverview();  // Monthly overview section removed from UI
             loadBudgets();
         });
     }
